@@ -20,7 +20,7 @@ class StackedChartWidget extends StatelessWidget {
           labelStyle: TextStyle(color: Colors.blueGrey, fontSize: 0),
           majorGridLines: MajorGridLines(width: 0),
           isVisible: true,
-          title: AxisTitle(text: "Epcho Index")),
+          title: AxisTitle(text: "Epoch Index")),
       primaryYAxis: const NumericAxis(
         isVisible: true,
         interval: 0.2,
@@ -48,7 +48,7 @@ class StackedChartWidget extends StatelessWidget {
           dataSource: model.list,
           color: const Color(0xFF306A90),
           xValueMapper: (ChartData sales, _) => sales.x,
-          yValueMapper: (ChartData sales, _) => sales.rem,
+          yValueMapper: (ChartData sales, _) => sales.n1,
           legendIconType: LegendIconType.rectangle,
           name: 'N1'),
       StackedArea100Series<ChartData, num>(
@@ -56,7 +56,7 @@ class StackedChartWidget extends StatelessWidget {
           dataSource: model.list,
           color: const Color(0xFF1E948E),
           xValueMapper: (ChartData sales, _) => sales.x,
-          yValueMapper: (ChartData sales, _) => sales.n1,
+          yValueMapper: (ChartData sales, _) => sales.n2,
           legendIconType: LegendIconType.rectangle,
           name: 'N2'),
       StackedArea100Series<ChartData, num>(
@@ -64,7 +64,7 @@ class StackedChartWidget extends StatelessWidget {
           color: const Color(0xFF33B979),
           dataSource: model.list,
           xValueMapper: (ChartData sales, _) => sales.x,
-          yValueMapper: (ChartData sales, _) => sales.n2,
+          yValueMapper: (ChartData sales, _) => sales.n3,
           legendIconType: LegendIconType.rectangle,
           name: 'N3'),
       StackedArea100Series<ChartData, num>(
@@ -72,7 +72,7 @@ class StackedChartWidget extends StatelessWidget {
           dataSource: model.list,
           color: const Color(0xFF93C947),
           xValueMapper: (ChartData sales, _) => sales.x,
-          yValueMapper: (ChartData sales, _) => sales.n3,
+          yValueMapper: (ChartData sales, _) => sales.rem,
           legendIconType: LegendIconType.rectangle,
           name: 'REM')
     ];

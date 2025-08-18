@@ -18,10 +18,10 @@ class SleepStageProbModel {
       List<dynamic> ele = element as List<dynamic>;
 
       double w = ele[0];
-      double rem = ele[1];
-      double n1 = ele[2];
-      double n2 = ele[3];
-      double n3 = ele[4];
+      double n1 = ele[1];
+      double n2 = ele[2];
+      double n3 = ele[3];
+      double rem = ele[4];
 
       ele.forEach((element) {
         double el = element as double;
