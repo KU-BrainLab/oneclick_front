@@ -61,8 +61,7 @@ class Graph1Model {
     );
   }
 
-  factory Graph1Model.fromJson2(List<dynamic> jsonList) {
-
+  factory Graph1Model.fromJson2(List<dynamic> jsonList) { // maybe mean data
 
     List<FlSpot> dataList = [];
     double minX = 0;
@@ -71,6 +70,7 @@ class Graph1Model {
     double maxY = -99999;
     double intervalX = maxX / 5;
 
+    
     for(int i = 0; i < maxX; i++) {
       double y = jsonList[i] as double;
 

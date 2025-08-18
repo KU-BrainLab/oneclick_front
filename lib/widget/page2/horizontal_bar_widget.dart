@@ -50,7 +50,7 @@ class HorizontalBarWidget extends StatelessWidget {
                     dataLabelSettings: DataLabelSettings(isVisible: true,
                         builder: (dynamic data, dynamic point, dynamic series, int pointIndex, int seriesIndex) {
                           return Transform.translate(offset: Offset(-15, -5),
-                              child: Text("${data.y.toStringAsFixed(2)}"));
+                              child: Text("${data.y.toStringAsFixed(2)}%"));
                         },
                       alignment: ChartAlignment.far
                     ),
@@ -97,9 +97,9 @@ class HorizontalBarWidget extends StatelessWidget {
                   dataLabelSettings: DataLabelSettings(isVisible: true,
                       builder: (dynamic data, dynamic point, dynamic series, int pointIndex, int seriesIndex) {
                          return Transform.translate(
-                           offset: const Offset(30, -5),
+                           offset: const Offset(41, -5),
 
-                             child: Text("${data.y.toStringAsFixed(2)}"));
+                             child: Text("${data.y.toStringAsFixed(2)}%"));
                        },
                       alignment: ChartAlignment.far,
                   ),
