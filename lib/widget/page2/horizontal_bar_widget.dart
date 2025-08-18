@@ -6,22 +6,23 @@ class HorizontalBarWidget extends StatelessWidget {
   final RegionPsdModel model;
   HorizontalBarWidget({Key? key, required this.model}): super(key: key);
 
+
   late List<_ChartData> left = [
-  _ChartData('delta', model.left[0], const Color(0xFFBEE9E8)),
-  _ChartData('theta', model.left[1], const Color(0xFF62B6CB)),
+  _ChartData('delta', model.left[4], const Color(0xFF5FA8D3)),
+  _ChartData('theta', model.left[3], const Color(0xFFCAE9FF)),
   _ChartData('alpha', model.left[2], const Color(0xFF1B4965)),
-  _ChartData('beta', model.left[3], const Color(0xFFCAE9FF)),
-  _ChartData('gamma', model.left[4], const Color(0xFF5FA8D3)),
+  _ChartData('beta', model.left[1], const Color(0xFF62B6CB)),
+  _ChartData('gamma', model.left[0], const Color(0xFFBEE9E8)),
   ];
 
   late List<_ChartData> right = [
-    _ChartData('delta', model.right[0], const Color(0xFFBEE9E8)),
-    _ChartData('theta', model.right[1], const Color(0xFF62B6CB)),
+    _ChartData('delta', model.right[4], const Color(0xFF5FA8D3)),
+    _ChartData('theta', model.right[3], const Color(0xFFCAE9FF)),
     _ChartData('alpha', model.right[2], const Color(0xFF1B4965)),
-    _ChartData('beta', model.right[3], const Color(0xFFCAE9FF)),
-    _ChartData('gamma', model.right[4], const Color(0xFF5FA8D3)),
+    _ChartData('beta', model.right[1], const Color(0xFF62B6CB)),
+    _ChartData('gamma', model.right[0], const Color(0xFFBEE9E8)),
   ];
-
+ 
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -79,7 +80,7 @@ class HorizontalBarWidget extends StatelessWidget {
           child: SfCartesianChart(
               enableAxisAnimation: false,
               title: const ChartTitle(text: "Right", alignment: ChartAlignment.far),
-              primaryXAxis: const CategoryAxis(isVisible: false, opposedPosition: true),
+              primaryXAxis: const CategoryAxis(isVisible: false, opposedPosition: false),
               primaryYAxis: NumericAxis(minimum: 0, maximum: model.max + 2*(model.interval), interval: model.interval,
                 axisLabelFormatter: (AxisLabelRenderDetails args) {
                   return ChartAxisLabel('${double.parse(args.text).toInt()}', null);

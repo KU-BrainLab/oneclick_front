@@ -15,15 +15,20 @@ class RegionPsdModel {
     List<double> left = [];
     List<double> right = [];
     double max = 0;
+
     leftList.forEach((element) {
+      
       double ele = (element as double) * 100;
+      
       left.add(ele);
       if(max < ele) {
         max = ele;
       }
     });
+
     rightList.forEach((element) {
       double ele = (element as double) * 100;
+
       right.add(ele);
       if(max < ele) {
         max = ele;
@@ -31,7 +36,6 @@ class RegionPsdModel {
     });
 
     double interval = 5;
-
 
     return RegionPsdModel(left: left, right: right, max: max, interval: interval);
   }
