@@ -51,7 +51,7 @@ class Graph1 extends StatelessWidget {
 
   Widget bottomTitleWidgets(double value, TitleMeta meta) {
 
-    const style = TextStyle(fontWeight: FontWeight.normal, fontSize: 10, color: Colors.grey);
+    const style = TextStyle(fontWeight: FontWeight.normal, fontSize: 10);
 
     return SideTitleWidget(
       axisSide: meta.axisSide,

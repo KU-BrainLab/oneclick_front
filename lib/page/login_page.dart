@@ -135,8 +135,21 @@ class _LoginPageState extends State<LoginPage> {
         ),
         const SizedBox(height: 20),
         if(isInvalid)
-          const Text("로그인 실패했습니다.", style: TextStyle(color: Colors.redAccent))
+          const Text("로그인 실패했습니다.", style: TextStyle(color: Colors.redAccent)),
+          const SizedBox(height: 20),
+        Container(
+          child: Text(
+            'last update: 2025.08.19',
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 12,
+            ),
+          ),
+        )
+
+
       ],
+
     );
   }
 

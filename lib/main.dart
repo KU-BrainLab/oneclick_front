@@ -43,4 +43,4 @@ class _OmniFitAppState extends State<OmniFitApp> {
       routeInformationProvider: router.routeInformationProvider,
     );
   }
-}
+} 
