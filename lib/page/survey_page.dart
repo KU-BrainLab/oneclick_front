@@ -65,7 +65,18 @@ class _SurveyPageState extends State<SurveyPage> {
         if(surveyModel.questionnaire.psql != null) psqlkList.add(SalesData(DateFormat("yy.MM.dd").format(surveyModel.measuementDate!), double.parse(surveyModel.questionnaire.psql!)));
         if(surveyModel.questionnaire.isi != null) isiList.add(SalesData(DateFormat("yy.MM.dd").format(surveyModel.measuementDate!), double.parse(surveyModel.questionnaire.isi!)));
         if(surveyModel.questionnaire.ess != null) essList.add(SalesData(DateFormat("yy.MM.dd").format(surveyModel.measuementDate!), double.parse(surveyModel.questionnaire.ess!)));
-        if(surveyModel.questionnaire.compass31 != null) compass31List.add(SalesData(DateFormat("yy.MM.dd").format(surveyModel.measuementDate!), double.parse(surveyModel.questionnaire.compass31!)));
+        if (surveyModel.questionnaire.compass31 != null) {
+          
+          double ori = double.parse(surveyModel.questionnaire.compass31!);
+          double tmp = (ori * 100).round() / 100.0;
+
+          compass31List.add(
+            SalesData(
+              DateFormat("yy.MM.dd").format(surveyModel.measuementDate!),
+              tmp
+            )
+          );
+        }
         if(surveyModel.questionnaire.bai != null) baiList.add(SalesData(DateFormat("yy.MM.dd").format(surveyModel.measuementDate!), double.parse(surveyModel.questionnaire.bai!)));
         if(surveyModel.questionnaire.bdi2 != null) bdi2List.add(SalesData(DateFormat("yy.MM.dd").format(surveyModel.measuementDate!), double.parse(surveyModel.questionnaire.bdi2!)));
 
@@ -376,14 +387,31 @@ class _SurveyPageState extends State<SurveyPage> {
     );
   }
 
+  NumericAxis _buildPrimaryYAxis(String title, double maximum, List<PlotBand> plotBand) {
+
+    if (title == 'COMPASS 31') {
+      return NumericAxis(maximum: maximum, minimum: 0, interval: 20, plotBands: plotBand);
+    } 
+    else if (title == 'BAI' || title == 'BDI2') {
+      return NumericAxis(maximum: maximum, minimum: 0, interval: 10, plotBands: plotBand);
+    } 
+    else {
+      return NumericAxis(maximum: maximum, minimum: 0, interval: 5, plotBands: plotBand);
+    }
+  }
+
   Widget _buildChart(String title, List<SalesData> list, double maximum, List<PlotBand> plotBand) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 20),
+
+      margin: title == 'IRLS' 
+          ? const EdgeInsets.symmetric(vertical: 0)
+          : const EdgeInsets.symmetric(vertical: 20),
+    
       child: Stack(
         children: [
           SfCartesianChart(
               primaryXAxis: const CategoryAxis(),
-              primaryYAxis: NumericAxis(maximum: maximum, minimum: 0, interval: 5, plotBands: plotBand),
+              primaryYAxis: _buildPrimaryYAxis(title, maximum, plotBand),
               title: ChartTitle(text: title),
               legend: const Legend(isVisible: true),
               series: <LineSeries<SalesData, String>>[
