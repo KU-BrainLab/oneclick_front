@@ -32,7 +32,7 @@ class Graph1 extends StatelessWidget {
             sideTitles: SideTitles(showTitles: true, reservedSize: 22, interval: graph1model.intervalX, getTitlesWidget: bottomTitleWidgets),
           ),
           leftTitles: AxisTitles(
-            sideTitles: SideTitles(showTitles: true, getTitlesWidget: leftTitleWidgets, reservedSize: 22, interval: graph1model.intervalY),
+            sideTitles: SideTitles(showTitles: true, getTitlesWidget: leftTitleWidgets, reservedSize: 40, interval: graph1model.intervalY),
           ),
           topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
@@ -60,7 +60,17 @@ class Graph1 extends StatelessWidget {
   }
 
   Widget leftTitleWidgets(double value, TitleMeta meta) {
+    if (value == meta.min) {
+      return const SizedBox();
+    }
 
-    return Text("${value.toStringAsFixed(1)}", style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 10), textAlign: TextAlign.left);
+    const style = TextStyle(
+      fontWeight: FontWeight.normal,
+      fontSize: 10
+    );
+    
+    String text = value.toStringAsFixed(1);
+
+    return Text(text, style: style, textAlign: TextAlign.left);
   }
 }
