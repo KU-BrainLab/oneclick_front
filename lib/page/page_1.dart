@@ -86,10 +86,25 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
             child: ListView(
               children: [
                 const SizedBox(height: 20),
-                Row(
-                  children: [
-                    const Spacer(),
-                    OutlinedButton(
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40.0),
+                  child: Row(
+                    children: [
+                      OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(0),
+                          ),
+                          side: const BorderSide(width: 2, color: Colors.green),
+                          foregroundColor: Colors.green, backgroundColor: Colors.green,
+                          elevation: 10.0,
+                        ),
+                        onPressed: AppService.instance.manageBack,
+                        child: const Text("뒤로가기", style: TextStyle(color: Colors.white),),
+                      ),
+
+                      const Spacer(),
+                      OutlinedButton(
                         style: OutlinedButton.styleFrom(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(0),
@@ -99,9 +114,10 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
                           elevation: 10.0,
                         ),
                         onPressed: AppService.instance.manageAutoLogout,
-                        child: const Text("로그아웃", style: TextStyle(color: Colors.white),)),
-                    const SizedBox(width: 40),
-                  ],
+                        child: const Text("로그아웃", style: TextStyle(color: Colors.white),),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 20),
                 Header(headText: "HRV(Heart Rate Variability) 결과서", userModel: widget.user),
@@ -112,7 +128,7 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
                     children: [
                       if(graph1model != null) Graph1(graph1model: graph1model!),
                       const SizedBox(height: 40),
-                      if(graph1model != null) MultiColorLineChartWidget(model: multiColorLineChartModel!),
+                      if(multiColorLineChartModel != null) MultiColorLineChartWidget(model: multiColorLineChartModel!),
                       Row(
                         children: [
                           MouseRegion(
@@ -165,7 +181,7 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
                                 decoration: BoxDecoration(
                                   color: index == 2 ? Colors.grey.withOpacity(0.4) : Colors.white,
                                   borderRadius: const BorderRadius.all(Radius.circular(4)),
-                                ),
+                                ),  
                                 width: 100,
                                 height: 30,
                                 child: const Center(child: Text("Recovery 1")),
@@ -288,14 +304,14 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
                                       context: context,
                                       builder: (BuildContext context) {
                                         return AlertDialog(
-                                          title: Text('Note'),
+                                          title: const Text('Note'),
                                           content: Text(text),
                                           actions: [
                                             TextButton(
                                               onPressed: () {
                                                 Navigator.of(context).pop();
                                               },
-                                              child: Text('OK'),
+                                              child: const Text('OK'),
                                             ),
                                           ],
                                         );

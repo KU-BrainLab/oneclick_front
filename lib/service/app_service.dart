@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hive/hive.dart';
 import 'package:omnifit_front/models/user_data.dart';
 import 'package:omnifit_front/page/login_page.dart';
+import 'package:omnifit_front/page/users_page.dart';
 
 class AppService extends ChangeNotifier {
   /// Ensure to make this as a singleton class.
@@ -34,6 +35,10 @@ class AppService extends ChangeNotifier {
     storageBox.put(_kCurrentUserKey, userData);
     currentUser = userData;
     notifyListeners();
+  }
+
+  void manageBack(){
+    context.go(UsersPage.route);
   }
 
   void manageAutoLogout() {

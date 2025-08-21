@@ -164,40 +164,56 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
   }
 
 
+
   @override
   Widget build(BuildContext context) {
-
     if (isLoading) {
-      return Scaffold(backgroundColor: Colors.white,body: Container());
+      return Scaffold(     backgroundColor: Colors.white,body: Container());
     }
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Center(
-            child: Container(
-          constraints: const BoxConstraints(maxWidth: 1000),
-          child: ListView(
-            children: [
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  const Spacer(),
-                  OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(0),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 900),
+            child: ListView(
+              children: [
+                const SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40.0),
+                  child: Row(
+                    children: [
+                      OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(0),
+                          ),
+                          side: const BorderSide(width: 2, color: Colors.green),
+                          foregroundColor: Colors.green, backgroundColor: Colors.green,
+                          elevation: 10.0,
                         ),
-                        side: const BorderSide(width: 2, color: Colors.green),
-                        foregroundColor: Colors.green, backgroundColor: Colors.green,
-                        elevation: 10.0,
+                        onPressed: AppService.instance.manageBack,
+                        child: const Text("뒤로가기", style: TextStyle(color: Colors.white),),
                       ),
-                      onPressed: AppService.instance.manageAutoLogout,
-                      child: const Text("로그아웃", style: TextStyle(color: Colors.white),)),
-                  const SizedBox(width: 40),
-                ],
-              ),
-              const SizedBox(height: 20),
+
+                      const Spacer(),
+                      OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(0),
+                          ),
+                          side: const BorderSide(width: 2, color: Colors.green),
+                          foregroundColor: Colors.green, backgroundColor: Colors.green,
+                          elevation: 10.0,
+                        ),
+                        onPressed: AppService.instance.manageAutoLogout,
+                        child: const Text("로그아웃", style: TextStyle(color: Colors.white),),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
               Header(headText: "EEG 결과서", userModel: widget.user),
               Padding(
                 padding: const EdgeInsets.all(30),
