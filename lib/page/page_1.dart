@@ -15,7 +15,7 @@ import 'package:omnifit_front/widget/page1/page1_tab1.dart';
 
 class Page1 extends StatefulWidget {
   final UserModel user;
-  static const route = '/egg/hrv';
+  static const route = '/ecg/hrv';
 
   const Page1({Key? key, required this.user}) : super(key: key);
 
@@ -250,7 +250,7 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
                                     borderSide: BorderSide(
                                       color: Colors.black,
                                       width: 2.0,
-                                    )
+                                    ) 
                                 )
                             ),
                           ),
