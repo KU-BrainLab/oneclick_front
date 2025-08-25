@@ -1,7 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:omnifit_front/models/graph1_model.dart';
-
+import 'dart:math';
 /// Chart import
 import 'package:syncfusion_flutter_charts/charts.dart';
 
@@ -21,6 +21,10 @@ class DefaultLineChart extends StatelessWidget {
 
   /// Get the cartesian chart with default line series
   Container _buildDefaultLineChart() {
+    double y0 = min(0.0, model.minY);
+    if(y0 == -5){
+      y0 = 0;
+    }
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: Colors.black)
@@ -31,12 +35,13 @@ class DefaultLineChart extends StatelessWidget {
             minimum: model.minX,
             interval: 5,
             maximum: model.maxX,
+            rangePadding: ChartRangePadding.none,
             labelIntersectAction: AxisLabelIntersectAction.none,
             majorGridLines: const MajorGridLines(width: 1),
             title: const AxisTitle(text: "Frequency (Hz)"),
           ),
           primaryYAxis: NumericAxis(
-            minimum: model.minY,
+            minimum: y0,
             maximum: model.maxY,
             interval: 5,
             labelIntersectAction: AxisLabelIntersectAction.none,
@@ -44,7 +49,7 @@ class DefaultLineChart extends StatelessWidget {
             axisLabelFormatter: (AxisLabelRenderDetails args) {
               return ChartAxisLabel('${double.parse(args.text).toInt()}', null);
             },
-            title: const AxisTitle(text: "10*log10(Power)"),
+            title: const AxisTitle(text: "10*log10(Power) + C"),
           ),
           series: <CartesianSeries>[
             FastLineSeries<FlSpot, double>(
@@ -52,7 +57,6 @@ class DefaultLineChart extends StatelessWidget {
                 xValueMapper: (FlSpot data, _) => data.x,
                 yValueMapper: (FlSpot data, _) => data.y,
                 animationDuration: 0,
-
             ),
           ],
       ),
