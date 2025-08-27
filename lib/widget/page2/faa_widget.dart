@@ -34,7 +34,7 @@ class FaaWidget extends StatelessWidget {
                 onTap: () {
                   showDialog1(context, "$BASE_URL${model.delta}");
                 },
-                child: Image.network("$BASE_URL${model.delta}", width: 150, filterQuality: FilterQuality.high)),
+                child: Image.network("$BASE_URL${model.delta}", width: 159, filterQuality: FilterQuality.high)),
             ),
             const Text("Delta"),
           ],
@@ -48,7 +48,7 @@ class FaaWidget extends StatelessWidget {
                 onTap: () {
                   showDialog1(context, "$BASE_URL${model.theta}");
                 },
-                child: Image.network("$BASE_URL${model.theta}", width: 150, filterQuality: FilterQuality.high)),
+                child: Image.network("$BASE_URL${model.theta}", width: 159, filterQuality: FilterQuality.high)),
             ),
             const Text("Theta"),
           ],
@@ -62,7 +62,7 @@ class FaaWidget extends StatelessWidget {
                 onTap: () {
                   showDialog1(context, "$BASE_URL${model.alpha}");
                 },
-                child: Image.network("$BASE_URL${model.alpha}", width: 150, filterQuality: FilterQuality.high)),
+                child: Image.network("$BASE_URL${model.alpha}", width: 159, filterQuality: FilterQuality.high)),
             ),
             const Text("Alpha"),
           ],
@@ -76,7 +76,7 @@ class FaaWidget extends StatelessWidget {
                 onTap: () {
                   showDialog1(context, "$BASE_URL${model.beta}");
                 },
-                child: Image.network("$BASE_URL${model.beta}", width: 150, filterQuality: FilterQuality.high)),
+                child: Image.network("$BASE_URL${model.beta}", width: 159, filterQuality: FilterQuality.high)),
             ),
             const Text("Beta"),
           ],
@@ -90,7 +90,7 @@ class FaaWidget extends StatelessWidget {
                 onTap: () {
                   showDialog1(context, "$BASE_URL${model.gamma}");
                 },
-                child: Image.network("$BASE_URL${model.gamma}", width: 150, filterQuality: FilterQuality.high)),
+                child: Image.network("$BASE_URL${model.gamma}", width: 159, filterQuality: FilterQuality.high)),
             ),
             const Text("Gamma"),
           ],
