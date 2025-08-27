@@ -11,6 +11,7 @@ import 'package:omnifit_front/models/connectivity_model.dart';
 import 'package:omnifit_front/models/diff_connectivity2_model.dart';
 import 'package:omnifit_front/models/diff_connectivity_model.dart';
 import 'package:omnifit_front/models/diff_topography_model.dart';
+import 'package:omnifit_front/models/faa_model.dart';
 import 'package:omnifit_front/models/frontal_limbic_model.dart';
 import 'package:omnifit_front/models/graph1_model.dart';
 import 'package:omnifit_front/models/hypnogram_model.dart';
@@ -28,6 +29,7 @@ import 'package:omnifit_front/widget/header.dart';
 import 'package:omnifit_front/widget/page2/default_line_chart.dart';
 import 'package:omnifit_front/widget/page2/diff_connectivity_widget.dart';
 import 'package:omnifit_front/widget/page2/diff_topography_widget.dart';
+import 'package:omnifit_front/widget/page2/faa_widget.dart';
 import 'package:omnifit_front/widget/page2/frontal_limbic_widget.dart';
 import 'package:omnifit_front/widget/page2/horizontal_bar_widget.dart';
 import 'package:omnifit_front/widget/page2/hypnogram_widget.dart';
@@ -52,6 +54,7 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
   List<DiffConnectivityModel> diffConnectivityList = [];
   List<Connectivity2Model> connectivity2List = [];
   List<DiffConnectivity2Model> diffConnectivity2List = [];
+
   TextEditingController textEditingController = TextEditingController();
   late Graph1Model graph1model;
   late RelatedPsdModel relatedPsdModel;
@@ -60,6 +63,8 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
   late SleepStageProbModel sleepStageProbModel;
   late ColorAreaChartModel colorAreaChartModel;
   late FrontalLimbicModel frontalLimbicModel;
+  FaaModel? faaModel;
+
   late BrainConnectivityModel brainConnectivityModel;
   late TabController tabController1 = TabController(length: 5, vsync: this, initialIndex: 0, animationDuration: const Duration(milliseconds: 800));
   late TabController tabController2 = TabController(length: 5, vsync: this, initialIndex: 0, animationDuration: const Duration(milliseconds: 800));
@@ -142,8 +147,7 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
           DiffConnectivity2Model.fromJson(valueMap, "gamma"),
         ]);
       }
-
-
+      
       relatedPsdModel = RelatedPsdModel.fromJson(valueMap['psd']['related_psd']);
       regionPsdModel = RegionPsdModel.fromJson(valueMap['psd']['region_psd']['left'], valueMap['psd']['region_psd']['right']);
 
@@ -154,6 +158,12 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
       graph1model = Graph1Model.fromJson2(valueMap['psd']['raw_psd']['mean']);
 
       frontalLimbicModel = FrontalLimbicModel.fromJson(valueMap['frontal_limbic']);
+
+
+      if(valueMap['faa'] != null){
+        faaModel = FaaModel.fromJson(valueMap['faa']);
+      }
+
       brainConnectivityModel = BrainConnectivityModel.fromJson(valueMap['frontal_limbic']);
 
       textEditingController.text = valueMap['note'] ?? "";
@@ -228,6 +238,10 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
                     if(connectivity2List.isNotEmpty) const SizedBox(height: 20),
                     FrontalLimbicWidget(model: frontalLimbicModel),
                     const SizedBox(height: 20),
+                    if (faaModel != null) ...[
+                      FaaWidget(model: faaModel!),
+                      const SizedBox(height: 20),
+                    ],
                     Row(
                       children: [
                         Expanded(child: CircleChartWidget(model: relatedPsdModel)),
