@@ -64,7 +64,8 @@ class _UsersPageState extends State<UsersPage> {
     name = storageBox.get("name");
     controller.text = name ?? "";
     sortColumnIndex = columnIndex ?? storageBox.get("sortColumnIndex") ?? 0;
-    isAscSort = sortAscending ?? storageBox.get("ascSort") ?? false;
+
+    isAscSort = sortAscending ?? storageBox.get("ascSort") ?? true;
 
     late Uri url;
     if (name != null && name != "") {
@@ -72,8 +73,7 @@ class _UsersPageState extends State<UsersPage> {
     } else {
       url = Uri.parse('$uri?page=$currentPage&sorting=${sortList[sortColumnIndex]}&descending=${isAscList[isAscSort ? 0 : 1]}');
     }
-
-    debugPrint("${AppService.instance.currentUser?.id}");
+    
     final response = await http.get(url, headers: {'Authorization': 'JWT ${AppService.instance.currentUser?.id}'});
 
     if (response.statusCode == 200) {
