@@ -8,19 +8,19 @@ class HorizontalBarWidget extends StatelessWidget {
 
 
   late List<_ChartData> left = [
-  _ChartData('delta', model.left[4], const Color(0xFF5FA8D3)),
-  _ChartData('theta', model.left[3], const Color(0xFFCAE9FF)),
-  _ChartData('alpha', model.left[2], const Color(0xFF1B4965)),
-  _ChartData('beta', model.left[1], const Color(0xFF62B6CB)),
-  _ChartData('gamma', model.left[0], const Color(0xFFBEE9E8)),
+  _ChartData('Delta', model.left[4], const Color(0xFF5FA8D3)),
+  _ChartData('Theta', model.left[3], const Color(0xFFCAE9FF)),
+  _ChartData('Alpha', model.left[2], const Color(0xFF1B4965)),
+  _ChartData('Beta', model.left[1], const Color(0xFF62B6CB)),
+  _ChartData('Gamma', model.left[0], const Color(0xFFBEE9E8)),
   ];
 
   late List<_ChartData> right = [
-    _ChartData('delta', model.right[4], const Color(0xFF5FA8D3)),
-    _ChartData('theta', model.right[3], const Color(0xFFCAE9FF)),
-    _ChartData('alpha', model.right[2], const Color(0xFF1B4965)),
-    _ChartData('beta', model.right[1], const Color(0xFF62B6CB)),
-    _ChartData('gamma', model.right[0], const Color(0xFFBEE9E8)),
+    _ChartData('Delta', model.right[4], const Color(0xFF5FA8D3)),
+    _ChartData('Theta', model.right[3], const Color(0xFFCAE9FF)),
+    _ChartData('Alpha', model.right[2], const Color(0xFF1B4965)),
+    _ChartData('Beta', model.right[1], const Color(0xFF62B6CB)),
+    _ChartData('Gamma', model.right[0], const Color(0xFFBEE9E8)),
   ];
  
   @override
@@ -63,15 +63,15 @@ class HorizontalBarWidget extends StatelessWidget {
             mainAxisSize: MainAxisSize.max,
             children: [
               SizedBox(height: 57),
-              Text("delta"),
+              Text("Delta"),
               SizedBox(height: 25.5),
-              Text("theta"),
+              Text("Theta"),
               SizedBox(height: 25.5),
-              Text("alpha"),
+              Text("Alpha"),
               SizedBox(height: 25),
-              Text("beta"),
+              Text("Beta"),
               SizedBox(height: 25),
-              Text("gamma"),
+              Text("Gamma"),
             ],
           ),
         ),

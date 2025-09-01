@@ -127,7 +127,6 @@ class _LoginPageState extends State<LoginPage> {
               String id = idController.text;
               String pw = pwController.text;
 
-              debugPrint("id : $id, pw : $pw");
               await callHttp(id, pw);
             },
             child: const Text('Log In', style: TextStyle(color: Colors.black)),

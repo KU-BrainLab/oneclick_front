@@ -7,11 +7,11 @@ class CircleChartWidget extends StatelessWidget {
   CircleChartWidget({Key? key, required this.model}) : super(key: key);
 
   late List<ChartData> chartData = [
-    ChartData('delta', model.colorList[0], const Color(0xFFBEE9E8)),
-    ChartData('theta', model.colorList[1], const Color(0xFF62B6CB)),
-    ChartData('alpha', model.colorList[2], const Color(0xFF1B4965)),
-    ChartData('beta', model.colorList[3], const Color(0xFFCAE9FF)),
-    ChartData('gamma', model.colorList[4], const Color(0xFF5FA8D3)),
+    ChartData('Delta', model.colorList[0], const Color(0xFFBEE9E8)),
+    ChartData('Theta', model.colorList[1], const Color(0xFF62B6CB)),
+    ChartData('Alpha', model.colorList[2], const Color(0xFF1B4965)),
+    ChartData('Beta', model.colorList[3], const Color(0xFFCAE9FF)),
+    ChartData('Gamma', model.colorList[4], const Color(0xFF5FA8D3)),
   ];
 
   @override
@@ -26,7 +26,6 @@ class CircleChartWidget extends StatelessWidget {
             legend: const Legend(isVisible: true, overflowMode: LegendItemOverflowMode.wrap, toggleSeriesVisibility: false,
             position: LegendPosition.bottom,
               textStyle: TextStyle(fontSize: 12),
-
             ),
               series: <CircularSeries>[
                 DoughnutSeries<ChartData, String>(
@@ -35,14 +34,12 @@ class CircleChartWidget extends StatelessWidget {
                          return Text("${data.y.toStringAsFixed(2)}%", style: TextStyle(color: pointIndex == 2 ? Colors.white : Colors.black, fontSize: 10));
                        }
                     ),
-
                     animationDuration: 0,
                     dataSource: chartData,
                     pointColorMapper:(ChartData data,  _) => data.color,
                     xValueMapper: (ChartData data, _) => data.x,
                     yValueMapper: (ChartData data, _) => data.y,
                   legendIconType: LegendIconType.rectangle,
-
                 )
               ]
           )
