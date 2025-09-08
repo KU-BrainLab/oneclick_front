@@ -9,6 +9,7 @@ import 'package:omnifit_front/constants/constants.dart';
 import 'package:omnifit_front/model/user_model.dart';
 import 'package:omnifit_front/page/page_1.dart';
 import 'package:omnifit_front/page/page_2.dart';
+import 'package:omnifit_front/page/sleep_result.dart'; 
 import 'package:omnifit_front/page/survey_page.dart';
 import 'package:omnifit_front/service/app_service.dart';
 import 'package:omnifit_front/widget/custom_data_table.dart' as custom;
@@ -303,6 +304,18 @@ class _UsersPageState extends State<UsersPage> {
                             child: Align(
                               alignment: Alignment.center,
                               child: Text(
+                                '수면결과',
+                                style: TextStyle(fontStyle: FontStyle.italic),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const custom.DataColumn(
+                          label: Expanded(
+                            child: Align(
+                              alignment: Alignment.center,
+                              child: Text(
                                 '삭제',
                                 style: TextStyle(fontStyle: FontStyle.italic),
                                 textAlign: TextAlign.center,
@@ -355,9 +368,23 @@ class _UsersPageState extends State<UsersPage> {
                                         onTap: () {
                                           context.go(SurveyPage.route, extra: {"user": e});
                                         },
-                                        child: const Icon(Icons.saved_search)),
+                                        child: const Icon(Icons.search)),
                                   ),
                                 )),
+
+                                custom.DataCell(Align(
+                                  alignment: Alignment.center,
+                                  child: MouseRegion(
+                                    cursor: MaterialStateMouseCursor.clickable,
+                                    child: GestureDetector(
+                                        onTap: () {
+                                          context.go(SleepResult.route, extra: {"user": e});
+                                        },
+                                        child: const Icon(Icons.search)),
+                                  ),
+                                )),
+
+
                                 custom.DataCell(Align(
                                   alignment: Alignment.center,
                                   child: OutlinedButton(
