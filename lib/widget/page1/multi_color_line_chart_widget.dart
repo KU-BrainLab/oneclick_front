@@ -1,18 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:omnifit_front/models/multi_color_line_chart_model.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 class MultiColorLineChartWidget extends StatelessWidget {
   final MultiColorLineChartModel model;
-  const MultiColorLineChartWidget({Key? key, required this.model}) : super(key: key);
+  final double maxX;
+
+  const MultiColorLineChartWidget({
+    Key? key,
+    required this.model,
+    required this.maxX,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final double finalMaxX = maxX.round().toDouble();
+
     return Stack(
       children: [
         SfCartesianChart(
-          primaryXAxis: NumericAxis(minimum: model.minX, maximum: model.maxX, interval: model.intervalX, title: const AxisTitle(text: "Time(m)")),
-          primaryYAxis: NumericAxis(minimum: model.minY, maximum: model.maxY, interval: model.intervalY),
+          primaryXAxis: NumericAxis(
+              minimum: model.minX,
+              maximum: finalMaxX,
+              interval: model.intervalX,
+              decimalPlaces: 0,
+              title: const AxisTitle(
+                text: "Time(m)",
+                alignment: ChartAlignment.center,
+                textStyle: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
+              )),
+          primaryYAxis:
+              NumericAxis(minimum: model.minY, maximum: model.maxY, interval: model.intervalY),
           series: <LineSeries<ChartData, double>>[
             LineSeries<ChartData, double>(
               animationDuration: 0,
@@ -28,7 +50,8 @@ class MultiColorLineChartWidget extends StatelessWidget {
           alignment: Alignment.topRight,
           child: Container(
             padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(border: Border.all(color: Colors.grey.withOpacity(0.4))),
+            decoration:
+                BoxDecoration(border: Border.all(color: Colors.grey.withOpacity(0.4))),
             width: 140,
             child: Column(
               children: [

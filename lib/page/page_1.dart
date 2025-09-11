@@ -53,10 +53,27 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
     });
 
     if (response.statusCode == 200) {
-      Map valueMap = jsonDecode(utf8.decode(response.bodyBytes));
+      final responseData = jsonDecode(utf8.decode(response.bodyBytes));
+      Map<String, dynamic> valueMap;
 
-      graph1model = Graph1Model.fromJson(valueMap['nni']);
-      multiColorLineChartModel = MultiColorLineChartModel.fromJson(valueMap['rmssd']);
+      if (responseData is List && responseData.isNotEmpty) {
+        valueMap = responseData[0];
+      } else if (responseData is Map) {
+        valueMap = responseData as Map<String, dynamic>;
+      } else {
+        setState(() { isLoading = false; });
+        return;
+      }
+
+      final nniData = valueMap['nni'] as List<dynamic>? ?? [];
+      final rmssdData = valueMap['rmssd'] as List<dynamic>? ?? [];
+
+      graph1model = Graph1Model.fromJson(nniData);
+      
+      multiColorLineChartModel = MultiColorLineChartModel.fromJson(
+        rmssdData,
+        totalDurationInSeconds: nniData.length,
+      );
 
       page1TabModelList.add(Page1TabModel.fromJson(valueMap['baseline']));
       page1TabModelList.add(Page1TabModel.fromJson(valueMap['stimulation1']));
@@ -74,7 +91,7 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return Scaffold(     backgroundColor: Colors.white,body: Container());
+      return Scaffold(backgroundColor: Colors.white, body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
@@ -102,7 +119,6 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
                         onPressed: AppService.instance.manageBack,
                         child: const Text("뒤로가기", style: TextStyle(color: Colors.white),),
                       ),
-
                       const Spacer(),
                       OutlinedButton(
                         style: OutlinedButton.styleFrom(
@@ -126,9 +142,16 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if(graph1model != null) Graph1(graph1model: graph1model!),
-                      const SizedBox(height: 40),
-                      if(multiColorLineChartModel != null) MultiColorLineChartWidget(model: multiColorLineChartModel!),
+                      if (graph1model != null && multiColorLineChartModel != null) ...[
+                        Graph1(
+                          graph1model: graph1model!,
+                        ),
+                        const SizedBox(height: 40),
+                        MultiColorLineChartWidget(
+                          model: multiColorLineChartModel!,
+                          maxX: graph1model!.maxX.ceil().toDouble(),
+                        ),
+                      ],
                       Row(
                         children: [
                           MouseRegion(
@@ -181,7 +204,7 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
                                 decoration: BoxDecoration(
                                   color: index == 2 ? Colors.grey.withOpacity(0.4) : Colors.white,
                                   borderRadius: const BorderRadius.all(Radius.circular(4)),
-                                ),  
+                                ),
                                 width: 100,
                                 height: 30,
                                 child: const Center(child: Text("Recovery 1")),
@@ -252,23 +275,19 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
                                 border: InputBorder.none,
                                 disabledBorder: OutlineInputBorder(
                                     borderSide: BorderSide(
-                                      color: Colors.black,
-                                      width: 2.0,
-                                    )
-                                ),
-                                focusedBorder:  OutlineInputBorder(
+                                  color: Colors.black,
+                                  width: 2.0,
+                                )),
+                                focusedBorder: OutlineInputBorder(
                                     borderSide: BorderSide(
-                                      color: Colors.black,
-                                      width: 2.0,
-                                    )
-                                ),
+                                  color: Colors.black,
+                                  width: 2.0,
+                                )),
                                 enabledBorder: OutlineInputBorder(
                                     borderSide: BorderSide(
-                                      color: Colors.black,
-                                      width: 2.0,
-                                    ) 
-                                )
-                            ),
+                                  color: Colors.black,
+                                  width: 2.0,
+                                ))),
                           ),
                           const SizedBox(height: 20),
                           Row(

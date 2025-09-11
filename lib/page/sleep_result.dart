@@ -1,17 +1,18 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:omnifit_front/constants/constants.dart';
-import 'package:omnifit_front/model/user_model.dart';
 import 'package:http/http.dart' as http;
-import 'package:omnifit_front/models/survey_model.dart';
-import 'package:omnifit_front/service/app_service.dart';
-import 'package:omnifit_front/widget/header.dart';
-import 'package:omnifit_front/widget/sleep_result/general_summary_widget.dart';
-import 'package:omnifit_front/widget/custom_data_table.dart' as custom;
+import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
+import 'package:omnifit_front/constants/constants.dart';
+import 'package:omnifit_front/model/user_model.dart';
+import 'package:omnifit_front/models/general_summary_model.dart';
+import 'package:omnifit_front/models/survey_model.dart';
+import 'package:omnifit_front/service/app_service.dart';
+import 'package:omnifit_front/widget/custom_data_table.dart' as custom;
+import 'package:omnifit_front/widget/header.dart';
+import 'package:omnifit_front/widget/sleep_result/general_summary_widget.dart';
 
 class SleepResult extends StatefulWidget {
   final UserModel user;
@@ -23,8 +24,8 @@ class SleepResult extends StatefulWidget {
 }
 
 class _SleepResultState extends State<SleepResult> {
-
   bool isLoading = true;
+  GeneralSummaryModel? summaryData;
   List<SurveyModel> list = [];
   List<SalesData> irlsList = [];
   List<SalesData> psqlkList = [];
@@ -43,18 +44,22 @@ class _SleepResultState extends State<SleepResult> {
   }
 
   void callHttp() async {
-    final url = Uri.parse('${BASE_URL}api/v1/survey/?name=${widget.user.name}&sex=${widget.user.sex}&birth=${widget.user.birth}&age=${widget.user.age}');
+    final url = Uri.parse('${BASE_URL}api/v1/report/${widget.user.report}');
     final response = await http.get(url, headers: {
       'Authorization': 'JWT ${AppService.instance.currentUser?.id}'
     });
 
     if (response.statusCode == 200) {
-      List<dynamic> valueList = jsonDecode(utf8.decode(response.bodyBytes));
-
-      // TODO: JSON Decomposition
-
-      isLoading = false;
-      setState(() {});
+      Map<String, dynamic> valuemap = jsonDecode(utf8.decode(response.bodyBytes));
+      summaryData = GeneralSummaryModel.fromJson(valuemap);
+      
+      setState(() {
+        isLoading = false;
+      });
+    } else {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -67,14 +72,13 @@ class _SleepResultState extends State<SleepResult> {
     debugPrint("response $response");
     if (response.statusCode == 200) {
       callHttp();
-
     }
   }
 
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return Scaffold(     backgroundColor: Colors.white,body: Container());
+      return const Scaffold(backgroundColor: Colors.white, body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
@@ -118,13 +122,15 @@ class _SleepResultState extends State<SleepResult> {
                     ],
                   ),
                 ),
-                  Header(headText: "여기에다 만들거임", userModel: widget.user),
-                    const SizedBox(height: 20), // Header 위젯과의 간격
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 40.0), // 좌우 여백
-                      child: GeneralSummaryWidget(),
+                  Header(headText: "NOCTURNAL POLYSOMNOGRAM RESULTS", userModel: widget.user),
+                    const SizedBox(height: 20),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 40.0),
+                      child: summaryData == null
+                        ? const Center(child: Text("요약 데이터를 불러오는 데 실패했습니다."))
+                        : GeneralSummaryWidget(data: summaryData!),
                     ),
-                    const SizedBox(height: 40), // 하단 추가 간격
+                    const SizedBox(height: 40),
                   ],
               ),
             ),

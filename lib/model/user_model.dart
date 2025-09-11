@@ -9,7 +9,7 @@ class UserModel {
   DateTime upt_dt;
   int? hrv;
   int? eeg;
-
+  int? report;
 
   get sexName => sex == null ? '' : sex == 0 ? "남자" : "여자";
 
@@ -23,7 +23,8 @@ class UserModel {
     required this.int_dt,
     required this.upt_dt,
     required this.hrv,
-    required this.eeg
+    required this.eeg,
+    required this.report,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -37,7 +38,8 @@ class UserModel {
       int_dt: DateTime.parse(json['int_dt']),
       upt_dt: DateTime.parse(json['upt_dt']),
       hrv: json['hrv'],
-      eeg: json['eeg']
+      eeg: json['eeg'],
+      report: json['report'],
     );
   }
 }

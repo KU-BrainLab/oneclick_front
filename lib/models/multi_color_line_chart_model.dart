@@ -1,4 +1,3 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 class MultiColorLineChartModel {
@@ -20,52 +19,53 @@ class MultiColorLineChartModel {
     required this.maxY
   });
 
-  factory MultiColorLineChartModel.fromJson(List<dynamic> jsonList) {
+  factory MultiColorLineChartModel.fromJson(List<dynamic> actualDataList, {required int totalDurationInSeconds}) {
+    if (actualDataList.isEmpty) {
+      return MultiColorLineChartModel(dataList: [], intervalX: 1, intervalY: 1, minX: 0, maxX: 1, minY: 0, maxY: 1);
+    }
+    if (actualDataList.length == 1) {
+      double yValue = (actualDataList[0] as num).toDouble();
+      return MultiColorLineChartModel(dataList: [ChartData(0, yValue, Colors.red)], intervalX: 1, intervalY: 1, minX: 0, maxX: 1, minY: yValue - 1, maxY: yValue + 1);
+    }
 
     List<Color> colors = [Colors.red, Colors.orange, Colors.yellow, Colors.green, Colors.blue];
-    List<ChartData> dataList = [];
-    double minX = 0;
-    double minY = 99999;
-    double maxX = jsonList.length.toDouble();
-    double maxY = 0;
-    double intervalX = maxX / 5;
+    List<ChartData> stretchedDataList = [];
+    
+    double overallMinY = 99999;
+    double overallMaxY = -99999;
 
-    for(int i = 0; i < maxX; i++) {
-      double y = jsonList[i] as double;
+    double maxXInMinutes = totalDurationInSeconds / 60.0;
+    
+    double spacing = maxXInMinutes / (actualDataList.length - 1);
 
-      if(y < minY) {
-        minY = y;
-      }
+    for (int i = 0; i < actualDataList.length; i++) {
+      double y = (actualDataList[i] as num).toDouble();
+      
+      double newX = i * spacing;
 
-      if(y > maxY) {
-        maxY = y;
-      }
+      if (y < overallMinY) overallMinY = y;
+      if (y > overallMaxY) overallMaxY = y;
 
-      dataList.add(ChartData(i.toDouble(), y, colors[(i / intervalX).floor()]));
+      int colorIndex = (newX / maxXInMinutes * colors.length).floor();
+      stretchedDataList.add(ChartData(newX, y, colors[colorIndex % colors.length]));
     }
-    double intervalY = maxY / 6;
 
+    double intervalY = (overallMaxY > overallMinY) ? (overallMaxY - overallMinY) / 5.0 : 1;
+    if (intervalY == 0) intervalY = 1;
 
-    minY -= intervalY;
-    maxY += intervalY;
-
+    overallMinY -= intervalY;
+    overallMaxY += intervalY;
 
     return MultiColorLineChartModel(
-      dataList: dataList,
-      intervalX: intervalX,
+      dataList: stretchedDataList,
+      intervalX: maxXInMinutes / 5.0,
       intervalY: intervalY,
-      minX: minX,
-      maxX: maxX,
-      minY: minY,
-      maxY: maxY,
+      minX: 0.0,
+      maxX: maxXInMinutes,
+      minY: overallMinY,
+      maxY: overallMaxY,
     );
   }
-
-  @override
-  String toString() {
-    return "MultiColorLineChartModel : { minX : $minX, maxX : $maxX, minY : $minY, maxY : $maxY, intervalX : $intervalX, intervalY : $intervalY, dataList : ${dataList.length} }";
-  }
-
 }
 
 class ChartData {

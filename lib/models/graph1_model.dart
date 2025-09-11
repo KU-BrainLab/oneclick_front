@@ -21,15 +21,14 @@ class Graph1Model {
   });
 
   factory Graph1Model.fromJson(List<dynamic> jsonList) {
-
     List<FlSpot> dataList = [];
     double minX = 0;
     double minY = 99999;
-    double maxX = jsonList.length.toDouble();
+    double maxX = jsonList.length.toDouble() / 60.0;
     double maxY = 0;
-    double intervalX = maxX / 5;
+    double intervalX = maxX / 5.0;
 
-    for(int i = 0; i < maxX; i++) {
+    for(int i = 0; i < jsonList.length; i++) {
       double y = jsonList[i] as double;
 
       if(y < minY) {
@@ -39,7 +38,7 @@ class Graph1Model {
       if(y > maxY) {
         maxY = y;
       }
-      dataList.add(FlSpot(i.toDouble(), y));
+      dataList.add(FlSpot(i.toDouble() / 60.0, y));
     }
     double intervalY = maxY / 6;
 
@@ -60,6 +59,7 @@ class Graph1Model {
       maxY: maxY,
     );
   }
+
 
   factory Graph1Model.fromJson2(List<dynamic> jsonList) { // maybe mean data
 
