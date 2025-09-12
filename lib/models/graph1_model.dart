@@ -22,31 +22,39 @@ class Graph1Model {
 
   factory Graph1Model.fromJson(List<dynamic> jsonList) {
     List<FlSpot> dataList = [];
+    double cumulativeTimeMs = 0.0;
     double minX = 0;
     double minY = 99999;
-    double maxX = jsonList.length.toDouble() / 60.0;
     double maxY = 0;
-    double intervalX = maxX / 5.0;
 
-    for(int i = 0; i < jsonList.length; i++) {
-      double y = jsonList[i] as double;
+    for (int i = 0; i < jsonList.length; i++) {
+      double intervalMs = (jsonList[i] as num).toDouble(); // Y축 값이 될 ms 간격
 
-      if(y < minY) {
-        minY = y;
+      // 1000ms * 60s = 60000ms in a minute
+      double xInMinutes = cumulativeTimeMs / 60000.0;
+      
+      double yValue = intervalMs;
+      
+      dataList.add(FlSpot(xInMinutes, yValue));
+
+      cumulativeTimeMs += intervalMs;
+
+      if (yValue < minY) {
+        minY = yValue;
       }
-
-      if(y > maxY) {
-        maxY = y;
+      if (yValue > maxY) {
+        maxY = yValue;
       }
-      dataList.add(FlSpot(i.toDouble() / 60.0, y));
     }
-    double intervalY = maxY / 6;
 
+    double maxX = cumulativeTimeMs / 60000.0;
+    double intervalX = maxX / 5.0;
+    double intervalY = maxY / 6;
+ 
     minY -= intervalY;
-    if(minY < 0) {
+    if (minY < 0) {
       minY = 0;
     }
-
     maxY += intervalY;
 
     return Graph1Model(
@@ -59,6 +67,7 @@ class Graph1Model {
       maxY: maxY,
     );
   }
+
 
 
   factory Graph1Model.fromJson2(List<dynamic> jsonList) { // maybe mean data

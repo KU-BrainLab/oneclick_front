@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-
 import 'package:omnifit_front/models/general_summary_model.dart';
+// 1. 새로 만든 위젯 파일을 import 합니다.
+import 'package:omnifit_front/widget/sleep_result/respiratory_events_widget.dart';
 
 class GeneralSummaryWidget extends StatelessWidget {
   final GeneralSummaryModel data;
@@ -19,6 +20,22 @@ class GeneralSummaryWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // --- 1번 섹션 ---
+        _buildGeneralSummarySection(headerStyle, labelStyle, valueStyle),
+        
+        const SizedBox(height: 24), // 섹션 간 간격
+
+        // --- 2. 새로 만든 RespiratoryEventsWidget을 여기에 추가합니다 ---
+        const RespiratoryEventsWidget(),
+      ],
+    );
+  }
+
+  /// 1. General Summary 섹션을 그리는 위젯
+  Widget _buildGeneralSummarySection(TextStyle headerStyle, TextStyle labelStyle, TextStyle valueStyle) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
         const Text('1. General Summary', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 10),
         Row(
@@ -28,14 +45,12 @@ class GeneralSummaryWidget extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-
         Container(
           padding: const EdgeInsets.all(12.0),
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey.shade400),
             borderRadius: BorderRadius.circular(8.0),
           ),
-
           child: IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,6 +66,7 @@ class GeneralSummaryWidget extends StatelessWidget {
     );
   }
 
+  // --- 기존 Helper 위젯들은 그대로 유지됩니다 ---
   Widget _buildLeftTable(TextStyle headerStyle, TextStyle labelStyle, TextStyle valueStyle) {
     final displayData = [
       {'label': 'TIB', 'value': data.tib.toStringAsFixed(1)},

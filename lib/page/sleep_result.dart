@@ -127,7 +127,7 @@ class _SleepResultState extends State<SleepResult> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 40.0),
                       child: summaryData == null
-                        ? const Center(child: Text("요약 데이터를 불러오는 데 실패했습니다."))
+                        ? const Center(child: Text("데이터를 불러오는데 실패했습니다. (업데이트 이전 검사결과)"))
                         : GeneralSummaryWidget(data: summaryData!),
                     ),
                     const SizedBox(height: 40),

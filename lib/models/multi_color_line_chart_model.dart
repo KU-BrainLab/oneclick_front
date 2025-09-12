@@ -19,13 +19,13 @@ class MultiColorLineChartModel {
     required this.maxY
   });
 
-  factory MultiColorLineChartModel.fromJson(List<dynamic> actualDataList, {required int totalDurationInSeconds}) {
+  factory MultiColorLineChartModel.fromJson(List<dynamic> actualDataList, {required double finalAxisMaxX}) {
     if (actualDataList.isEmpty) {
-      return MultiColorLineChartModel(dataList: [], intervalX: 1, intervalY: 1, minX: 0, maxX: 1, minY: 0, maxY: 1);
+      return MultiColorLineChartModel(dataList: [], intervalX: 1, intervalY: 1, minX: 0, maxX: finalAxisMaxX, minY: 0, maxY: 1);
     }
     if (actualDataList.length == 1) {
       double yValue = (actualDataList[0] as num).toDouble();
-      return MultiColorLineChartModel(dataList: [ChartData(0, yValue, Colors.red)], intervalX: 1, intervalY: 1, minX: 0, maxX: 1, minY: yValue - 1, maxY: yValue + 1);
+      return MultiColorLineChartModel(dataList: [ChartData(0, yValue, Colors.red)], intervalX: 1, intervalY: 1, minX: 0, maxX: finalAxisMaxX, minY: yValue - 1, maxY: yValue + 1);
     }
 
     List<Color> colors = [Colors.red, Colors.orange, Colors.yellow, Colors.green, Colors.blue];
@@ -33,10 +33,8 @@ class MultiColorLineChartModel {
     
     double overallMinY = 99999;
     double overallMaxY = -99999;
-
-    double maxXInMinutes = totalDurationInSeconds / 60.0;
     
-    double spacing = maxXInMinutes / (actualDataList.length - 1);
+    double spacing = finalAxisMaxX / (actualDataList.length - 1);
 
     for (int i = 0; i < actualDataList.length; i++) {
       double y = (actualDataList[i] as num).toDouble();
@@ -46,7 +44,7 @@ class MultiColorLineChartModel {
       if (y < overallMinY) overallMinY = y;
       if (y > overallMaxY) overallMaxY = y;
 
-      int colorIndex = (newX / maxXInMinutes * colors.length).floor();
+      int colorIndex = (newX / finalAxisMaxX * colors.length).floor();
       stretchedDataList.add(ChartData(newX, y, colors[colorIndex % colors.length]));
     }
 
@@ -56,12 +54,13 @@ class MultiColorLineChartModel {
     overallMinY -= intervalY;
     overallMaxY += intervalY;
 
+
     return MultiColorLineChartModel(
       dataList: stretchedDataList,
-      intervalX: maxXInMinutes / 5.0,
+      intervalX: finalAxisMaxX / 5.0,
       intervalY: intervalY,
       minX: 0.0,
-      maxX: maxXInMinutes,
+      maxX: finalAxisMaxX,
       minY: overallMinY,
       maxY: overallMaxY,
     );

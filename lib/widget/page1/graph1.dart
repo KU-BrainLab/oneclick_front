@@ -29,7 +29,7 @@ class Graph1 extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         AspectRatio(
-          aspectRatio: 4,
+          aspectRatio: 3.5,
           child: LineChart(LineChartData(
             lineTouchData: const LineTouchData(enabled: false),
             gridData: FlGridData(

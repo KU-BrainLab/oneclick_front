@@ -30,6 +30,7 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
   TextEditingController textEditingController = TextEditingController();
 
   bool isLoading = true;
+  String? _errorMessage;
   int index = 0;
 
   late TabController tabController = TabController(length: 5, vsync: this, initialIndex: 0, animationDuration: const Duration(milliseconds: 800));
@@ -47,51 +48,76 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
   }
 
   void callHttp() async {
-    final url = Uri.parse('${BASE_URL}api/v1/ecg/hrv/${widget.user.hrv}');
-    final response = await http.get(url, headers: {
-      'Authorization': 'JWT ${AppService.instance.currentUser?.id}'
-    });
+    try {
+      final url = Uri.parse('${BASE_URL}api/v1/ecg/hrv/${widget.user.hrv}');
+      final response = await http.get(url, headers: {
+        'Authorization': 'JWT ${AppService.instance.currentUser?.id}'
+      });
 
-    if (response.statusCode == 200) {
-      final responseData = jsonDecode(utf8.decode(response.bodyBytes));
-      Map<String, dynamic> valueMap;
+      if (response.statusCode == 200) {
+        if (response.bodyBytes.isEmpty || utf8.decode(response.bodyBytes) == 'null') {
+          setState(() {
+            _errorMessage = "데이터를 불러오는데 실패했습니다. (HRV 파일 확인 요망)";
+          });
+          return;
+        }
 
-      if (responseData is List && responseData.isNotEmpty) {
-        valueMap = responseData[0];
-      } else if (responseData is Map) {
-        valueMap = responseData as Map<String, dynamic>;
+        final responseData = jsonDecode(utf8.decode(response.bodyBytes));
+        Map<String, dynamic> valueMap;
+
+        if (responseData is List && responseData.isNotEmpty) {
+          valueMap = responseData[0];
+        } else if (responseData is Map) {
+          valueMap = responseData as Map<String, dynamic>;
+        } else {
+           setState(() {
+            _errorMessage = "데이터를 불러오는데 실패했습니다. (HRV 파일 확인 요망)";
+          });
+          return;
+        }
+
+        final nniData = valueMap['nni'] as List<dynamic>? ?? [];
+        final rmssdData = valueMap['rmssd'] as List<dynamic>? ?? [];
+
+        graph1model = Graph1Model.fromJson(nniData);
+        
+        if (graph1model != null) {
+          final double finalMaxX = graph1model!.maxX.round().toDouble();
+          
+          multiColorLineChartModel = MultiColorLineChartModel.fromJson(
+            rmssdData,
+            finalAxisMaxX: finalMaxX,
+          );
+        }
+
+        page1TabModelList.add(Page1TabModel.fromJson(valueMap['baseline']));
+        page1TabModelList.add(Page1TabModel.fromJson(valueMap['stimulation1']));
+        page1TabModelList.add(Page1TabModel.fromJson(valueMap['recovery1']));
+        page1TabModelList.add(Page1TabModel.fromJson(valueMap['stimulation2']));
+        page1TabModelList.add(Page1TabModel.fromJson(valueMap['recovery2']));
+
+        textEditingController.text = valueMap['note'] ?? "";
       } else {
-        setState(() { isLoading = false; });
-        return;
+        setState(() {
+            _errorMessage = "데이터를 불러오는데 실패했습니다. (HRV 파일 확인 요망)";
+        });
       }
-
-      final nniData = valueMap['nni'] as List<dynamic>? ?? [];
-      final rmssdData = valueMap['rmssd'] as List<dynamic>? ?? [];
-
-      graph1model = Graph1Model.fromJson(nniData);
-      
-      multiColorLineChartModel = MultiColorLineChartModel.fromJson(
-        rmssdData,
-        totalDurationInSeconds: nniData.length,
-      );
-
-      page1TabModelList.add(Page1TabModel.fromJson(valueMap['baseline']));
-      page1TabModelList.add(Page1TabModel.fromJson(valueMap['stimulation1']));
-      page1TabModelList.add(Page1TabModel.fromJson(valueMap['recovery1']));
-      page1TabModelList.add(Page1TabModel.fromJson(valueMap['stimulation2']));
-      page1TabModelList.add(Page1TabModel.fromJson(valueMap['recovery2']));
-
-      textEditingController.text = valueMap['note'] ?? "";
+    } catch (e) {
+      setState(() {
+        _errorMessage = "데이터 처리 중 오류가 발생했습니다.";
+      });
+      debugPrint("Error in callHttp: $e");
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
-
-    isLoading = false;
-    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return Scaffold(backgroundColor: Colors.white, body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(backgroundColor: Colors.white, body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
@@ -135,216 +161,242 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
                 Header(headText: "HRV(Heart Rate Variability) 결과서", userModel: widget.user),
+                const SizedBox(height: 20),
                 Padding(
-                  padding: const EdgeInsets.all(30),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      if (graph1model != null && multiColorLineChartModel != null) ...[
-                        Graph1(
-                          graph1model: graph1model!,
-                        ),
-                        const SizedBox(height: 40),
-                        MultiColorLineChartWidget(
-                          model: multiColorLineChartModel!,
-                          maxX: graph1model!.maxX.ceil().toDouble(),
-                        ),
-                      ],
-                      Row(
-                        children: [
-                          MouseRegion(
-                            cursor: MaterialStateMouseCursor.clickable,
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  index = 0;
-                                });
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: index == 0 ? Colors.grey.withOpacity(0.4) : Colors.white,
-                                  borderRadius: const BorderRadius.all(Radius.circular(4)),
-                                ),
-                                width: 100,
-                                height: 30,
-                                child: const Center(child: Text("Baseline")),
+                  padding: const EdgeInsets.symmetric(horizontal: 40.0),
+                  child: _errorMessage != null
+                      // NOTE: 에러 메시지 UI를 다른 파일과 동일하게 수정
+                      ? Center(child: Text(_errorMessage!))
+                      // 데이터 로드 성공 시 결과 내용 표시
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            if (graph1model != null && multiColorLineChartModel != null) ...[
+                              Graph1(
+                                graph1model: graph1model!,
                               ),
-                            ),
-                          ),
-                          MouseRegion(
-                            cursor: MaterialStateMouseCursor.clickable,
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  index = 1;
-                                });
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: index == 1 ? Colors.grey.withOpacity(0.4) : Colors.white,
-                                  borderRadius: const BorderRadius.all(Radius.circular(4)),
-                                ),
-                                width: 100,
-                                height: 30,
-                                child: const Center(child: Text("Stimulation 1")),
-                              ),
-                            ),
-                          ),
-                          MouseRegion(
-                            cursor: MaterialStateMouseCursor.clickable,
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  index = 2;
-                                });
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: index == 2 ? Colors.grey.withOpacity(0.4) : Colors.white,
-                                  borderRadius: const BorderRadius.all(Radius.circular(4)),
-                                ),
-                                width: 100,
-                                height: 30,
-                                child: const Center(child: Text("Recovery 1")),
-                              ),
-                            ),
-                          ),
-                          MouseRegion(
-                            cursor: MaterialStateMouseCursor.clickable,
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  index = 3;
-                                });
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: index == 3 ? Colors.grey.withOpacity(0.4) : Colors.white,
-                                  borderRadius: const BorderRadius.all(Radius.circular(4)),
-                                ),
-                                width: 100,
-                                height: 30,
-                                child: const Center(child: Text("Stimulation 2")),
-                              ),
-                            ),
-                          ),
-                          MouseRegion(
-                            cursor: MaterialStateMouseCursor.clickable,
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  index = 4;
-                                });
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: index == 4 ? Colors.grey.withOpacity(0.4) : Colors.white,
-                                  borderRadius: const BorderRadius.all(Radius.circular(4)),
-                                ),
-                                width: 100,
-                                height: 30,
-                                child: const Center(child: Text("Recovery 2")),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Container(
-                        decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 1)),
-                        width: double.infinity,
-                        child: _buildTab(),
-                      ),
-                      const SizedBox(height: 20),
-                      Column(
-                        children: [
-                          TextField(
-                            controller: textEditingController,
-                            minLines: 5,
-                            maxLines: 5,
-                            keyboardType: TextInputType.multiline,
-                            style: const TextStyle(
-                              decoration: TextDecoration.none,
-                              decorationThickness: 0,
-                            ),
-                            autocorrect: false,
-                            enableSuggestions: false,
-                            decoration: const InputDecoration(
-                                isDense: true,
-                                border: InputBorder.none,
-                                disabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                  color: Colors.black,
-                                  width: 2.0,
-                                )),
-                                focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                  color: Colors.black,
-                                  width: 2.0,
-                                )),
-                                enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                  color: Colors.black,
-                                  width: 2.0,
-                                ))),
-                          ),
-                          const SizedBox(height: 20),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              OutlinedButton(
-                                  style: OutlinedButton.styleFrom(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(0),
-                                    ),
-                                    side: const BorderSide(width: 2, color: Colors.green),
-                                    foregroundColor: Colors.green, backgroundColor: Colors.green,
-                                    elevation: 10.0,
+                              const SizedBox(height: 40),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const SizedBox(width: 42),
+                                      Expanded(
+                                        child: Text(
+                                          'rmssd',
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  onPressed: () async {
-                                    final url = Uri.parse('${BASE_URL}api/v1/ecg/hrv/${widget.user.eeg}/note/');
-
-                                    debugPrint('url : $url');
-                                    final response = await http.put(url, headers: {
-                                      'Authorization': 'JWT ${AppService.instance.currentUser?.id}'
-                                    }, body: {
-                                      "note": textEditingController.text
-                                    });
-
-                                    late String text;
-                                    if(response.statusCode == 200) {
-                                      text="완료 되었습니다.";
-                                    } else {
-                                      text="실패 했습니다.";
-                                    }
-
-                                    showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return AlertDialog(
-                                          title: const Text('Note'),
-                                          content: Text(text),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () {
-                                                Navigator.of(context).pop();
-                                              },
-                                              child: const Text('OK'),
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    );
-
-                                  }, child: const Text("등록", style: TextStyle(color: Colors.white),)),
+                                  const SizedBox(height: 12),
+                                  MultiColorLineChartWidget(
+                                    model: multiColorLineChartModel!,
+                                    maxX: graph1model!.maxX.round().toDouble(),
+                                  ),
+                                ],
+                              ),
                             ],
-                          )
-                        ],
-                      ),
-                    ],
-                  ),
-                )
+                            Row(
+                              children: [
+                                MouseRegion(
+                                  cursor: MaterialStateMouseCursor.clickable,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        index = 0;
+                                      });
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: index == 0 ? Colors.grey.withOpacity(0.4) : Colors.white,
+                                        borderRadius: const BorderRadius.all(Radius.circular(4)),
+                                      ),
+                                      width: 100,
+                                      height: 30,
+                                      child: const Center(child: Text("Baseline")),
+                                    ),
+                                  ),
+                                ),
+                                MouseRegion(
+                                  cursor: MaterialStateMouseCursor.clickable,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        index = 1;
+                                      });
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: index == 1 ? Colors.grey.withOpacity(0.4) : Colors.white,
+                                        borderRadius: const BorderRadius.all(Radius.circular(4)),
+                                      ),
+                                      width: 100,
+                                      height: 30,
+                                      child: const Center(child: Text("Stimulation 1")),
+                                    ),
+                                  ),
+                                ),
+                                MouseRegion(
+                                  cursor: MaterialStateMouseCursor.clickable,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        index = 2;
+                                      });
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: index == 2 ? Colors.grey.withOpacity(0.4) : Colors.white,
+                                        borderRadius: const BorderRadius.all(Radius.circular(4)),
+                                      ),
+                                      width: 100,
+                                      height: 30,
+                                      child: const Center(child: Text("Recovery 1")),
+                                    ),
+                                  ),
+                                ),
+                                MouseRegion(
+                                  cursor: MaterialStateMouseCursor.clickable,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        index = 3;
+                                      });
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: index == 3 ? Colors.grey.withOpacity(0.4) : Colors.white,
+                                        borderRadius: const BorderRadius.all(Radius.circular(4)),
+                                      ),
+                                      width: 100,
+                                      height: 30,
+                                      child: const Center(child: Text("Stimulation 2")),
+                                    ),
+                                  ),
+                                ),
+                                MouseRegion(
+                                  cursor: MaterialStateMouseCursor.clickable,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        index = 4;
+                                      });
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: index == 4 ? Colors.grey.withOpacity(0.4) : Colors.white,
+                                        borderRadius: const BorderRadius.all(Radius.circular(4)),
+                                      ),
+                                      width: 100,
+                                      height: 30,
+                                      child: const Center(child: Text("Recovery 2")),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Container(
+                              decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 1)),
+                              width: double.infinity,
+                              child: _buildTab(),
+                            ),
+                            const SizedBox(height: 20),
+                            Column(
+                              children: [
+                                TextField(
+                                  controller: textEditingController,
+                                  minLines: 5,
+                                  maxLines: 5,
+                                  keyboardType: TextInputType.multiline,
+                                  style: const TextStyle(
+                                    decoration: TextDecoration.none,
+                                    decorationThickness: 0,
+                                  ),
+                                  autocorrect: false,
+                                  enableSuggestions: false,
+                                  decoration: const InputDecoration(
+                                      isDense: true,
+                                      border: InputBorder.none,
+                                      disabledBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                        color: Colors.black,
+                                        width: 2.0,
+                                      )),
+                                      focusedBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                        color: Colors.black,
+                                        width: 2.0,
+                                      )),
+                                      enabledBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                        color: Colors.black,
+                                        width: 2.0,
+                                      ))),
+                                ),
+                                const SizedBox(height: 20),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    OutlinedButton(
+                                        style: OutlinedButton.styleFrom(
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(0),
+                                          ),
+                                          side: const BorderSide(width: 2, color: Colors.green),
+                                          foregroundColor: Colors.green, backgroundColor: Colors.green,
+                                          elevation: 10.0,
+                                        ),
+                                        onPressed: () async {
+                                          final url = Uri.parse('${BASE_URL}api/v1/ecg/hrv/${widget.user.eeg}/note/');
+
+                                          debugPrint('url : $url');
+                                          final response = await http.put(url, headers: {
+                                            'Authorization': 'JWT ${AppService.instance.currentUser?.id}'
+                                          }, body: {
+                                            "note": textEditingController.text
+                                          });
+
+                                          late String text;
+                                          if(response.statusCode == 200) {
+                                            text="완료 되었습니다.";
+                                          } else {
+                                            text="실패 했습니다.";
+                                          }
+
+                                          showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return AlertDialog(
+                                                title: const Text('Note'),
+                                                content: Text(text),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      Navigator.of(context).pop();
+                                                    },
+                                                    child: const Text('OK'),
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          );
+
+                                        }, child: const Text("등록", style: TextStyle(color: Colors.white),)),
+                                  ],
+                                )
+                              ],
+                            ),
+                          ],
+                        ),
+                ),
+                const SizedBox(height: 40),
               ],
             ),
           ),
@@ -357,3 +409,4 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
     return Page1Tab1(page1TabModel: page1TabModelList[index]);
   }
 }
+
