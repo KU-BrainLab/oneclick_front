@@ -13,11 +13,11 @@ class RespiratoryEventsWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 20),
         const Text('2. Respiratory Sleep Disturbance Events', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
-        // 1. 소제목을 사각형 밖으로 이동시켰습니다.
         const Padding(
-          padding: EdgeInsets.only(bottom: 8.0), // 위젯 간의 간격을 위해 하단에만 padding 적용
+          padding: EdgeInsets.only(bottom: 8.0),
           child: Text('1) NREM and REM sleep에서의 RDI', style: TextStyle(fontWeight: FontWeight.bold)),
         ),
         Container(
@@ -28,7 +28,6 @@ class RespiratoryEventsWidget extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 소제목이 있던 자리는 비워둡니다.
               _buildRdiTable(headerStyle, labelStyle, valueStyle),
               _buildO2SaturationRow(labelStyle, valueStyle),
               const Divider(height: 1, thickness: 1, color: Colors.black54),

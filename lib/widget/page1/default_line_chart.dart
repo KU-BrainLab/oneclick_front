@@ -1,7 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:omnifit_front/models/graph1_model.dart';
-
+import 'dart:math';
 /// Chart import
 import 'package:syncfusion_flutter_charts/charts.dart';
 
@@ -10,8 +10,6 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 class DefaultLineChart extends StatelessWidget {
   final Graph1Model model;
   DefaultLineChart({Key? key, required this.model}) : super(key: key);
-
-
 
 
   @override
@@ -38,14 +36,14 @@ class DefaultLineChart extends StatelessWidget {
         ),
         primaryYAxis: NumericAxis(
           minimum: 0,
-          maximum: 0.04,
+          maximum: max(0.04, model.maxY),
           interval: 0.005,
           labelIntersectAction: AxisLabelIntersectAction.none,
           majorGridLines: const MajorGridLines(width: 1),
           axisLabelFormatter: (AxisLabelRenderDetails args) {
             return ChartAxisLabel('${double.parse(args.text)}', null);
           },
-          title: const AxisTitle(text: "10*log10(Power)"),
+          title: const AxisTitle(text: "Power (ms²/Hz)"),
         ),
         series: <CartesianSeries>[
           FastLineSeries<FlSpot, double>(
