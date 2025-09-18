@@ -22,27 +22,27 @@ final router = GoRouter(
   routes: <GoRoute>[
     GoRoute(
       path: LoginPage.route,
-      pageBuilder: (context, state) => const MaterialPage(child: LoginPage()),
+      pageBuilder: (context, state) => const NoTransitionPage(child: LoginPage()),
     ),
     GoRoute(
       path: UsersPage.route,
-      pageBuilder: (context, state) => const MaterialPage(child: UsersPage()),
+      pageBuilder: (context, state) => const NoTransitionPage(child: UsersPage()),
     ),
     GoRoute(
       path: Page1.route,
-      pageBuilder: (context, state) => MaterialPage(child: Page1(user: (state.extra as Map<String, dynamic>)["user"] as UserModel)),
+      pageBuilder: (context, state) => NoTransitionPage(child: Page1(user: (state.extra as Map<String, dynamic>)["user"] as UserModel)),
     ),
     GoRoute(
       path: Page2.route,
-      pageBuilder: (context, state) => MaterialPage(child: Page2(user: (state.extra as Map<String, dynamic>)["user"] as UserModel)),
+      pageBuilder: (context, state) => NoTransitionPage(child: Page2(user: (state.extra as Map<String, dynamic>)["user"] as UserModel)),
     ),
     GoRoute(
       path: SurveyPage.route,
-      pageBuilder: (context, state) => MaterialPage(child: SurveyPage(user: (state.extra as Map<String, dynamic>)["user"] as UserModel)),
+      pageBuilder: (context, state) => NoTransitionPage(child: SurveyPage(user: (state.extra as Map<String, dynamic>)["user"] as UserModel)),
     ),
       GoRoute(
       path: SleepResult.route,
-      pageBuilder: (context, state) => MaterialPage(child: SleepResult(user: (state.extra as Map<String, dynamic>)["user"] as UserModel)),
+      pageBuilder: (context, state) => NoTransitionPage(child: SleepResult(user: (state.extra as Map<String, dynamic>)["user"] as UserModel)),
     ),
   ],
 );

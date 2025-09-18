@@ -38,7 +38,9 @@ class AppService extends ChangeNotifier {
   }
 
   void manageBack(){
-    context.go(UsersPage.route);
+    if(context.canPop()){
+      context.pop();
+    }
   }
 
   void manageAutoLogout() {

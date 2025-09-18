@@ -344,7 +344,7 @@ class _UsersPageState extends State<UsersPage> {
                                     cursor: MaterialStateMouseCursor.clickable,
                                     child: GestureDetector(
                                         onTap: () {
-                                          context.go(Page1.route, extra: {"user": e});
+                                          context.push(Page1.route, extra: {"user": e});
                                         },
                                         child: const Icon(Icons.search)),
                                   ),
@@ -355,7 +355,7 @@ class _UsersPageState extends State<UsersPage> {
                                     cursor: MaterialStateMouseCursor.clickable,
                                     child: GestureDetector(
                                         onTap: () {
-                                          context.go(Page2.route, extra: {"user": e});
+                                          context.push(Page2.route, extra: {"user": e});
                                         },
                                         child: const Icon(Icons.search)),
                                   ),
@@ -366,7 +366,7 @@ class _UsersPageState extends State<UsersPage> {
                                     cursor: MaterialStateMouseCursor.clickable,
                                     child: GestureDetector(
                                         onTap: () {
-                                          context.go(SurveyPage.route, extra: {"user": e});
+                                          context.push(SurveyPage.route, extra: {"user": e});
                                         },
                                         child: const Icon(Icons.search)),
                                   ),
@@ -378,7 +378,7 @@ class _UsersPageState extends State<UsersPage> {
                                     cursor: MaterialStateMouseCursor.clickable,
                                     child: GestureDetector(
                                         onTap: () {
-                                          context.go(SleepResult.route, extra: {"user": e});
+                                          context.push(SleepResult.route, extra: {"user": e});
                                         },
                                         child: const Icon(Icons.search)),
                                   ),
