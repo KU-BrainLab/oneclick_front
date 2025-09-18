@@ -24,23 +24,23 @@ class OmniFitApp extends StatefulWidget {
 
 class _OmniFitAppState extends State<OmniFitApp> {
   @override
-  void initState() {
-    super.initState();
-    usePathUrlStrategy();
-    AppService.instance.initialize();
-  }
+    void initState() {
+      super.initState();
+      usePathUrlStrategy();
+      AppService.instance.initialize();
+    }
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'Web Authentication',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        fontFamily: 'DotumBold'
-      ),
-      routerDelegate: router.routerDelegate,
-      routeInformationParser: router.routeInformationParser,
-      routeInformationProvider: router.routeInformationProvider,
+    @override
+    Widget build(BuildContext context) {
+      return MaterialApp.router(
+        title: 'OneClick',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          fontFamily: 'DotumBold'
+        ),
+        routerDelegate: router.routerDelegate,
+        routeInformationParser: router.routeInformationParser,
+        routeInformationProvider: router.routeInformationProvider,
     );
   }
 } 
