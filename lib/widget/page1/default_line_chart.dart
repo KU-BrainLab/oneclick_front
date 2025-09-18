@@ -22,7 +22,7 @@ class DefaultLineChart extends StatelessWidget {
       children: [
         Row(
           children: [
-            const SizedBox(width: 50),
+            const SizedBox(width: 40),
             Expanded(
               child: Text(
                 'Raw PSD',
@@ -35,10 +35,9 @@ class DefaultLineChart extends StatelessWidget {
             ),
           ],
         ),
-        // 기존 차트 위젯
         Container(
-          padding: EdgeInsets.all(20),
-          height: 300, // 예시 높이
+          padding: EdgeInsets.all(10),
+          height: 300,
           child: SfCartesianChart(
             primaryXAxis: NumericAxis(
               minimum: 0,
@@ -54,7 +53,7 @@ class DefaultLineChart extends StatelessWidget {
             primaryYAxis: NumericAxis(
               minimum: 0,
               maximum: max(0.04, model.maxY),
-              interval: max(0.005, model.maxY/5),
+              interval: max(0.005, (model.maxY/5)),
               labelIntersectAction: AxisLabelIntersectAction.none,
               majorGridLines: const MajorGridLines(width: 1),
               axisLabelFormatter: (AxisLabelRenderDetails args) {

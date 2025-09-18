@@ -32,8 +32,23 @@ class Page1Tab1 extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           DefaultLineChart(model: page1TabModel.graph1model),
+          Row(
+            children: [
+              const SizedBox(width: 40),
+              Expanded(
+                child: Text(
+                  'Heart Rate Heat Plot',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
           Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(10),
             child: Image.network("$BASE_URL${page1TabModel.heart_rate}", width: 500),
           ),
           Padding(
