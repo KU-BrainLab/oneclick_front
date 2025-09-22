@@ -22,7 +22,7 @@ class DefaultLineChart extends StatelessWidget {
       children: [
         Row(
           children: [
-            const SizedBox(width: 40),
+            const SizedBox(width: 55),
             Expanded(
               child: Text(
                 'Raw PSD',

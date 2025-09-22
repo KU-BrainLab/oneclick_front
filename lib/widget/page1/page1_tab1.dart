@@ -22,6 +22,7 @@ class Page1Tab1 extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          const SizedBox(height: 30),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -30,8 +31,9 @@ class Page1Tab1 extends StatelessWidget {
               FrequencyDomainWidget(model: page1TabModel),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 50),
           DefaultLineChart(model: page1TabModel.graph1model),
+          const SizedBox(height: 50),
           Row(
             children: [
               const SizedBox(width: 40),
@@ -51,6 +53,7 @@ class Page1Tab1 extends StatelessWidget {
             padding: const EdgeInsets.all(10),
             child: Image.network("$BASE_URL${page1TabModel.heart_rate}", width: 500),
           ),
+          const SizedBox(height: 50),
           Padding(
             padding: const EdgeInsets.all(20),
             child: Image.network("$BASE_URL${page1TabModel.comparison}", width: 500),
