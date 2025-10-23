@@ -7,6 +7,7 @@ import 'package:omnifit_front/page/page_2.dart';
 import 'package:omnifit_front/page/survey_page.dart';
 import 'package:omnifit_front/page/sleep_result.dart';
 import 'package:omnifit_front/page/users_page.dart';
+import 'package:omnifit_front/page/report_page.dart';
 import 'package:omnifit_front/service/app_service.dart';
 
 part 'redirection.dart';
@@ -44,5 +45,10 @@ final router = GoRouter(
       path: SleepResult.route,
       pageBuilder: (context, state) => NoTransitionPage(child: SleepResult(user: (state.extra as Map<String, dynamic>)["user"] as UserModel)),
     ),
+      GoRoute(
+      path: ReportPage.route,
+      pageBuilder: (context, state) => NoTransitionPage(child: ReportPage(user: (state.extra as Map<String, dynamic>)["user"] as UserModel)),
+    ),
+
   ],
 );

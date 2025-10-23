@@ -9,6 +9,7 @@ import 'package:omnifit_front/constants/constants.dart';
 import 'package:omnifit_front/model/user_model.dart';
 import 'package:omnifit_front/page/page_1.dart';
 import 'package:omnifit_front/page/page_2.dart';
+import 'package:omnifit_front/page/report_page.dart';
 import 'package:omnifit_front/page/sleep_result.dart'; 
 import 'package:omnifit_front/page/survey_page.dart';
 import 'package:omnifit_front/service/app_service.dart';
@@ -311,6 +312,21 @@ class _UsersPageState extends State<UsersPage> {
                             ),
                           ),
                         ),
+
+                        const custom.DataColumn(
+                          label: Expanded(
+                            child: Align(
+                              alignment: Alignment.center,
+                              child: Text(
+                                '리포트',
+                                style: TextStyle(fontStyle: FontStyle.italic),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                        ),
+
+
                         const custom.DataColumn(
                           label: Expanded(
                             child: Align(
@@ -323,6 +339,7 @@ class _UsersPageState extends State<UsersPage> {
                             ),
                           ),
                         ),
+
                       ],
                       rows: users
                           .map((e) => custom.DataRow(cells: [
@@ -385,6 +402,19 @@ class _UsersPageState extends State<UsersPage> {
                                 )),
 
 
+                                custom.DataCell(Align(
+                                  alignment: Alignment.center,
+                                  child: MouseRegion(
+                                    cursor: MaterialStateMouseCursor.clickable,
+                                    child: GestureDetector(
+                                        onTap: () {
+                                          context.push(ReportPage.route, extra: {"user": e});
+                                        },
+                                        child: const Icon(Icons.search)),
+                                  ),
+                                )),
+
+                                
                                 custom.DataCell(Align(
                                   alignment: Alignment.center,
                                   child: OutlinedButton(
