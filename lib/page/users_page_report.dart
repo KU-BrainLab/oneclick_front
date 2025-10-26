@@ -7,27 +7,29 @@ import 'package:intl/intl.dart';
 import 'package:omnifit_front/constants/assets.dart';
 import 'package:omnifit_front/constants/constants.dart';
 import 'package:omnifit_front/model/user_model.dart';
+import 'package:omnifit_front/page/users_page.dart';
 import 'package:omnifit_front/page/page_1.dart';
 import 'package:omnifit_front/page/page_2.dart';
 import 'package:omnifit_front/page/report_page1.dart';
+import 'package:omnifit_front/page/report_page2.dart';
+
 import 'package:omnifit_front/page/sleep_result.dart'; 
 import 'package:omnifit_front/page/survey_page.dart';
-import 'package:omnifit_front/page/users_page_report.dart';
 import 'package:omnifit_front/service/app_service.dart';
 import 'package:omnifit_front/widget/custom_data_table.dart' as custom;
 import 'package:omnifit_front/widget/web_pagination.dart';
 import 'package:http/http.dart' as http;
 
-class UsersPage extends StatefulWidget {
-  static const route = '/users';
+class UsersPageReport extends StatefulWidget {
+  static const route = '/users/report';
 
-  const UsersPage({Key? key}) : super(key: key);
+  const UsersPageReport({Key? key}) : super(key: key);
 
   @override
-  State<UsersPage> createState() => _UsersPageState();
+  State<UsersPageReport> createState() => _UsersPageState();
 }
 
-class _UsersPageState extends State<UsersPage> {
+class _UsersPageState extends State<UsersPageReport> {
   String? inputText;
   int count = 0;
   int perPage = 10;
@@ -178,29 +180,6 @@ class _UsersPageState extends State<UsersPage> {
                       )
                     ],
                   ),
-                  // const SizedBox(height: 10),
-                  // Row(
-                  //   children: [
-                  //     const Spacer(),
-                  //     const Text("정렬 ", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14)),
-                  //     const SizedBox(width: 20),
-                  //     DropdownButton<dynamic>(
-                  //       value: selectedSort,
-                  //       onChanged: (dynamic newValue) async {
-                  //         selectedSort = newValue;
-                  //         debugPrint("newValue : $newValue");
-                  //         initData();
-                  //       },
-                  //       style: const TextStyle(color: Colors.black),
-                  //       items: sortList.map<DropdownMenuItem<dynamic>>((dynamic i) {
-                  //         return DropdownMenuItem<dynamic>(
-                  //           value: i['value'],
-                  //           child: Text(i['text'], style: const TextStyle(color: Colors.black, fontSize: 12, fontWeight: FontWeight.w600)),
-                  //         );
-                  //       }).toList(),
-                  //     ),
-                  //   ],
-                  // ),
                   const SizedBox(height: 50),
                   custom.CustomDataTable(
                       sortAscending: isAscSort,
@@ -270,7 +249,7 @@ class _UsersPageState extends State<UsersPage> {
                             child: Align(
                               alignment: Alignment.center,
                               child: Text(
-                                'hrv',
+                                'hrv리포트',
                                 style: TextStyle(fontStyle: FontStyle.italic),
                                 textAlign: TextAlign.center,
                               ),
@@ -282,7 +261,7 @@ class _UsersPageState extends State<UsersPage> {
                             child: Align(
                               alignment: Alignment.center,
                               child: Text(
-                                'eeg',
+                                'eeg리포트',
                                 style: TextStyle(fontStyle: FontStyle.italic),
                                 textAlign: TextAlign.center,
                               ),
@@ -294,7 +273,7 @@ class _UsersPageState extends State<UsersPage> {
                             child: Align(
                               alignment: Alignment.center,
                               child: Text(
-                                '설문결과',
+                                '설문결과리포트',
                                 style: TextStyle(fontStyle: FontStyle.italic),
                                 textAlign: TextAlign.center,
                               ),
@@ -306,27 +285,13 @@ class _UsersPageState extends State<UsersPage> {
                             child: Align(
                               alignment: Alignment.center,
                               child: Text(
-                                '수면결과',
+                                '수면결과리포트',
                                 style: TextStyle(fontStyle: FontStyle.italic),
                                 textAlign: TextAlign.center,
                               ),
                             ),
                           ),
                         ),
-
-                        const custom.DataColumn(
-                          label: Expanded(
-                            child: Align(
-                              alignment: Alignment.center,
-                              child: Text(
-                                '삭제',
-                                style: TextStyle(fontStyle: FontStyle.italic),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ),
-                        ),
-
                       ],
                       rows: users
                           .map((e) => custom.DataRow(cells: [
@@ -348,7 +313,7 @@ class _UsersPageState extends State<UsersPage> {
                                     cursor: MaterialStateMouseCursor.clickable,
                                     child: GestureDetector(
                                         onTap: () {
-                                          context.push(Page1.route, extra: {"user": e});
+                                          context.push(ReportPage1.route, extra: {"user": e});
                                         },
                                         child: const Icon(Icons.search)),
                                   ),
@@ -359,7 +324,7 @@ class _UsersPageState extends State<UsersPage> {
                                     cursor: MaterialStateMouseCursor.clickable,
                                     child: GestureDetector(
                                         onTap: () {
-                                          context.push(Page2.route, extra: {"user": e});
+                                          context.push(ReportPage2.route, extra: {"user": e});
                                         },
                                         child: const Icon(Icons.search)),
                                   ),
@@ -388,48 +353,6 @@ class _UsersPageState extends State<UsersPage> {
                                   ),
                                 )),
 
-                                custom.DataCell(Align(
-                                  alignment: Alignment.center,
-                                  child: OutlinedButton(
-                                      style: OutlinedButton.styleFrom(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(0),
-                                        ),
-                                        side: const BorderSide(width: 2, color: Colors.green),
-                                        foregroundColor: Colors.green,
-                                        backgroundColor: Colors.green,
-                                        elevation: 10.0,
-                                      ),
-                                      onPressed: () {
-                                        showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return AlertDialog(
-                                              title: Text('삭제'),
-                                              content: Text("${e.name}을 삭제하시겠습니까?"),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: Navigator.of(context).pop,
-                                                  child: Text("취소"),
-                                                ),
-                                                TextButton(
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-
-                                                    deleteUser(e.id);
-                                                  },
-                                                  child: Text('확인'),
-                                                ),
-                                              ],
-                                            );
-                                          },
-                                        );
-                                      },
-                                      child: const Text(
-                                        "버튼",
-                                        style: TextStyle(color: Colors.white),
-                                      )),
-                                ))
                               ]))
                           .toList()),
                   const SizedBox(height: 50),
@@ -453,10 +376,11 @@ class _UsersPageState extends State<UsersPage> {
                           elevation: 10.0,
                         ),
                         onPressed: () {
-                          context.go(UsersPageReport.route);
+                          context.go(UsersPage.route);
+
                         },
                         child: const Text(
-                          "숨겨진기능",
+                          "돌아가기",
                           style: TextStyle(color: Colors.white),
                         )),
                 ],
@@ -468,38 +392,4 @@ class _UsersPageState extends State<UsersPage> {
     );
   }
 
-  void deleteUser(int id) async {
-    final url = Uri.parse('${BASE_URL}api/v1/exp/${id}');
-
-    debugPrint('url : $url');
-    final response = await http.delete(url, headers: {'Authorization': 'JWT ${AppService.instance.currentUser?.id}'});
-
-    late String text;
-
-    if (response.statusCode == 200 || response.statusCode == 301) {
-      text = "완료 되었습니다.";
-
-      initData();
-    } else {
-      text = "실패 했습니다.";
-    }
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('삭제'),
-          content: Text(text),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('확인'),
-            ),
-          ],
-        );
-      },
-    );
-  }
 }

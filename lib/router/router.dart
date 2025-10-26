@@ -7,8 +7,11 @@ import 'package:omnifit_front/page/page_2.dart';
 import 'package:omnifit_front/page/survey_page.dart';
 import 'package:omnifit_front/page/sleep_result.dart';
 import 'package:omnifit_front/page/users_page.dart';
-import 'package:omnifit_front/page/report_page.dart';
+import 'package:omnifit_front/page/report_page1.dart';
+import 'package:omnifit_front/page/report_page2.dart';
+import 'package:omnifit_front/page/users_page_report.dart';
 import 'package:omnifit_front/service/app_service.dart';
+
 
 part 'redirection.dart';
 
@@ -46,9 +49,19 @@ final router = GoRouter(
       pageBuilder: (context, state) => NoTransitionPage(child: SleepResult(user: (state.extra as Map<String, dynamic>)["user"] as UserModel)),
     ),
       GoRoute(
-      path: ReportPage.route,
-      pageBuilder: (context, state) => NoTransitionPage(child: ReportPage(user: (state.extra as Map<String, dynamic>)["user"] as UserModel)),
+      path: ReportPage1.route,
+      pageBuilder: (context, state) => NoTransitionPage(child: ReportPage1(user: (state.extra as Map<String, dynamic>)["user"] as UserModel)),
     ),
 
+      GoRoute(
+      path: ReportPage2.route,
+      pageBuilder: (context, state) => NoTransitionPage(child: ReportPage2(user: (state.extra as Map<String, dynamic>)["user"] as UserModel)),
+    ),
+
+
+    GoRoute(
+      path: UsersPageReport.route,
+      pageBuilder: (context, state) => const NoTransitionPage(child: UsersPageReport()),
+    ),
   ],
 );
