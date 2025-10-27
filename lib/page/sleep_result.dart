@@ -62,18 +62,7 @@ class _SleepResultState extends State<SleepResult> {
       });
     }
   }
-
-  void saveHttp(int pk, Questionnaire dto) async {
-    final url = Uri.parse('${BASE_URL}api/v1/survey/questionnaire/$pk/');
-    final response = await http.post(url, headers: {
-      'Authorization': 'JWT ${AppService.instance.currentUser?.id}'
-    }, body: dto.toJson());
-
-    debugPrint("response $response");
-    if (response.statusCode == 200) {
-      callHttp();
-    }
-  }
+  
 
   @override
   Widget build(BuildContext context) {

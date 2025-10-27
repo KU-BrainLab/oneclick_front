@@ -9,6 +9,8 @@ import 'package:omnifit_front/page/sleep_result.dart';
 import 'package:omnifit_front/page/users_page.dart';
 import 'package:omnifit_front/page/report_page1.dart';
 import 'package:omnifit_front/page/report_page2.dart';
+import 'package:omnifit_front/page/report_page3.dart';
+import 'package:omnifit_front/page/report_page4.dart';
 import 'package:omnifit_front/page/users_page_report.dart';
 import 'package:omnifit_front/service/app_service.dart';
 
@@ -57,6 +59,17 @@ final router = GoRouter(
       path: ReportPage2.route,
       pageBuilder: (context, state) => NoTransitionPage(child: ReportPage2(user: (state.extra as Map<String, dynamic>)["user"] as UserModel)),
     ),
+
+      GoRoute(
+      path: ReportPage3.route,
+      pageBuilder: (context, state) => NoTransitionPage(child: ReportPage3(user: (state.extra as Map<String, dynamic>)["user"] as UserModel)),
+    ),
+
+      GoRoute(
+      path: ReportPage4.route,
+      pageBuilder: (context, state) => NoTransitionPage(child: ReportPage4(user: (state.extra as Map<String, dynamic>)["user"] as UserModel)),
+    ),
+
 
 
     GoRoute(

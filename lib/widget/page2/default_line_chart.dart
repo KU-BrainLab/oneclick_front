@@ -11,9 +11,6 @@ class DefaultLineChart extends StatelessWidget {
   final Graph1Model model;
   DefaultLineChart({Key? key, required this.model}) : super(key: key);
 
-
-
-
   @override
   Widget build(BuildContext context) {
     return _buildDefaultLineChart();

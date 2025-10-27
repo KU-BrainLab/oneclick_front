@@ -12,6 +12,8 @@ import 'package:omnifit_front/page/page_1.dart';
 import 'package:omnifit_front/page/page_2.dart';
 import 'package:omnifit_front/page/report_page1.dart';
 import 'package:omnifit_front/page/report_page2.dart';
+import 'package:omnifit_front/page/report_page3.dart';
+import 'package:omnifit_front/page/report_page4.dart';
 
 import 'package:omnifit_front/page/sleep_result.dart'; 
 import 'package:omnifit_front/page/survey_page.dart';
@@ -335,7 +337,7 @@ class _UsersPageState extends State<UsersPageReport> {
                                     cursor: MaterialStateMouseCursor.clickable,
                                     child: GestureDetector(
                                         onTap: () {
-                                          context.push(SurveyPage.route, extra: {"user": e});
+                                          context.push(ReportPage3.route, extra: {"user": e});
                                         },
                                         child: const Icon(Icons.search)),
                                   ),
@@ -347,7 +349,7 @@ class _UsersPageState extends State<UsersPageReport> {
                                     cursor: MaterialStateMouseCursor.clickable,
                                     child: GestureDetector(
                                         onTap: () {
-                                          context.push(SleepResult.route, extra: {"user": e});
+                                          context.push(ReportPage4.route, extra: {"user": e});
                                         },
                                         child: const Icon(Icons.search)),
                                   ),

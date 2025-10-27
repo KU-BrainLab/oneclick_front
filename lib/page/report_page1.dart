@@ -232,7 +232,7 @@ class _ReportPageState extends State<ReportPage1>
                         Row(
                           children: [
                             Text(
-                              "${DateFormat('yyyy.MM.dd').format(widget.user.measurement_date)} ${widget.user.name} 피험자 실험 결과",
+                              "${DateFormat('yyyy.MM.dd').format(widget.user.measurement_date)} ${widget.user.name} 피험자 실험 결과 - HRV",
                               style: const TextStyle(
                                 color: Colors.black,
                                 fontWeight: FontWeight.w700,
@@ -314,7 +314,7 @@ class _ReportPageState extends State<ReportPage1>
                                               'HRV_Baseline',
                                               textAlign: TextAlign.center,
                                               style: const TextStyle(
-                                                fontSize: 18,
+                                                fontSize: 22,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
@@ -396,7 +396,7 @@ class _ReportPageState extends State<ReportPage1>
                                               'HRV_Stimulation1',
                                               textAlign: TextAlign.center,
                                               style: const TextStyle(
-                                                fontSize: 18,
+                                                fontSize: 22,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
@@ -478,7 +478,7 @@ class _ReportPageState extends State<ReportPage1>
                                               'HRV_Recovery1',
                                               textAlign: TextAlign.center,
                                               style: const TextStyle(
-                                                fontSize: 18,
+                                                fontSize: 22,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
@@ -560,7 +560,7 @@ class _ReportPageState extends State<ReportPage1>
                                               'HRV_Stimulation2',
                                               textAlign: TextAlign.center,
                                               style: const TextStyle(
-                                                fontSize: 18,
+                                                fontSize: 22,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
@@ -642,7 +642,7 @@ class _ReportPageState extends State<ReportPage1>
                                               'HRV_Recovery2',
                                               textAlign: TextAlign.center,
                                               style: const TextStyle(
-                                                fontSize: 18,
+                                                fontSize: 22,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
@@ -711,14 +711,12 @@ class _ReportPageState extends State<ReportPage1>
                                       ],
                                     ),
                                   ),
-                                  const SizedBox(height: 65),
                                 ],
                               ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 40),
               ],
             ),
           ),

@@ -204,6 +204,7 @@ class _ReportPageState extends State<ReportPage2>
         isLoading = false;
       });
     }
+    
   }
 
   @override
@@ -299,7 +300,7 @@ class _ReportPageState extends State<ReportPage2>
                                     'EEG_Delta',
                                     textAlign: TextAlign.center,
                                     style: const TextStyle(
-                                      fontSize: 18,
+                                      fontSize: 22,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -309,7 +310,7 @@ class _ReportPageState extends State<ReportPage2>
                           ],
                         ),
 
-
+                        const SizedBox(height: 30),
 
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -774,6 +775,9 @@ class _ReportPageState extends State<ReportPage2>
                           ],
                         ),
 
+                        const SizedBox(height: 50),
+
+
                         // ====================== EEG_Theta (index 1) ======================
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -785,7 +789,7 @@ class _ReportPageState extends State<ReportPage2>
                                     'EEG_Theta',
                                     textAlign: TextAlign.center,
                                     style: const TextStyle(
-                                      fontSize: 18,
+                                      fontSize: 22,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -795,7 +799,7 @@ class _ReportPageState extends State<ReportPage2>
                           ],
                         ),
 
-                        const SizedBox(height: 100),
+                        const SizedBox(height: 30),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -1259,7 +1263,7 @@ class _ReportPageState extends State<ReportPage2>
                             ),
                           ],
                         ),
-
+                        const SizedBox(height: 100),
                         // ====================== EEG_Alpha (index 2) ======================
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -1271,7 +1275,7 @@ class _ReportPageState extends State<ReportPage2>
                                     'EEG_Alpha',
                                     textAlign: TextAlign.center,
                                     style: const TextStyle(
-                                      fontSize: 18,
+                                      fontSize: 22,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -1281,8 +1285,9 @@ class _ReportPageState extends State<ReportPage2>
                           ],
                         ),
 
-                        const SizedBox(height: 100),
-                        Row(
+                          const SizedBox(height: 30),                        
+                          Row(
+                          
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const SizedBox(width: 20),
@@ -1746,7 +1751,7 @@ class _ReportPageState extends State<ReportPage2>
                           ],
                         ),
 
-
+                        const SizedBox(height: 100),
                         // ====================== EEG_Beta (index 3) ======================
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -1758,7 +1763,7 @@ class _ReportPageState extends State<ReportPage2>
                                     'EEG_Beta',
                                     textAlign: TextAlign.center,
                                     style: const TextStyle(
-                                      fontSize: 18,
+                                      fontSize: 22,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -1768,7 +1773,7 @@ class _ReportPageState extends State<ReportPage2>
                           ],
                         ),
 
-
+                        const SizedBox(height: 30),
 
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -2233,7 +2238,7 @@ class _ReportPageState extends State<ReportPage2>
                           ],
                         ),
 
-
+                        const SizedBox(height: 100),
                         // ====================== EEG_Gamma (index 4) ======================
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -2245,7 +2250,7 @@ class _ReportPageState extends State<ReportPage2>
                                     'EEG_Gamma',
                                     textAlign: TextAlign.center,
                                     style: const TextStyle(
-                                      fontSize: 18,
+                                      fontSize: 22,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -2255,7 +2260,7 @@ class _ReportPageState extends State<ReportPage2>
                           ],
                         ),
 
-                        const SizedBox(height: 100),
+                        const SizedBox(height: 30),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -2720,19 +2725,19 @@ class _ReportPageState extends State<ReportPage2>
                           ],
                         ),
 
+                        const SizedBox(height: 140),
+
                         // ===== 아래 블록들(Frontal Limbic, FAA, Charts)을 Column(children:[]) 안으로 포함시킴 =====
-                        const SizedBox(height: 40),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const SizedBox(width: 20,),
                             Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 MouseRegion(
                                   cursor: SystemMouseCursors.click,
                                   child: GestureDetector(
-                                    child: Image.network("$BASE_URL${frontalLimbicModel.delta}", width: 150, filterQuality: FilterQuality.high)),
+                                    child: Image.network("$BASE_URL${frontalLimbicModel.delta}", width: 145, filterQuality: FilterQuality.high)),
                                 ),
                                 const Text("Delta"),
                               ],
@@ -2743,7 +2748,7 @@ class _ReportPageState extends State<ReportPage2>
                                 MouseRegion(
                                   cursor: SystemMouseCursors.click,
                                   child: GestureDetector(
-                                    child: Image.network("$BASE_URL${frontalLimbicModel.theta}", width: 150, filterQuality: FilterQuality.high)),
+                                    child: Image.network("$BASE_URL${frontalLimbicModel.theta}", width: 145, filterQuality: FilterQuality.high)),
                                 ),
                                 const Text("Theta"),
                               ],
@@ -2754,7 +2759,7 @@ class _ReportPageState extends State<ReportPage2>
                                 MouseRegion(
                                   cursor: SystemMouseCursors.click,
                                   child: GestureDetector(
-                                    child: Image.network("$BASE_URL${frontalLimbicModel.alpha}", width: 150, filterQuality: FilterQuality.high)),
+                                    child: Image.network("$BASE_URL${frontalLimbicModel.alpha}", width: 145, filterQuality: FilterQuality.high)),
                                 ),
                                 const Text("Alpha"),
                               ],
@@ -2765,7 +2770,7 @@ class _ReportPageState extends State<ReportPage2>
                                 MouseRegion(
                                   cursor: SystemMouseCursors.click,
                                   child: GestureDetector(
-                                    child: Image.network("$BASE_URL${frontalLimbicModel.beta}", width: 150, filterQuality: FilterQuality.high)),
+                                    child: Image.network("$BASE_URL${frontalLimbicModel.beta}", width: 145, filterQuality: FilterQuality.high)),
                                 ),
                                 const Text("Beta"),
                               ],
@@ -2776,14 +2781,14 @@ class _ReportPageState extends State<ReportPage2>
                                 MouseRegion(
                                   cursor: SystemMouseCursors.click,
                                   child: GestureDetector(
-                                    child: Image.network("$BASE_URL${frontalLimbicModel.gamma}", width: 150, filterQuality: FilterQuality.high)),
+                                    child: Image.network("$BASE_URL${frontalLimbicModel.gamma}", width: 145, filterQuality: FilterQuality.high)),
                                 ),
                                 const Text("Gamma"),
                               ],
                             ),
                           ],
                         ),
-                        const SizedBox(width: 100),
+                        const SizedBox(height: 40),
 
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -2847,6 +2852,8 @@ class _ReportPageState extends State<ReportPage2>
                           ],
                         ),
 
+                        const SizedBox(height: 40),
+
                         Row(
                           children: [
                             Expanded(child: CircleChartWidget(model: relatedPsdModel)),
@@ -2855,13 +2862,13 @@ class _ReportPageState extends State<ReportPage2>
                           ],
                         ),
 
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 700),
                         HorizontalBarWidget(model: regionPsdModel),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 40),
                         HypnogramWidget(model: hypnogramModel),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 40),
                         StackedChartWidget(model: sleepStageProbModel),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 200),
                       ],
                     ),
                   ),
