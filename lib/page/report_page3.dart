@@ -152,23 +152,26 @@ class _ReportPage3State extends State<ReportPage3> {
                         ),
                       ),
                       const Spacer(),
-                      OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(0),
+                        OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
+                            side: const BorderSide(width: 2, color: Colors.green),
+                            foregroundColor: Colors.green,
+                            backgroundColor: Colors.green,
+                            elevation: 10.0,
                           ),
-                          side:
-                              const BorderSide(width: 2, color: Colors.green),
-                          foregroundColor: Colors.green,
-                          backgroundColor: Colors.green,
-                          elevation: 10.0,
+                          onPressed: () {
+                            final fileName =
+                                '${DateFormat('yyyyMMdd').format(widget.user.measurement_date)}_${widget.user.name}_Questionnaire.pdf';
+
+
+                                  AppService.instance.managePdfDistribution(
+                                    fileName: fileName,
+                                    refreshAfter: true,
+                                  );
+                                },
+                          child: const Text("PDF 배포", style: TextStyle(color: Colors.white)),
                         ),
-                        onPressed: AppService.instance.managePdfDistribution,
-                        child: const Text(
-                          "PDF 배포",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
                     ],
                   ),
                 ),
