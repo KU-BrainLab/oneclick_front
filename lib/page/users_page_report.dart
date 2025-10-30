@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:html' as html; // Flutter Web 전용(파일 선택/다운로드)
+import 'dart:html' as html;
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -22,7 +22,6 @@ import 'package:omnifit_front/service/app_service.dart';
 import 'package:omnifit_front/widget/custom_data_table.dart' as custom;
 import 'package:omnifit_front/widget/web_pagination.dart';
 
-// ===== Top-level: 웹에서 고른 PDF 파일의 메타 =====
 class PickedPdf {
   final String name;
   final Uint8List bytes;
@@ -111,10 +110,6 @@ class _UsersPageState extends State<UsersPageReport> {
     await storageBox.put("ascSort", sortAscending);
     initData(columnIndex: columnIndex, sortAscending: sortAscending);
   }
-
-  // ==================================================
-  // PDF 병합: 파일 선택 → 순서 재배치 → 병합 → 다운로드
-  // ==================================================
 
   Future<List<PickedPdf>> pickMultiplePdfsWithMeta() async {
     final input = html.FileUploadInputElement()
@@ -250,7 +245,6 @@ class _UsersPageState extends State<UsersPageReport> {
   Future<Uint8List> mergePdfBytes(List<Uint8List> pdfFiles) async {
     final PdfDocument outDoc = PdfDocument();
 
-    // 👇 기본 마진(40pt) 제거! 이게 핵심
     outDoc.pageSettings.margins.all = 0;
 
     for (final fileBytes in pdfFiles) {
@@ -258,17 +252,14 @@ class _UsersPageState extends State<UsersPageReport> {
       for (int i = 0; i < src.pages.count; i++) {
         final srcPage = src.pages[i];
 
-        // 소스 페이지 사이즈를 그대로 승계
         outDoc.pageSettings.size = Size(srcPage.size.width, srcPage.size.height);
 
         final PdfPage dstPage = outDoc.pages.add();
 
-        // (선택) 회전 값도 복제하면 더 안전
         dstPage.rotation = srcPage.rotation;
 
         final PdfTemplate template = srcPage.createTemplate();
 
-        // 원점(0,0)부터 '그대로' 붙이기
         dstPage.graphics.drawPdfTemplate(
           template,
           const Offset(0, 0),

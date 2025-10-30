@@ -1,13 +1,7 @@
-// lib/service/app_service_web.dart
-// ✅ Flutter Web 전용 AppService (printing 제거)
-//    - RepaintBoundary 탐색 강화
-//    - 디버그 전용 속성/문자열화 제거 (debugNeedsPaint 접근/렌더객체 직접 로그 금지)
-
 import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
-// ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -30,10 +24,8 @@ class AppService extends ChangeNotifier {
 
   final Box storageBox = Hive.box('App Service Box');
 
-  /// MaterialApp(.router) 에 연결
   final navigatorKey = GlobalKey<NavigatorState>();
 
-  /// 캡처 대상 RepaintBoundary에 연결
   final GlobalKey screenKey = GlobalKey();
 
   BuildContext get context => navigatorKey.currentContext!;
@@ -42,7 +34,6 @@ class AppService extends ChangeNotifier {
   UserData? currentUser;
   bool get isLoggedIn => currentUser != null;
 
-  // ===== 캡처/레이아웃 파라미터 =====
   int captureTargetWidthPx = 1200;
   double pdfContentScale = 1.0;
   double pdfMarginHorizontalMm = 20;
@@ -72,8 +63,6 @@ class AppService extends ChangeNotifier {
     currentUser = null;
     storageBox.clear();
   }
-
-  // =================== Loading Overlay ===================
 
   OverlayEntry? _loadingOverlay;
   final ValueNotifier<String> _loadingMessage = ValueNotifier<String>('Loading...');
@@ -166,11 +155,9 @@ class AppService extends ChangeNotifier {
     }
   }
 
-  // =================== PDF Generation (WEB) ===================
 
   bool _isCapturing = false;
 
-  /// 기본 키로 캡처 시작
   Future<void> managePdfDistribution({String? fileName, bool refreshAfter = false}) {
     return managePdfDistributionFromKey(
       repaintKey: screenKey,
@@ -179,7 +166,6 @@ class AppService extends ChangeNotifier {
     );
   }
 
-  /// 원하는 RepaintBoundary 키를 직접 넘겨 캡처
   Future<void> managePdfDistributionFromKey({
     required GlobalKey repaintKey,
     String? fileName,
@@ -192,23 +178,19 @@ class AppService extends ChangeNotifier {
       debugPrint('[PDF] (web) manage START | kIsWeb=$kIsWeb | key=$repaintKey');
       _showLoadingOverlay(message: '화면 캡처 준비 중…');
 
-      // 프레임 두 번 대기 (페인트 완전 보장)
       await Future<void>.delayed(const Duration(milliseconds: 16));
       await WidgetsBinding.instance.endOfFrame;
       await WidgetsBinding.instance.endOfFrame;
 
-      // STEP2: 안전한 boundary 탐색 (디버그 전용 속성 접근 금지)
       final boundary = await _resolveBoundarySafe(repaintKey);
       debugPrint('[PDF] (web) STEP2 ok (size=${boundary.size})');
 
       _updateLoadingMessage('이미지 캡처 중…');
 
-      // 프레임 한 번 더 대기 후 캡처 (안정성↑)
       await WidgetsBinding.instance.endOfFrame;
 
-      // STEP3: 이미지 캡처
       final size = boundary.size;
-      final double pixelRatio = (captureTargetWidthPx / size.width).clamp(1.0, 2.0); // 최대 2.0 권장
+      final double pixelRatio = (captureTargetWidthPx / size.width).clamp(1.0, 2.0);
       final ui.Image image = await boundary.toImage(pixelRatio: pixelRatio);
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       image.dispose();
@@ -219,7 +201,6 @@ class AppService extends ChangeNotifier {
 
       _updateLoadingMessage('PDF 페이지 구성 중…');
 
-      // STEP4: PDF 생성
       final Uint8List pdfBytes = await _buildPdfBytes(
         pngBytes,
         contentScale: pdfContentScale,
@@ -227,7 +208,6 @@ class AppService extends ChangeNotifier {
         vMarginMm: pdfMarginVerticalMm,
       );
 
-      // STEP5: Blob 다운로드
       final name = _sanitizeFileName((fileName == null || fileName.trim().isEmpty) ? 'report.pdf' : fileName.trim());
       _updateLoadingMessage('파일 저장 준비 중…');
 
@@ -259,20 +239,15 @@ class AppService extends ChangeNotifier {
     }
   }
 
-  /// 디버그 전용 속성/문자열화를 건드리지 않는 boundary 탐색
   Future<RenderRepaintBoundary> _resolveBoundarySafe(GlobalKey key) async {
-    // 1) 키로 직접
     final ctx = key.currentContext;
     if (ctx != null && ctx.mounted) {
       final ro = ctx.findRenderObject();
-      // ❗ 렌더 객체 자체를 로그에 찍지 않습니다(toString 이슈 회피)
       if (ro is RenderRepaintBoundary) {
-        // 디버그 전용 속성 접근 금지 (debugNeedsPaint 등)
         return ro;
       }
     }
 
-    // 2) 네비게이터 컨텍스트를 시작점으로 전체 트리에서 가까운 Boundary 탐색
     final navCtx = navigatorKey.currentContext;
     if (navCtx == null || !navCtx.mounted) {
       throw StateError('navigatorKey.currentContext가 없습니다. MaterialApp.router의 navigatorKey 연결을 확인하세요.');
@@ -289,7 +264,6 @@ class AppService extends ChangeNotifier {
   }
 
   RenderRepaintBoundary? _searchNearestBoundary(RenderObject start) {
-    // BFS로 하위 탐색
     final q = <RenderObject>[];
     void enqueueChildren(RenderObject node) {
       node.visitChildren((child) {
@@ -306,7 +280,6 @@ class AppService extends ChangeNotifier {
       }
       enqueueChildren(cur);
     }
-    // 상위로도 한 번 타보기
     RenderObject? up = start.parent is RenderObject ? start.parent as RenderObject : null;
     int hop = 0;
     while (up != null && hop < 200) {
@@ -317,7 +290,6 @@ class AppService extends ChangeNotifier {
     return null;
   }
 
-  /// 간단 파일 다운로드 테스트
   Future<void> testSimpleDownload() async {
     try {
       final bytes = Uint8List.fromList('hello'.codeUnits);
@@ -331,7 +303,6 @@ class AppService extends ChangeNotifier {
     } catch (_) {}
   }
 
-  /// 캡처 없이 PDF 테스트
   Future<void> testPdfWithoutCapture() async {
     try {
       final doc = pw.Document();
@@ -352,7 +323,6 @@ class AppService extends ChangeNotifier {
     } catch (_) {}
   }
 
-  // ===== 유틸 =====
 
   static String _sanitizeFileName(String name) {
     const illegal = r'\/:*?"<>|';
@@ -429,10 +399,9 @@ class _SpinnerPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-// ---------- PNG → PDF (웹: compute 미사용) ----------
 Future<Uint8List> _buildPdfBytes(
   Uint8List pngBytes, {
-  required double contentScale, // 0.1~1.0
+  required double contentScale,
   required double hMarginMm,
   required double vMarginMm,
 }) async {
