@@ -336,12 +336,15 @@ class _UsersPageState extends State<UsersPage> {
                                 custom.DataCell(Align(alignment: Alignment.center, child: Text(e.name, textAlign: TextAlign.center))),
                                 custom.DataCell(Align(alignment: Alignment.center, child: Text(e.sexName, textAlign: TextAlign.center))),
                                 custom.DataCell(Align(alignment: Alignment.center, child: Text(e.birth ?? "", textAlign: TextAlign.center))),
-                                custom.DataCell(Align(
+                                custom.DataCell(
+                                  Align(
                                     alignment: Alignment.center,
                                     child: Text(
-                                      DateFormat.yMd().add_jm().format(e.measurement_date),
+                                      DateFormat('yyyy/MM/dd HH:mm').format(e.measurement_date),
                                       textAlign: TextAlign.center,
-                                    ))),
+                                    ),
+                                  ),
+                                ),
                                 custom.DataCell(Align(
                                   alignment: Alignment.center,
                                   child: MouseRegion(
@@ -456,7 +459,7 @@ class _UsersPageState extends State<UsersPage> {
                           context.go(UsersPageReport.route);
                         },
                         child: const Text(
-                          "숨겨진기능",
+                          "",
                           style: TextStyle(color: Colors.white),
                         )),
                 ],

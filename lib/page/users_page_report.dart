@@ -469,7 +469,7 @@ class _UsersPageState extends State<UsersPageReport> {
                           child: Align(
                             alignment: Alignment.center,
                             child: Text(
-                              'hrv리포트',
+                              'hrv',
                               style: TextStyle(fontStyle: FontStyle.italic),
                               textAlign: TextAlign.center,
                             ),
@@ -481,7 +481,7 @@ class _UsersPageState extends State<UsersPageReport> {
                           child: Align(
                             alignment: Alignment.center,
                             child: Text(
-                              'eeg리포트',
+                              'eeg',
                               style: TextStyle(fontStyle: FontStyle.italic),
                               textAlign: TextAlign.center,
                             ),
@@ -493,7 +493,7 @@ class _UsersPageState extends State<UsersPageReport> {
                           child: Align(
                             alignment: Alignment.center,
                             child: Text(
-                              '설문결과리포트',
+                              '설문결과',
                               style: TextStyle(fontStyle: FontStyle.italic),
                               textAlign: TextAlign.center,
                             ),
@@ -505,7 +505,7 @@ class _UsersPageState extends State<UsersPageReport> {
                           child: Align(
                             alignment: Alignment.center,
                             child: Text(
-                              '수면결과리포트',
+                              '수면결과',
                               style: TextStyle(fontStyle: FontStyle.italic),
                               textAlign: TextAlign.center,
                             ),
@@ -546,14 +546,15 @@ class _UsersPageState extends State<UsersPageReport> {
                                   alignment: Alignment.center,
                                   child: Text(e.birth ?? "",
                                       textAlign: TextAlign.center))),
-                              custom.DataCell(Align(
+                              custom.DataCell(
+                                Align(
                                   alignment: Alignment.center,
                                   child: Text(
-                                    DateFormat.yMd()
-                                        .add_jm()
-                                        .format(e.measurement_date),
+                                    DateFormat('yyyy/MM/dd HH:mm').format(e.measurement_date),
                                     textAlign: TextAlign.center,
-                                  ))),
+                                  ),
+                                ),
+                              ),
                               custom.DataCell(Align(
                                 alignment: Alignment.center,
                                 child: MouseRegion(
@@ -653,7 +654,7 @@ class _UsersPageState extends State<UsersPageReport> {
                         context.go(UsersPage.route);
                       },
                       child: const Text(
-                        "돌아가기",
+                        "",
                         style: TextStyle(color: Colors.white),
                       )),
                 ],
