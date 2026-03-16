@@ -36,41 +36,84 @@ final router = GoRouter(
     ),
     GoRoute(
       path: Page1.route,
-      pageBuilder: (context, state) => NoTransitionPage(child: Page1(user: (state.extra as Map<String, dynamic>)["user"] as UserModel)),
+      pageBuilder: (context, state) {
+        final extra = state.extra;
+        if (extra == null || extra is! Map<String, dynamic> || extra["user"] == null) {
+          return const NoTransitionPage(child: UsersPage());
+        }
+        return NoTransitionPage(child: Page1(user: extra["user"] as UserModel, trigger: extra["trigger"] as List<double>?));
+      },
     ),
     GoRoute(
       path: Page2.route,
-      pageBuilder: (context, state) => NoTransitionPage(child: Page2(user: (state.extra as Map<String, dynamic>)["user"] as UserModel)),
+      pageBuilder: (context, state) {
+        final extra = state.extra;
+        if (extra == null || extra is! Map<String, dynamic> || extra["user"] == null) {
+          return const NoTransitionPage(child: UsersPage());
+        }
+        return NoTransitionPage(child: Page2(user: extra["user"] as UserModel));
+      },
     ),
     GoRoute(
       path: SurveyPage.route,
-      pageBuilder: (context, state) => NoTransitionPage(child: SurveyPage(user: (state.extra as Map<String, dynamic>)["user"] as UserModel)),
+      pageBuilder: (context, state) {
+        final extra = state.extra;
+        if (extra == null || extra is! Map<String, dynamic> || extra["user"] == null) {
+          return const NoTransitionPage(child: UsersPage());
+        }
+        return NoTransitionPage(child: SurveyPage(user: extra["user"] as UserModel));
+      },
     ),
       GoRoute(
       path: SleepResult.route,
-      pageBuilder: (context, state) => NoTransitionPage(child: SleepResult(user: (state.extra as Map<String, dynamic>)["user"] as UserModel)),
+      pageBuilder: (context, state) {
+        final extra = state.extra;
+        if (extra == null || extra is! Map<String, dynamic> || extra["user"] == null) {
+          return const NoTransitionPage(child: UsersPage());
+        }
+        return NoTransitionPage(child: SleepResult(user: extra["user"] as UserModel));
+      },
     ),
       GoRoute(
       path: ReportPage1.route,
-      pageBuilder: (context, state) => NoTransitionPage(child: ReportPage1(user: (state.extra as Map<String, dynamic>)["user"] as UserModel)),
+      pageBuilder: (context, state) {
+        final extra = state.extra;
+        if (extra == null || extra is! Map<String, dynamic> || extra["user"] == null) {
+          return const NoTransitionPage(child: UsersPage());
+        }
+        return NoTransitionPage(child: ReportPage1(user: extra["user"] as UserModel, trigger: extra["trigger"] as List<double>?));
+      },
     ),
-
       GoRoute(
       path: ReportPage2.route,
-      pageBuilder: (context, state) => NoTransitionPage(child: ReportPage2(user: (state.extra as Map<String, dynamic>)["user"] as UserModel)),
+      pageBuilder: (context, state) {
+        final extra = state.extra;
+        if (extra == null || extra is! Map<String, dynamic> || extra["user"] == null) {
+          return const NoTransitionPage(child: UsersPage());
+        }
+        return NoTransitionPage(child: ReportPage2(user: extra["user"] as UserModel));
+      },
     ),
-
       GoRoute(
       path: ReportPage3.route,
-      pageBuilder: (context, state) => NoTransitionPage(child: ReportPage3(user: (state.extra as Map<String, dynamic>)["user"] as UserModel)),
+      pageBuilder: (context, state) {
+        final extra = state.extra;
+        if (extra == null || extra is! Map<String, dynamic> || extra["user"] == null) {
+          return const NoTransitionPage(child: UsersPage());
+        }
+        return NoTransitionPage(child: ReportPage3(user: extra["user"] as UserModel));
+      },
     ),
-
       GoRoute(
       path: ReportPage4.route,
-      pageBuilder: (context, state) => NoTransitionPage(child: ReportPage4(user: (state.extra as Map<String, dynamic>)["user"] as UserModel)),
+      pageBuilder: (context, state) {
+        final extra = state.extra;
+        if (extra == null || extra is! Map<String, dynamic> || extra["user"] == null) {
+          return const NoTransitionPage(child: UsersPage());
+        }
+        return NoTransitionPage(child: ReportPage4(user: extra["user"] as UserModel));
+      },
     ),
-
-
 
     GoRoute(
       path: UsersPageReport.route,

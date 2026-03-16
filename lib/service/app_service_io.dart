@@ -33,6 +33,8 @@ class AppService extends ChangeNotifier {
   UserData? currentUser;
   bool get isLoggedIn => currentUser != null;
 
+  List<double>? intervals;
+
   int captureTargetWidthPx = 1200;
   double pdfContentScale = 1.0;
   double pdfMarginHorizontalMm = 20;
@@ -49,8 +51,12 @@ class AppService extends ChangeNotifier {
     notifyListeners();
   }
 
-  void manageBack() { if (context.canPop()) context.pop(); }
-  void manageAutoLogout() { terminate(); context.go(LoginPage.route); }
+  void setIntervals(List<double> intervals) {
+    this.intervals = intervals;
+  }
+
+  void manageBack() { final ctx = navigatorKey.currentContext; if (ctx != null && ctx.canPop()) ctx.pop(); }
+  void manageAutoLogout() { terminate(); final ctx = navigatorKey.currentContext; if (ctx != null) ctx.go(LoginPage.route); }
   Future<void> terminate() async { currentUser = null; storageBox.clear(); }
 
   OverlayEntry? _loadingOverlay;
@@ -101,9 +107,14 @@ class AppService extends ChangeNotifier {
     final overlayState = navigatorKey.currentState?.overlay;
     if (overlayState != null) { overlayState.insert(_loadingOverlay!); return; }
     final ctx = navigatorKey.currentContext;
-    final found = Overlay.of(ctx ?? navigatorKey.currentContext!, rootOverlay: true);
-    if (found != null) { found.insert(_loadingOverlay!); return; }
-    if (ctx != null) {
+    if (ctx != null && ctx.mounted) {
+      try {
+        final found = Overlay.of(ctx, rootOverlay: true);
+        found.insert(_loadingOverlay!);
+        return;
+      } catch (_) {}
+    }
+    if (ctx != null && ctx.mounted) {
       showDialog(
         context: ctx, barrierDismissible: false,
         builder: (_) => const Stack(
@@ -116,9 +127,11 @@ class AppService extends ChangeNotifier {
   void _hideLoadingOverlay() {
     _loadingOverlay?.remove(); _loadingOverlay = null;
     final ctx = navigatorKey.currentContext;
-    if (ctx != null) {
-      final root = Navigator.of(ctx, rootNavigator: true);
-      if (root.canPop()) root.pop();
+    if (ctx != null && ctx.mounted) {
+      try {
+        final root = Navigator.of(ctx, rootNavigator: true);
+        if (root.canPop()) root.pop();
+      } catch (_) {}
     }
   }
 
@@ -173,8 +186,10 @@ class AppService extends ChangeNotifier {
     } catch (e, st) {
       debugPrint('[PDF] (io) ERROR: $e\n$st');
       final ctx = navigatorKey.currentContext;
-      if (ctx != null) {
-        ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text('PDF 생성 중 오류가 발생했습니다: $e')));
+      if (ctx != null && ctx.mounted) {
+        try {
+          ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text('PDF 생성 중 오류가 발생했습니다: $e')));
+        } catch (_) {}
       }
     } finally {
       _hideLoadingOverlay();

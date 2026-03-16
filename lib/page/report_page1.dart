@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:omnifit_front/constants/constants.dart';
 import 'package:omnifit_front/model/user_model.dart';
@@ -24,6 +25,8 @@ import 'package:omnifit_front/models/related_psd_model.dart';
 import 'package:omnifit_front/models/sleep_stage_prob_model.dart';
 import 'package:omnifit_front/models/topography_model.dart';
 
+import 'package:omnifit_front/page/users_page.dart';
+import 'package:omnifit_front/page/users_page_report.dart';
 import 'package:omnifit_front/service/app_service.dart';
 import 'package:omnifit_front/widget/page1/graph1.dart';
 import 'package:omnifit_front/widget/header.dart';
@@ -39,10 +42,11 @@ import 'package:omnifit_front/widget/page1/default_line_chart.dart';
 
 class ReportPage1 extends StatefulWidget {
   final UserModel user;
+  final List<double>? trigger;
 
   static const route = '/report1';
 
-  const ReportPage1({Key? key, required this.user}) : super(key: key);
+  const ReportPage1({Key? key, required this.user, this.trigger}) : super(key: key);
 
   @override
   State<ReportPage1> createState() => _ReportPageState();
@@ -84,6 +88,9 @@ class _ReportPageState extends State<ReportPage1>
   @override
   void initState() {
     super.initState();
+    if (widget.trigger != null && widget.trigger!.isNotEmpty) {
+      AppService.instance.setIntervals(widget.trigger!);
+    }
     callHttp();
   }
 
@@ -127,15 +134,18 @@ class _ReportPageState extends State<ReportPage1>
 
         final nniData = valueMap['nni'] as List<dynamic>? ?? [];
         final rmssdData = valueMap['rmssd'] as List<dynamic>? ?? [];
+        final intervals = widget.trigger ?? [];
+        final double finalMaxX = intervals.isNotEmpty
+            ? intervals.last.toDouble()
+            : (AppService.instance.intervals?.last.toDouble() ?? 50.0);
 
         graph1model = Graph1Model.fromJson(nniData);
 
         if (graph1model != null) {
-          final double finalMaxX = graph1model!.maxX.round().toDouble();
-
           multiColorLineChartModel = MultiColorLineChartModel.fromJson(
             rmssdData,
             finalAxisMaxX: finalMaxX,
+            intervals: intervals,
           );
         }
 
@@ -195,7 +205,9 @@ class _ReportPageState extends State<ReportPage1>
                           backgroundColor: Colors.green,
                           elevation: 10.0,
                         ),
-                        onPressed: AppService.instance.manageBack,
+                        onPressed: () {
+                          context.go(UsersPageReport.route);
+                        },
                         child: const Text(
                           "뒤로가기",
                           style: TextStyle(color: Colors.white),
@@ -296,9 +308,7 @@ class _ReportPageState extends State<ReportPage1>
                                         const SizedBox(height: 12),
                                         MultiColorLineChartWidget(
                                           model: multiColorLineChartModel!,
-                                          maxX: graph1model!.maxX
-                                              .round()
-                                              .toDouble(),
+                                          maxX: multiColorLineChartModel!.maxX,
                                         ),
                                       ],
                                     ),

@@ -2806,9 +2806,9 @@ class _ReportPageState extends State<ReportPage2>
                                 MouseRegion(
                                   cursor: SystemMouseCursors.click,
                                   child: GestureDetector(
-                                    child: Image.network("$BASE_URL${faaModel.delta}", width: 159, filterQuality: FilterQuality.high)),
+                                    child: Image.network("$BASE_URL${faaModel.faa_baseline}", width: 159, filterQuality: FilterQuality.high)),
                                 ),
-                                const Text("Delta"),
+                                const Text("Baseline"),
                               ],
                             ),
                             Column(
@@ -2817,9 +2817,9 @@ class _ReportPageState extends State<ReportPage2>
                                 MouseRegion(
                                   cursor: SystemMouseCursors.click,
                                   child: GestureDetector(
-                                    child: Image.network("$BASE_URL${faaModel.theta}", width: 159, filterQuality: FilterQuality.high)),
+                                    child: Image.network("$BASE_URL${faaModel.faa_stimulation1}", width: 159, filterQuality: FilterQuality.high)),
                                 ),
-                                const Text("Theta"),
+                                const Text("Stimulation1"),
                               ],
                             ),
                             Column(
@@ -2828,9 +2828,9 @@ class _ReportPageState extends State<ReportPage2>
                                 MouseRegion(
                                   cursor: SystemMouseCursors.click,
                                   child: GestureDetector(
-                                    child: Image.network("$BASE_URL${faaModel.alpha}", width: 159, filterQuality: FilterQuality.high)),
+                                    child: Image.network("$BASE_URL${faaModel.faa_recovery1}", width: 159, filterQuality: FilterQuality.high)),
                                 ),
-                                const Text("Alpha"),
+                                const Text("Recovery1"),
                               ],
                             ),
                             Column(
@@ -2839,9 +2839,9 @@ class _ReportPageState extends State<ReportPage2>
                                 MouseRegion(
                                   cursor: SystemMouseCursors.click,
                                   child: GestureDetector(
-                                    child: Image.network("$BASE_URL${faaModel.beta}", width: 159, filterQuality: FilterQuality.high)),
+                                    child: Image.network("$BASE_URL${faaModel.faa_stimulation2}", width: 159, filterQuality: FilterQuality.high)),
                                 ),
-                                const Text("Beta"),
+                                const Text("Stimulation2"),
                               ],
                             ),
                             Column(
@@ -2850,9 +2850,9 @@ class _ReportPageState extends State<ReportPage2>
                                 MouseRegion(
                                   cursor: SystemMouseCursors.click,
                                   child: GestureDetector(
-                                    child: Image.network("$BASE_URL${faaModel.gamma}", width: 159, filterQuality: FilterQuality.high)),
+                                    child: Image.network("$BASE_URL${faaModel.faa_recovery2}", width: 159, filterQuality: FilterQuality.high)),
                                 ),
-                                const Text("Gamma"),
+                                const Text("Recovery2"),
                               ],
                             ),
                           ],

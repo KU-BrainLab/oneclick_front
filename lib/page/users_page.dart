@@ -83,6 +83,7 @@ class _UsersPageState extends State<UsersPage> {
       users = [];
 
       Map valueMap = jsonDecode(utf8.decode(response.bodyBytes));
+
       count = valueMap['count'];
       next = valueMap['next'];
       previous = valueMap['previous'];
@@ -90,6 +91,10 @@ class _UsersPageState extends State<UsersPage> {
       valueMap['results'].forEach((e) {
         users.add(UserModel.fromJson(e));
       });
+
+      if (valueMap.containsKey('EXPERIMENT_TRIGGER')) {
+        AppService.instance.setIntervals(List<double>.from(valueMap['EXPERIMENT_TRIGGER']));
+      }
     } else if (response.statusCode == 401) {
       AppService.instance.manageAutoLogout();
     }
@@ -351,7 +356,7 @@ class _UsersPageState extends State<UsersPage> {
                                     cursor: MaterialStateMouseCursor.clickable,
                                     child: GestureDetector(
                                         onTap: () {
-                                          context.push(Page1.route, extra: {"user": e});
+                                          context.push(Page1.route, extra: {"user": e, "trigger": e.trigger?.map((i) => i.toDouble()).toList()});
                                         },
                                         child: const Icon(Icons.search)),
                                   ),

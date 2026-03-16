@@ -138,7 +138,7 @@ class _LoginPageState extends State<LoginPage> {
           const SizedBox(height: 20),
         Container(
           child: Text(
-            'last update: 2025.11.25',
+            'last update: 2026.03.15',
             style: TextStyle(
               color: Colors.grey[600],
               fontSize: 12,

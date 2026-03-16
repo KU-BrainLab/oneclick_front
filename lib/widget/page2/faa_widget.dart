@@ -32,11 +32,11 @@ class FaaWidget extends StatelessWidget {
               cursor: SystemMouseCursors.click,
               child: GestureDetector(
                 onTap: () {
-                  showDialog1(context, "$BASE_URL${model.delta}");
+                  showDialog1(context, "$BASE_URL${model.faa_baseline}");
                 },
-                child: Image.network("$BASE_URL${model.delta}", width: 159, filterQuality: FilterQuality.high)),
+                child: Image.network("$BASE_URL${model.faa_baseline}", width: 159, filterQuality: FilterQuality.high)),
             ),
-            const Text("Delta"),
+            const Text("Baseline"),
           ],
         ),
         Column(
@@ -46,11 +46,11 @@ class FaaWidget extends StatelessWidget {
               cursor: SystemMouseCursors.click,
               child: GestureDetector(
                 onTap: () {
-                  showDialog1(context, "$BASE_URL${model.theta}");
+                  showDialog1(context, "$BASE_URL${model.faa_stimulation1}");
                 },
-                child: Image.network("$BASE_URL${model.theta}", width: 159, filterQuality: FilterQuality.high)),
+                child: Image.network("$BASE_URL${model.faa_stimulation1}", width: 159, filterQuality: FilterQuality.high)),
             ),
-            const Text("Theta"),
+            const Text("Stimulation1"),
           ],
         ),
         Column(
@@ -60,11 +60,11 @@ class FaaWidget extends StatelessWidget {
               cursor: SystemMouseCursors.click,
               child: GestureDetector(
                 onTap: () {
-                  showDialog1(context, "$BASE_URL${model.alpha}");
+                  showDialog1(context, "$BASE_URL${model.faa_recovery1}");
                 },
-                child: Image.network("$BASE_URL${model.alpha}", width: 159, filterQuality: FilterQuality.high)),
+                child: Image.network("$BASE_URL${model.faa_recovery1}", width: 159, filterQuality: FilterQuality.high)),
             ),
-            const Text("Alpha"),
+            const Text("Recovery1"),
           ],
         ),
         Column(
@@ -74,11 +74,11 @@ class FaaWidget extends StatelessWidget {
               cursor: SystemMouseCursors.click,
               child: GestureDetector(
                 onTap: () {
-                  showDialog1(context, "$BASE_URL${model.beta}");
+                  showDialog1(context, "$BASE_URL${model.faa_stimulation2}");
                 },
-                child: Image.network("$BASE_URL${model.beta}", width: 159, filterQuality: FilterQuality.high)),
+                child: Image.network("$BASE_URL${model.faa_stimulation2}", width: 159, filterQuality: FilterQuality.high)),
             ),
-            const Text("Beta"),
+            const Text("Stimulation2"),
           ],
         ),
         Column(
@@ -88,11 +88,11 @@ class FaaWidget extends StatelessWidget {
               cursor: SystemMouseCursors.click,
               child: GestureDetector(
                 onTap: () {
-                  showDialog1(context, "$BASE_URL${model.gamma}");
+                  showDialog1(context, "$BASE_URL${model.faa_recovery2}");
                 },
-                child: Image.network("$BASE_URL${model.gamma}", width: 159, filterQuality: FilterQuality.high)),
+                child: Image.network("$BASE_URL${model.faa_recovery2}", width: 159, filterQuality: FilterQuality.high)),
             ),
-            const Text("Gamma"),
+            const Text("Recovery2"),
           ],
         ),
         const SizedBox(width: 20,),

@@ -22,7 +22,6 @@ class MultiColorLineChartWidget extends StatelessWidget {
         primaryXAxis: NumericAxis(
           minimum: model.minX,
           maximum: maxX,
-          interval: model.intervalX,
           title: const AxisTitle(
             text: "Time(m)",
             alignment: ChartAlignment.center, 
@@ -33,15 +32,15 @@ class MultiColorLineChartWidget extends StatelessWidget {
           )
         ),          
         primaryYAxis: NumericAxis(minimum: model.minY, maximum: model.maxY, interval: model.intervalY),
-          series: <LineSeries<ChartData, double>>[
+          series: <CartesianSeries>[
             LineSeries<ChartData, double>(
               animationDuration: 0,
               dataSource: model.dataList,
-              xValueMapper: (ChartData sales, _) => sales.x,
-              yValueMapper: (ChartData sales, _) => sales.y,
+              xValueMapper: (ChartData data, _) => data.x,
+              yValueMapper: (ChartData data, _) => data.y,
+              pointColorMapper: (ChartData data, _) => data.lineColor,
               width: 2,
-              pointColorMapper: (ChartData sales, _) => sales.lineColor,
-            )
+            ),
           ],
         ),
         Align(

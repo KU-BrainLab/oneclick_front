@@ -15,9 +15,10 @@ import 'package:omnifit_front/widget/page1/page1_tab1.dart';
 
 class Page1 extends StatefulWidget {
   final UserModel user;
+  final List<double>? trigger;
   static const route = '/ecg/hrv';
 
-  const Page1({Key? key, required this.user}) : super(key: key);
+  const Page1({Key? key, required this.user, this.trigger}) : super(key: key);
 
   @override
   State<Page1> createState() => _Page1State();
@@ -38,6 +39,9 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    if (widget.trigger != null && widget.trigger!.isNotEmpty) {
+      AppService.instance.setIntervals(widget.trigger!);
+    }
     callHttp();
   }
 
@@ -78,15 +82,21 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
 
         final nniData = valueMap['nni'] as List<dynamic>? ?? [];
         final rmssdData = valueMap['rmssd'] as List<dynamic>? ?? [];
+        final intervals = widget.trigger ?? [];
+        final double finalMaxX = intervals.isNotEmpty
+            ? intervals.last.toDouble()
+            : (AppService.instance.intervals?.last.toDouble() ?? 50.0);
+
+        debugPrint('rmssdData: $rmssdData');
+        debugPrint('intervals: $intervals');
 
         graph1model = Graph1Model.fromJson(nniData);
         
         if (graph1model != null) {
-          final double finalMaxX = graph1model!.maxX.round().toDouble();
-          
           multiColorLineChartModel = MultiColorLineChartModel.fromJson(
             rmssdData,
             finalAxisMaxX: finalMaxX,
+            intervals: intervals,
           );
         }
 
@@ -198,7 +208,7 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
                                   const SizedBox(height: 12),
                                   MultiColorLineChartWidget(
                                     model: multiColorLineChartModel!,
-                                    maxX: graph1model!.maxX.round().toDouble(),
+                                    maxX: multiColorLineChartModel!.maxX,
                                   ),
                                 ],
                               ),

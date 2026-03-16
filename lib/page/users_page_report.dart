@@ -98,8 +98,7 @@ class _UsersPageState extends State<UsersPageReport> {
 
       valueMap['results'].forEach((e) {
         users.add(UserModel.fromJson(e));
-      });
-    } else if (response.statusCode == 401) {
+      });    } else if (response.statusCode == 401) {
       AppService.instance.manageAutoLogout();
     }
     setState(() {});
@@ -561,7 +560,19 @@ class _UsersPageState extends State<UsersPageReport> {
                                   cursor: MaterialStateMouseCursor.clickable,
                                   child: GestureDetector(
                                       onTap: () {
-                                        context.push(ReportPage1.route,
+                                        AppService.instance.context.push(ReportPage1.route,
+                                            extra: {"user": e, "trigger": e.trigger?.map((i) => i.toDouble()).toList()});
+                                      },
+                                      child: const Icon(Icons.search)),
+                                ),
+                              )),
+                              custom.DataCell(Align(
+                                alignment: Alignment.center,
+                                child: MouseRegion(
+                                  cursor: MaterialStateMouseCursor.clickable,
+                                  child: GestureDetector(
+                                      onTap: () {
+                                        AppService.instance.context.push(ReportPage2.route,
                                             extra: {"user": e});
                                       },
                                       child: const Icon(Icons.search)),
@@ -573,7 +584,7 @@ class _UsersPageState extends State<UsersPageReport> {
                                   cursor: MaterialStateMouseCursor.clickable,
                                   child: GestureDetector(
                                       onTap: () {
-                                        context.push(ReportPage2.route,
+                                        AppService.instance.context.push(ReportPage3.route,
                                             extra: {"user": e});
                                       },
                                       child: const Icon(Icons.search)),
@@ -585,19 +596,7 @@ class _UsersPageState extends State<UsersPageReport> {
                                   cursor: MaterialStateMouseCursor.clickable,
                                   child: GestureDetector(
                                       onTap: () {
-                                        context.push(ReportPage3.route,
-                                            extra: {"user": e});
-                                      },
-                                      child: const Icon(Icons.search)),
-                                ),
-                              )),
-                              custom.DataCell(Align(
-                                alignment: Alignment.center,
-                                child: MouseRegion(
-                                  cursor: MaterialStateMouseCursor.clickable,
-                                  child: GestureDetector(
-                                      onTap: () {
-                                        context.push(ReportPage4.route,
+                                        AppService.instance.context.push(ReportPage4.route,
                                             extra: {"user": e});
                                       },
                                       child: const Icon(Icons.search)),
@@ -651,7 +650,7 @@ class _UsersPageState extends State<UsersPageReport> {
                         elevation: 10.0,
                       ),
                       onPressed: () {
-                        context.go(UsersPage.route);
+                        AppService.instance.context.go(UsersPage.route);
                       },
                       child: const Text(
                         "",
