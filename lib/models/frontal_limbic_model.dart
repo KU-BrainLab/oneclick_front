@@ -4,13 +4,15 @@ class FrontalLimbicModel {
   String? delta;
   String? gamma;
   String? theta;
+  String? sigma;
 
   FrontalLimbicModel({
     required this.alpha,
     required this.beta,
     required this.delta,
     required this.gamma,
-    required this.theta
+    required this.theta,
+    required this.sigma,
   });
 
   factory FrontalLimbicModel.fromJson(dynamic map) {
@@ -21,6 +23,7 @@ class FrontalLimbicModel {
         delta: map['delta'],
         gamma: map['gamma'],
         theta: map['theta'],
+        sigma: map['sigma'],
     );
   }
 }

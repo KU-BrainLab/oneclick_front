@@ -98,7 +98,7 @@ class _Bsrsr2ChartWidgetState extends State<Bsrsr2ChartWidget> {
                   ),
                   width: 100,
                   height: 30,
-                  child: Center(child: Text("Beta")),
+                  child: Center(child: Text("Sigma")),
                 ),
               ),
             ),
@@ -113,6 +113,26 @@ class _Bsrsr2ChartWidgetState extends State<Bsrsr2ChartWidget> {
                 child: Container(
                   decoration: BoxDecoration(
                       color: index == 4 ? Colors.grey.withOpacity(0.4) : Colors.white,
+                      borderRadius: BorderRadius.all(Radius.circular(4)),
+                      border: Border.all(color: Colors.black)
+                  ),
+                  width: 100,
+                  height: 30,
+                  child: Center(child: Text("Beta")),
+                ),
+              ),
+            ),
+            MouseRegion(
+              cursor: MaterialStateMouseCursor.clickable,
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    index = 5;
+                  });
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                      color: index == 5 ? Colors.grey.withOpacity(0.4) : Colors.white,
                       borderRadius: BorderRadius.all(Radius.circular(4)),
                       border: Border.all(color: Colors.black)
                   ),

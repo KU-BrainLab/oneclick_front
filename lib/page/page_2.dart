@@ -10,9 +10,12 @@ import 'package:omnifit_front/models/connectivity2_model.dart';
 import 'package:omnifit_front/models/connectivity_model.dart';
 import 'package:omnifit_front/models/diff_connectivity2_model.dart';
 import 'package:omnifit_front/models/diff_connectivity_model.dart';
+import 'package:omnifit_front/models/diff_stage_connectivity_model.dart';
+import 'package:omnifit_front/models/diff_stage_topography_model.dart';
 import 'package:omnifit_front/models/diff_topography_model.dart';
 import 'package:omnifit_front/models/faa_model.dart';
 import 'package:omnifit_front/models/frontal_limbic_model.dart';
+import 'package:omnifit_front/models/psd_spectrogram_model.dart';
 import 'package:omnifit_front/models/graph1_model.dart';
 import 'package:omnifit_front/models/hypnogram_model.dart';
 import 'package:omnifit_front/models/region_psd_model.dart';
@@ -28,8 +31,10 @@ import 'package:omnifit_front/widget/page2/cicle_chart_widget.dart';
 import 'package:omnifit_front/widget/header.dart';
 import 'package:omnifit_front/widget/page2/default_line_chart.dart';
 import 'package:omnifit_front/widget/page2/diff_connectivity_widget.dart';
+import 'package:omnifit_front/widget/page2/diff_stage_widget.dart';
 import 'package:omnifit_front/widget/page2/diff_topography_widget.dart';
 import 'package:omnifit_front/widget/page2/faa_widget.dart';
+import 'package:omnifit_front/widget/page2/psd_spectrogram_widget.dart';
 import 'package:omnifit_front/widget/page2/frontal_limbic_widget.dart';
 import 'package:omnifit_front/widget/page2/horizontal_bar_widget.dart';
 import 'package:omnifit_front/widget/page2/hypnogram_widget.dart';
@@ -55,6 +60,11 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
   List<Connectivity2Model> connectivity2List = [];
   List<DiffConnectivity2Model> diffConnectivity2List = [];
 
+  // [bandIndex][stageIndex] — bands: delta/theta/alpha/sigma/beta/gamma, stages: wake/n1/n2/n3/rem
+  List<List<DiffStageTopographyModel>> diffStageTopoList = [];
+  List<List<DiffStageConnectivityModel>> diffStageConnList = [];
+  PsdSpectrogramModel? psdSpectrogramModel;
+
   TextEditingController textEditingController = TextEditingController();
   late Graph1Model graph1model;
   late RelatedPsdModel relatedPsdModel;
@@ -68,8 +78,8 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
   late BrainConnectivityModel brainConnectivityModel;
   // NOTE: TabControllers are initialized but not used in the provided code.
   // If they are used elsewhere, ensure they are properly managed.
-  late TabController tabController1 = TabController(length: 5, vsync: this, initialIndex: 0, animationDuration: const Duration(milliseconds: 800));
-  late TabController tabController2 = TabController(length: 5, vsync: this, initialIndex: 0, animationDuration: const Duration(milliseconds: 800));
+  late TabController tabController1 = TabController(length: 6, vsync: this, initialIndex: 0, animationDuration: const Duration(milliseconds: 800));
+  late TabController tabController2 = TabController(length: 6, vsync: this, initialIndex: 0, animationDuration: const Duration(milliseconds: 800));
   String? note;
 
   @override
@@ -109,6 +119,7 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
           TopographyModel.fromJson(valueMap, "delta"),
           TopographyModel.fromJson(valueMap, "theta"),
           TopographyModel.fromJson(valueMap, "alpha"),
+          TopographyModel.fromJson(valueMap, "sigma"),
           TopographyModel.fromJson(valueMap, "beta"),
           TopographyModel.fromJson(valueMap, "gamma"),
         ]);
@@ -118,6 +129,7 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
             DiffTopographyModel.fromJson(valueMap, "delta"),
             DiffTopographyModel.fromJson(valueMap, "theta"),
             DiffTopographyModel.fromJson(valueMap, "alpha"),
+            DiffTopographyModel.fromJson(valueMap, "sigma"),
             DiffTopographyModel.fromJson(valueMap, "beta"),
             DiffTopographyModel.fromJson(valueMap, "gamma"),
           ]);
@@ -127,6 +139,7 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
           ConnectivityModel.fromJson(valueMap, "delta"),
           ConnectivityModel.fromJson(valueMap, "theta"),
           ConnectivityModel.fromJson(valueMap, "alpha"),
+          ConnectivityModel.fromJson(valueMap, "sigma"),
           ConnectivityModel.fromJson(valueMap, "beta"),
           ConnectivityModel.fromJson(valueMap, "gamma"),
         ]);
@@ -136,6 +149,7 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
             DiffConnectivityModel.fromJson(valueMap, "delta"),
             DiffConnectivityModel.fromJson(valueMap, "theta"),
             DiffConnectivityModel.fromJson(valueMap, "alpha"),
+            DiffConnectivityModel.fromJson(valueMap, "sigma"),
             DiffConnectivityModel.fromJson(valueMap, "beta"),
             DiffConnectivityModel.fromJson(valueMap, "gamma"),
           ]);
@@ -146,6 +160,7 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
             Connectivity2Model.fromJson(valueMap, "delta"),
             Connectivity2Model.fromJson(valueMap, "theta"),
             Connectivity2Model.fromJson(valueMap, "alpha"),
+            Connectivity2Model.fromJson(valueMap, "sigma"),
             Connectivity2Model.fromJson(valueMap, "beta"),
             Connectivity2Model.fromJson(valueMap, "gamma"),
           ]);
@@ -154,9 +169,27 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
             DiffConnectivity2Model.fromJson(valueMap, "delta"),
             DiffConnectivity2Model.fromJson(valueMap, "theta"),
             DiffConnectivity2Model.fromJson(valueMap, "alpha"),
+            DiffConnectivity2Model.fromJson(valueMap, "sigma"),
             DiffConnectivity2Model.fromJson(valueMap, "beta"),
             DiffConnectivity2Model.fromJson(valueMap, "gamma"),
           ]);
+        }
+
+        // Stage-specific diff (WAKE/N1/N2/N3/REM) — only when present
+        if (valueMap['diff1'] != null && valueMap['diff1']['topography_delta_wake'] != null) {
+          const bands  = ["delta", "theta", "alpha", "sigma", "beta", "gamma"];
+          const stages = ["wake", "n1", "n2", "n3", "rem"];
+          for (final band in bands) {
+            diffStageTopoList.add(stages.map((s) =>
+              DiffStageTopographyModel.fromJson(valueMap, band, s)).toList());
+            diffStageConnList.add(stages.map((s) =>
+              DiffStageConnectivityModel.fromJson(valueMap, band, s)).toList());
+          }
+        }
+
+        // PSD Spectrogram
+        if (valueMap['psd_spectrogram'] != null) {
+          psdSpectrogramModel = PsdSpectrogramModel.fromJson(valueMap['psd_spectrogram']);
         }
         
         relatedPsdModel = RelatedPsdModel.fromJson(valueMap['psd']['related_psd']);
@@ -256,6 +289,17 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
                             const SizedBox(height: 20),
                             if (faaModel != null) ...[
                               FaaWidget(model: faaModel!),
+                              const SizedBox(height: 20),
+                            ],
+                            if (diffStageTopoList.isNotEmpty) ...[
+                              DiffStageWidget(
+                                diffStageTopoList: diffStageTopoList,
+                                diffStageConnList: diffStageConnList,
+                              ),
+                              const SizedBox(height: 20),
+                            ],
+                            if (psdSpectrogramModel != null) ...[
+                              PsdSpectrogramWidget(model: psdSpectrogramModel!),
                               const SizedBox(height: 20),
                             ],
                             Row(

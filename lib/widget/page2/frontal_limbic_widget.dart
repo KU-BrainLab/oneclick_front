@@ -67,6 +67,21 @@ class FrontalLimbicWidget extends StatelessWidget {
             const Text("Alpha"),
           ],
         ),
+        if (model.sigma != null)
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: () {
+                    showDialog1(context, "$BASE_URL${model.sigma}");
+                  },
+                  child: Image.network("$BASE_URL${model.sigma}", width: 150, filterQuality: FilterQuality.high)),
+              ),
+              const Text("Sigma"),
+            ],
+          ),
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
