@@ -1,8 +1,8 @@
 class DiffTopographyModel {
-  String diff1;
-  String diff2;
-  String diff3;
-  String diff4;
+  String? diff1;
+  String? diff2;
+  String? diff3;
+  String? diff4;
 
   DiffTopographyModel({
     required this.diff1,

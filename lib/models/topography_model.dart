@@ -1,9 +1,9 @@
 class TopographyModel {
-  String baseline;
-  String stimulation1;
-  String recovery1;
-  String stimulation2;
-  String recovery2;
+  String? baseline;
+  String? stimulation1;
+  String? recovery1;
+  String? stimulation2;
+  String? recovery2;
 
   TopographyModel({
     required this.baseline,

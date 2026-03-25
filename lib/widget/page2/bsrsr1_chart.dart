@@ -166,70 +166,35 @@ class _Bsrsr1ChartWidgetState extends State<Bsrsr1ChartWidget> {
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    onTap: () {
-                      showDialog1(context, "$BASE_URL${widget.connectivityList[index].baseline}");
-                    },
-                    child: Image.network("$BASE_URL${widget.connectivityList[index].baseline}", width: 150, filterQuality: FilterQuality.high)),
-                ),
+                _networkImage(widget.connectivityList[index].baseline),
                 const Text("Baseline"),
               ],
             ),
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    onTap: () {
-                      showDialog1(context, "$BASE_URL${widget.connectivityList[index].stimulation1}");
-                    },
-                    child: Image.network("$BASE_URL${widget.connectivityList[index].stimulation1}", width: 150, filterQuality: FilterQuality.high)),
-                ),
+                _networkImage(widget.connectivityList[index].stimulation1),
                 const Text("Stimulation1"),
               ],
             ),
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    onTap: () {
-                      showDialog1(context, "$BASE_URL${widget.connectivityList[index].recovery1}");
-                    },
-                    child: Image.network("$BASE_URL${widget.connectivityList[index].recovery1}", width: 150, filterQuality: FilterQuality.high)),
-                ),
+                _networkImage(widget.connectivityList[index].recovery1),
                 const Text("Recovery1"),
               ],
             ),
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    onTap: () {
-                      showDialog1(context, "$BASE_URL${widget.connectivityList[index].stimulation2}");
-                    },
-                    child: Image.network("$BASE_URL${widget.connectivityList[index].stimulation2}", width: 150, filterQuality: FilterQuality.high)),
-                ),
+                _networkImage(widget.connectivityList[index].stimulation2),
                 const Text("Stimulation2"),
               ],
             ),
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    onTap: () {
-                      showDialog1(context, "$BASE_URL${widget.connectivityList[index].recovery2}");
-                    },
-                    child: Image.network("$BASE_URL${widget.connectivityList[index].recovery2}", width: 150, filterQuality: FilterQuality.high)),
-                ),
+                _networkImage(widget.connectivityList[index].recovery2),
                 const Text("Recovery2"),
               ],
             ),
@@ -245,56 +210,28 @@ class _Bsrsr1ChartWidgetState extends State<Bsrsr1ChartWidget> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                    child: GestureDetector(
-                        onTap: () {
-                          showDialog1(context, "$BASE_URL${widget.diffConnectivityList[index].diff1}");
-                        },
-                        child: Image.network("$BASE_URL${widget.diffConnectivityList[index].diff1}", width: 150, filterQuality: FilterQuality.high)),
-                  ),
+                  _networkImage(widget.diffConnectivityList[index].diff1),
                   const Text("Stimulation1-Baseline"),
                 ],
               ),
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                    child: GestureDetector(
-                        onTap: () {
-                          showDialog1(context, "$BASE_URL${widget.diffConnectivityList[index].diff2}");
-                        },
-                        child: Image.network("$BASE_URL${widget.diffConnectivityList[index].diff2}", width: 150, filterQuality: FilterQuality.high)),
-                  ),
+                  _networkImage(widget.diffConnectivityList[index].diff2),
                   const Text("Recovery1-Stimulation1"),
                 ],
               ),
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                    child: GestureDetector(
-                        onTap: () {
-                          showDialog1(context, "$BASE_URL${widget.diffConnectivityList[index].diff3}");
-                        },
-                        child: Image.network("$BASE_URL${widget.diffConnectivityList[index].diff3}", width: 150, filterQuality: FilterQuality.high)),
-                  ),
+                  _networkImage(widget.diffConnectivityList[index].diff3),
                   const Text("Stimulation2-Recovery1"),
                 ],
               ),
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                    child: GestureDetector(
-                        onTap: () {
-                          showDialog1(context, "$BASE_URL${widget.diffConnectivityList[index].diff4}");
-                        },
-                        child: Image.network("$BASE_URL${widget.diffConnectivityList[index].diff4}", width: 150, filterQuality: FilterQuality.high)),
-                  ),
+                  _networkImage(widget.diffConnectivityList[index].diff4),
                   const Text("Recovery2-Stimulation2"),
                 ],
               ),
@@ -302,6 +239,19 @@ class _Bsrsr1ChartWidgetState extends State<Bsrsr1ChartWidget> {
             ],
           )
       ],
+    );
+  }
+
+  Widget _networkImage(String? path) {
+    if (path == null) {
+      return const SizedBox(width: 150, height: 150, child: Center(child: Text("No data")));
+    }
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () => showDialog1(context, "$BASE_URL$path"),
+        child: Image.network("$BASE_URL$path", width: 150, filterQuality: FilterQuality.high),
+      ),
     );
   }
 
