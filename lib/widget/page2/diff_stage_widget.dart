@@ -58,7 +58,13 @@ class _DiffStageWidgetState extends State<DiffStageWidget> {
           cursor: SystemMouseCursors.click,
           child: GestureDetector(
             onTap: () => _showDialog(context, url),
-            child: Image.network(url, width: 150, filterQuality: FilterQuality.high),
+            child: Image.network(
+              url,
+              width: 150,
+              filterQuality: FilterQuality.high,
+              errorBuilder: (context, error, stackTrace) =>
+                const SizedBox(width: 150, height: 150, child: Center(child: Text("No data"))),
+            ),
           ),
         ),
         Text(label),
@@ -79,14 +85,14 @@ class _DiffStageWidgetState extends State<DiffStageWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Band tabs
-        Row(
+        Wrap(
           children: List.generate(_bands.length, (i) =>
             _tabButton(_bands[i], _bandIndex, i, (v) => setState(() => _bandIndex = v)),
           ),
         ),
         const SizedBox(height: 4),
         // Stage tabs
-        Row(
+        Wrap(
           children: List.generate(_stages.length, (i) =>
             _tabButton(_stages[i], _stageIndex, i, (v) => setState(() => _stageIndex = v)),
           ),

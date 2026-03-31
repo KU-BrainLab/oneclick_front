@@ -21,96 +21,53 @@ class FrontalLimbicWidget extends StatelessWidget {
   }
 
   Widget _buildTab(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final colCount = model.sigma != null ? 6 : 5;
+        final imgWidth = (constraints.maxWidth / colCount).clamp(0.0, 130.0);
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _imgCol(context, model.delta, "Delta", imgWidth),
+            _imgCol(context, model.theta, "Theta", imgWidth),
+            _imgCol(context, model.alpha, "Alpha", imgWidth),
+            if (model.sigma != null)
+              _imgCol(context, model.sigma!, "Sigma", imgWidth),
+            _imgCol(context, model.beta, "Beta", imgWidth),
+            _imgCol(context, model.gamma, "Gamma", imgWidth),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _imgCol(BuildContext context, String? path, String label, double width) {
+    if (path == null) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(width: width, height: width, child: const Center(child: Text("No data"))),
+          Text(label, style: const TextStyle(fontSize: 11)),
+        ],
+      );
+    }
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const SizedBox(width: 20,),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                onTap: () {
-                  showDialog1(context, "$BASE_URL${model.delta}");
-                },
-                child: Image.network("$BASE_URL${model.delta}", width: 150, filterQuality: FilterQuality.high)),
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: () => showDialog1(context, "$BASE_URL$path"),
+            child: Image.network(
+              "$BASE_URL$path",
+              width: width,
+              filterQuality: FilterQuality.high,
+              errorBuilder: (context, error, stackTrace) =>
+                SizedBox(width: width, height: width, child: const Center(child: Text("No data"))),
             ),
-            const Text("Delta"),
-          ],
-        ),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                onTap: () {
-                  showDialog1(context, "$BASE_URL${model.theta}");
-                },
-                child: Image.network("$BASE_URL${model.theta}", width: 150, filterQuality: FilterQuality.high)),
-            ),
-            const Text("Theta"),
-          ],
-        ),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                onTap: () {
-                  showDialog1(context, "$BASE_URL${model.alpha}");
-                },
-                child: Image.network("$BASE_URL${model.alpha}", width: 150, filterQuality: FilterQuality.high)),
-            ),
-            const Text("Alpha"),
-          ],
-        ),
-        if (model.sigma != null)
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              MouseRegion(
-                cursor: SystemMouseCursors.click,
-                child: GestureDetector(
-                  onTap: () {
-                    showDialog1(context, "$BASE_URL${model.sigma}");
-                  },
-                  child: Image.network("$BASE_URL${model.sigma}", width: 150, filterQuality: FilterQuality.high)),
-              ),
-              const Text("Sigma"),
-            ],
           ),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                onTap: () {
-                  showDialog1(context, "$BASE_URL${model.beta}");
-                },
-                child: Image.network("$BASE_URL${model.beta}", width: 150, filterQuality: FilterQuality.high)),
-            ),
-            const Text("Beta"),
-          ],
         ),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                onTap: () {
-                  showDialog1(context, "$BASE_URL${model.gamma}");
-                },
-                child: Image.network("$BASE_URL${model.gamma}", width: 150, filterQuality: FilterQuality.high)),
-            ),
-            const Text("Gamma"),
-          ],
-        ),
-        const SizedBox(width: 20,),
+        Text(label, style: const TextStyle(fontSize: 11)),
       ],
     );
   }

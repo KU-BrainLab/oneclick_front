@@ -249,7 +249,13 @@ class _BsrsrChartWidgetState extends State<BsrsrChartWidget> {
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: () => showDialog1(context, "$BASE_URL$path"),
-        child: Image.network("$BASE_URL$path", width: 150, filterQuality: FilterQuality.high),
+        child: Image.network(
+            "$BASE_URL$path",
+            width: 150,
+            filterQuality: FilterQuality.high,
+            errorBuilder: (context, error, stackTrace) =>
+              const SizedBox(width: 150, height: 150, child: Center(child: Text("No data"))),
+          ),
       ),
     );
   }

@@ -175,8 +175,8 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
           ]);
         }
 
-        // Stage-specific diff (WAKE/N1/N2/N3/REM) — only when present
-        if (valueMap['diff1'] != null && valueMap['diff1']['topography_delta_wake'] != null) {
+        // Stage-specific diff (WAKE/N1/N2/N3/REM) — show whenever diff1 exists
+        if (valueMap['diff1'] != null) {
           const bands  = ["delta", "theta", "alpha", "sigma", "beta", "gamma"];
           const stages = ["wake", "n1", "n2", "n3", "rem"];
           for (final band in bands) {
@@ -190,6 +190,8 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
         // PSD Spectrogram
         if (valueMap['psd_spectrogram'] != null) {
           psdSpectrogramModel = PsdSpectrogramModel.fromJson(valueMap['psd_spectrogram']);
+        } else if (valueMap['brain_spectrogram'] != null) {
+          psdSpectrogramModel = PsdSpectrogramModel.fromJson(valueMap['brain_spectrogram']);
         }
         
         relatedPsdModel = RelatedPsdModel.fromJson(valueMap['psd']['related_psd']);
