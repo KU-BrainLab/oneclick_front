@@ -5,8 +5,8 @@ import 'package:omnifit_front/models/diff_stage_topography_model.dart';
 
 // diffStageTopoList[bandIndex][stageIndex]
 // diffStageConnList[bandIndex][stageIndex]
-// bands:  0=delta, 1=theta, 2=alpha, 3=sigma, 4=beta, 5=gamma
 // stages: 0=WAKE,  1=N1,    2=N2,    3=N3,    4=REM
+// bands:  0=delta, 1=theta, 2=alpha, 3=sigma, 4=beta, 5=gamma
 
 class DiffStageWidget extends StatefulWidget {
   final List<List<DiffStageTopographyModel>> diffStageTopoList;
@@ -84,17 +84,17 @@ class _DiffStageWidgetState extends State<DiffStageWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Band tabs
-        Wrap(
-          children: List.generate(_bands.length, (i) =>
-            _tabButton(_bands[i], _bandIndex, i, (v) => setState(() => _bandIndex = v)),
-          ),
-        ),
-        const SizedBox(height: 4),
         // Stage tabs
         Wrap(
           children: List.generate(_stages.length, (i) =>
             _tabButton(_stages[i], _stageIndex, i, (v) => setState(() => _stageIndex = v)),
+          ),
+        ),
+        const SizedBox(height: 4),
+        // Band tabs
+        Wrap(
+          children: List.generate(_bands.length, (i) =>
+            _tabButton(_bands[i], _bandIndex, i, (v) => setState(() => _bandIndex = v)),
           ),
         ),
         const SizedBox(height: 8),
