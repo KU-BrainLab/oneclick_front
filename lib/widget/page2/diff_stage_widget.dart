@@ -5,7 +5,8 @@ import 'package:omnifit_front/models/diff_stage_topography_model.dart';
 
 // diffStageTopoList[bandIndex][stageIndex]
 // diffStageConnList[bandIndex][stageIndex]
-// stages: 0=WAKE,  1=N1,    2=N2,    3=N3,    4=REM
+// phases: 0=Stim1-Base, 1=Rec1-Stim1, 2=Stim2-Rec1, 3=Rec2-Stim2
+// stages: 0=WAKE, 1=N1, 2=N2, 3=N3, 4=REM
 // bands:  0=delta, 1=theta, 2=alpha, 3=sigma, 4=beta, 5=gamma
 
 class DiffStageWidget extends StatefulWidget {
@@ -23,11 +24,32 @@ class DiffStageWidget extends StatefulWidget {
 }
 
 class _DiffStageWidgetState extends State<DiffStageWidget> {
-  static const _bands  = ['Delta', 'Theta', 'Alpha', 'Sigma', 'Beta', 'Gamma'];
+  static const _phases = ['Stim1-Base', 'Rec1-Stim1', 'Stim2-Rec1', 'Rec2-Stim2'];
   static const _stages = ['WAKE', 'N1', 'N2', 'N3', 'REM'];
+  static const _bands  = ['Delta', 'Theta', 'Alpha', 'Sigma', 'Beta', 'Gamma'];
 
-  int _bandIndex  = 0;
+  int _phaseIndex = 0;
   int _stageIndex = 0;
+
+  String? _getPhaseField(DiffStageTopographyModel m) {
+    switch (_phaseIndex) {
+      case 0: return m.diff1;
+      case 1: return m.diff2;
+      case 2: return m.diff3;
+      case 3: return m.diff4;
+      default: return null;
+    }
+  }
+
+  String? _getPhaseFieldConn(DiffStageConnectivityModel m) {
+    switch (_phaseIndex) {
+      case 0: return m.diff1;
+      case 1: return m.diff2;
+      case 2: return m.diff3;
+      case 3: return m.diff4;
+      default: return null;
+    }
+  }
 
   Widget _tabButton(String label, int current, int target, void Function(int) onTap) {
     return MouseRegion(
@@ -40,9 +62,9 @@ class _DiffStageWidgetState extends State<DiffStageWidget> {
             borderRadius: const BorderRadius.all(Radius.circular(4)),
             border: Border.all(color: Colors.black),
           ),
-          width: 90,
+          width: 100,
           height: 30,
-          child: Center(child: Text(label)),
+          child: Center(child: Text(label, style: const TextStyle(fontSize: 12))),
         ),
       ),
     );
@@ -60,76 +82,74 @@ class _DiffStageWidgetState extends State<DiffStageWidget> {
             onTap: () => _showDialog(context, url),
             child: Image.network(
               url,
-              width: 150,
+              width: 130,
               filterQuality: FilterQuality.high,
               errorBuilder: (context, error, stackTrace) =>
-                const SizedBox(width: 150, height: 150, child: Center(child: Text("No data"))),
+                const SizedBox(width: 130, height: 130, child: Center(child: Text("No data"))),
             ),
           ),
         ),
-        Text(label),
+        Text(label, style: const TextStyle(fontSize: 11)),
       ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final topo = widget.diffStageTopoList.isNotEmpty
-        ? widget.diffStageTopoList[_bandIndex][_stageIndex]
-        : null;
-    final conn = widget.diffStageConnList.isNotEmpty
-        ? widget.diffStageConnList[_bandIndex][_stageIndex]
-        : null;
+    final hasTopo = widget.diffStageTopoList.isNotEmpty;
+    final hasConn = widget.diffStageConnList.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Phase tabs
+        Wrap(
+          children: List.generate(_phases.length, (i) =>
+            _tabButton(_phases[i], _phaseIndex, i, (v) => setState(() => _phaseIndex = v)),
+          ),
+        ),
+        const SizedBox(height: 4),
         // Stage tabs
         Wrap(
           children: List.generate(_stages.length, (i) =>
             _tabButton(_stages[i], _stageIndex, i, (v) => setState(() => _stageIndex = v)),
           ),
         ),
-        const SizedBox(height: 4),
-        // Band tabs
-        Wrap(
-          children: List.generate(_bands.length, (i) =>
-            _tabButton(_bands[i], _bandIndex, i, (v) => setState(() => _bandIndex = v)),
-          ),
-        ),
         const SizedBox(height: 8),
-        // Images
+        // Images — 6 bands
         Container(
           decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 1)),
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 16),
           child: Column(
             children: [
-              if (topo != null) ...[
+              if (hasTopo) ...[
                 const Text('Topography', style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _imageColumn(context, topo.diff1, 'Stim1-Base'),
-                    _imageColumn(context, topo.diff2, 'Rec1-Stim1'),
-                    _imageColumn(context, topo.diff3, 'Stim2-Rec1'),
-                    _imageColumn(context, topo.diff4, 'Rec2-Stim2'),
-                  ],
+                  children: List.generate(_bands.length, (bi) =>
+                    _imageColumn(
+                      context,
+                      _getPhaseField(widget.diffStageTopoList[bi][_stageIndex]),
+                      _bands[bi],
+                    ),
+                  ),
                 ),
               ],
-              if (conn != null) ...[
+              if (hasConn) ...[
                 const SizedBox(height: 16),
                 const Text('Connectivity', style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _imageColumn(context, conn.diff1, 'Stim1-Base'),
-                    _imageColumn(context, conn.diff2, 'Rec1-Stim1'),
-                    _imageColumn(context, conn.diff3, 'Stim2-Rec1'),
-                    _imageColumn(context, conn.diff4, 'Rec2-Stim2'),
-                  ],
+                  children: List.generate(_bands.length, (bi) =>
+                    _imageColumn(
+                      context,
+                      _getPhaseFieldConn(widget.diffStageConnList[bi][_stageIndex]),
+                      _bands[bi],
+                    ),
+                  ),
                 ),
               ],
             ],
