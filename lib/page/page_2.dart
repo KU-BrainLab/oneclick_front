@@ -18,6 +18,7 @@ import 'package:omnifit_front/models/frontal_limbic_model.dart';
 import 'package:omnifit_front/models/psd_spectrogram_model.dart';
 import 'package:omnifit_front/models/graph1_model.dart';
 import 'package:omnifit_front/models/hypnogram_model.dart';
+import 'package:omnifit_front/models/sleep_phase_distribution_model.dart';
 import 'package:omnifit_front/models/region_psd_model.dart';
 import 'package:omnifit_front/models/related_psd_model.dart';
 import 'package:omnifit_front/models/sleep_stage_prob_model.dart';
@@ -38,6 +39,7 @@ import 'package:omnifit_front/widget/page2/psd_spectrogram_widget.dart';
 import 'package:omnifit_front/widget/page2/frontal_limbic_widget.dart';
 import 'package:omnifit_front/widget/page2/horizontal_bar_widget.dart';
 import 'package:omnifit_front/widget/page2/hypnogram_widget.dart';
+import 'package:omnifit_front/widget/page2/sleep_phase_distribution_widget.dart';
 import 'package:omnifit_front/widget/page2/stacked_chart_widget.dart';
 
 class Page2 extends StatefulWidget {
@@ -74,6 +76,7 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
   late ColorAreaChartModel colorAreaChartModel;
   late FrontalLimbicModel frontalLimbicModel;
   FaaModel? faaModel;
+  SleepPhaseDistributionModel? sleepPhaseDistModel;
 
   late BrainConnectivityModel brainConnectivityModel;
   // NOTE: TabControllers are initialized but not used in the provided code.
@@ -115,6 +118,17 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
 
         // Safely parse the data
         hypnogramModel = HypnogramModel.fromJson(valueMap['sleep_staging']['sleep_stage']);
+
+        try {
+          if (valueMap['trigger'] != null) {
+            sleepPhaseDistModel = SleepPhaseDistributionModel.fromJson(
+              valueMap['sleep_staging']['sleep_stage'] as List<dynamic>,
+              valueMap['trigger'] as List<dynamic>,
+            );
+          }
+        } catch (e) {
+          debugPrint('trigger parsing failed: $e');
+        }
         topographyList.addAll([
           TopographyModel.fromJson(valueMap, "delta"),
           TopographyModel.fromJson(valueMap, "theta"),
@@ -316,6 +330,10 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
                             const SizedBox(height: 20),
                             HypnogramWidget(model: hypnogramModel),
                             const SizedBox(height: 20),
+                            if (sleepPhaseDistModel != null) ...[
+                              SleepPhaseDistributionWidget(model: sleepPhaseDistModel!),
+                              const SizedBox(height: 20),
+                            ],
                             StackedChartWidget(model: sleepStageProbModel),
                             const SizedBox(height: 20), // Added for spacing before the note field
                             Column(
