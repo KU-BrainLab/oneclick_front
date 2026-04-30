@@ -13,7 +13,7 @@ class FaaWidget extends StatelessWidget {
       children: [
         Container(
           decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 1)),
-          height: 200,
+          height: hasPhase45 ? 200 : 280,
           width: double.infinity,
           child: _buildTab(context),
         ),
@@ -21,12 +21,12 @@ class FaaWidget extends StatelessWidget {
     );
   }
 
-  Widget _phaseColumn(BuildContext context, String label, String? path) {
+  Widget _phaseColumn(BuildContext context, String label, String? path, double imgWidth) {
     if (path == null || path.isEmpty) {
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(width: 159, height: 159, child: Center(child: Text("No data"))),
+          SizedBox(width: imgWidth, height: imgWidth, child: const Center(child: Text("No data"))),
           Text(label),
         ],
       );
@@ -39,9 +39,9 @@ class FaaWidget extends StatelessWidget {
           cursor: SystemMouseCursors.click,
           child: GestureDetector(
             onTap: () => showDialog1(context, url),
-            child: Image.network(url, width: 159, filterQuality: FilterQuality.high,
+            child: Image.network(url, width: imgWidth, filterQuality: FilterQuality.high,
               errorBuilder: (_, __, ___) =>
-                const SizedBox(width: 159, height: 159, child: Center(child: Text("No data"))),
+                SizedBox(width: imgWidth, height: imgWidth, child: const Center(child: Text("No data"))),
             ),
           ),
         ),
@@ -51,15 +51,16 @@ class FaaWidget extends StatelessWidget {
   }
 
   Widget _buildTab(BuildContext context) {
+    final double imgWidth = hasPhase45 ? 159.0 : 240.0;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         const SizedBox(width: 20),
-        _phaseColumn(context, "Baseline",    model.faa_baseline),
-        _phaseColumn(context, "Stimulation1", model.faa_stimulation1),
-        _phaseColumn(context, "Recovery1",   model.faa_recovery1),
-        if (hasPhase45) _phaseColumn(context, "Stimulation2", model.faa_stimulation2),
-        if (hasPhase45) _phaseColumn(context, "Recovery2",    model.faa_recovery2),
+        _phaseColumn(context, "Baseline",     model.faa_baseline,     imgWidth),
+        _phaseColumn(context, "Stimulation1", model.faa_stimulation1, imgWidth),
+        _phaseColumn(context, "Recovery1",    model.faa_recovery1,    imgWidth),
+        if (hasPhase45) _phaseColumn(context, "Stimulation2", model.faa_stimulation2, imgWidth),
+        if (hasPhase45) _phaseColumn(context, "Recovery2",    model.faa_recovery2,    imgWidth),
         const SizedBox(width: 20),
       ],
     );
