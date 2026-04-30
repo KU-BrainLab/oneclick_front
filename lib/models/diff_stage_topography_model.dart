@@ -12,10 +12,10 @@ class DiffStageTopographyModel {
   // stage: wake/n1/n2/n3/rem
   factory DiffStageTopographyModel.fromJson(Map<String, dynamic> json, String type, String stage) {
     return DiffStageTopographyModel(
-      diff1: json['diff1']['topography_${type}_$stage'],
-      diff2: json['diff2']['topography_${type}_$stage'],
-      diff3: json['diff3']['topography_${type}_$stage'],
-      diff4: json['diff4']['topography_${type}_$stage'],
+      diff1: (json['diff1'] as Map?)?['topography_${type}_$stage'] as String?,
+      diff2: (json['diff2'] as Map?)?['topography_${type}_$stage'] as String?,
+      diff3: (json['diff3'] as Map?)?['topography_${type}_$stage'] as String?,
+      diff4: (json['diff4'] as Map?)?['topography_${type}_$stage'] as String?,
     );
   }
 }

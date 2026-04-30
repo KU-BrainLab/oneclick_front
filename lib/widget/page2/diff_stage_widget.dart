@@ -24,12 +24,21 @@ class DiffStageWidget extends StatefulWidget {
 }
 
 class _DiffStageWidgetState extends State<DiffStageWidget> {
-  static const _phases = ['Stim1-Base', 'Rec1-Stim1', 'Stim2-Rec1', 'Rec2-Stim2'];
+  static const _allPhases = ['Stim1-Base', 'Rec1-Stim1', 'Stim2-Rec1', 'Rec2-Stim2'];
   static const _stages = ['WAKE', 'N1', 'N2', 'N3', 'REM'];
   static const _bands  = ['Delta', 'Theta', 'Alpha', 'Sigma', 'Beta', 'Gamma'];
 
+  late final List<String> _phases;
   int _phaseIndex = 0;
   int _stageIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    final has34 = widget.diffStageTopoList.isNotEmpty &&
+        widget.diffStageTopoList[0].any((m) => m.diff3 != null || m.diff4 != null);
+    _phases = has34 ? _allPhases : _allPhases.sublist(0, 2);
+  }
 
   String? _getPhaseField(DiffStageTopographyModel m) {
     switch (_phaseIndex) {
