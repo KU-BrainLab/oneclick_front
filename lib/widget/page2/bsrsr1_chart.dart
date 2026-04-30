@@ -148,13 +148,17 @@ class _Bsrsr1ChartWidgetState extends State<Bsrsr1ChartWidget> {
         ),
         Container(
           decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 1)),
-          height: widget.diffConnectivityList.isEmpty ? 200 : 400,
+          height: widget.diffConnectivityList.isEmpty
+              ? _imgWidth + 40
+              : _imgWidth * 2 + 80,
           width: double.infinity,
           child: _buildTab(),
         ),
       ],
     );
   }
+
+  double get _imgWidth => widget.hasPhase45 ? 150.0 : 230.0;
 
   Widget _buildTab() {
     return Column(
@@ -244,8 +248,9 @@ class _Bsrsr1ChartWidgetState extends State<Bsrsr1ChartWidget> {
   }
 
   Widget _networkImage(String? path) {
+    final w = _imgWidth;
     if (path == null) {
-      return const SizedBox(width: 150, height: 150, child: Center(child: Text("No data")));
+      return SizedBox(width: w, height: w, child: const Center(child: Text("No data")));
     }
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -253,10 +258,10 @@ class _Bsrsr1ChartWidgetState extends State<Bsrsr1ChartWidget> {
         onTap: () => showDialog1(context, "$BASE_URL$path"),
         child: Image.network(
             "$BASE_URL$path",
-            width: 150,
+            width: w,
             filterQuality: FilterQuality.high,
             errorBuilder: (context, error, stackTrace) =>
-              const SizedBox(width: 150, height: 150, child: Center(child: Text("No data"))),
+              SizedBox(width: w, height: w, child: const Center(child: Text("No data"))),
           ),
       ),
     );
