@@ -24,17 +24,16 @@ class Page1 extends StatefulWidget {
   State<Page1> createState() => _Page1State();
 }
 
-class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
+class _Page1State extends State<Page1> {
   Graph1Model? graph1model;
   MultiColorLineChartModel? multiColorLineChartModel;
   List<Page1TabModel> page1TabModelList = [];
+  List<String> availablePhaseLabels = [];
   TextEditingController textEditingController = TextEditingController();
 
   bool isLoading = true;
   String? _errorMessage;
   int index = 0;
-
-  late TabController tabController = TabController(length: 5, vsync: this, initialIndex: 0, animationDuration: const Duration(milliseconds: 800));
 
   @override
   void initState() {
@@ -47,7 +46,7 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
 
   @override
   void dispose() {
-    tabController.dispose();
+    textEditingController.dispose();
     super.dispose();
   }
 
@@ -100,11 +99,15 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
           );
         }
 
-        page1TabModelList.add(Page1TabModel.fromJson(valueMap['baseline']));
-        page1TabModelList.add(Page1TabModel.fromJson(valueMap['stimulation1']));
-        page1TabModelList.add(Page1TabModel.fromJson(valueMap['recovery1']));
-        page1TabModelList.add(Page1TabModel.fromJson(valueMap['stimulation2']));
-        page1TabModelList.add(Page1TabModel.fromJson(valueMap['recovery2']));
+        const phaseKeys = ['baseline', 'stimulation1', 'recovery1', 'stimulation2', 'recovery2'];
+        const phaseLabels = ['Baseline', 'Stimulation 1', 'Recovery 1', 'Stimulation 2', 'Recovery 2'];
+        for (int i = 0; i < phaseKeys.length; i++) {
+          final phaseData = valueMap[phaseKeys[i]];
+          if (phaseData != null) {
+            page1TabModelList.add(Page1TabModel.fromJson(phaseData as Map<String, dynamic>));
+            availablePhaseLabels.add(phaseLabels[i]);
+          }
+        }
 
         textEditingController.text = valueMap['note'] ?? "";
       } else {
@@ -215,101 +218,26 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
                             ],
                             Row(
                               children: [
-                                MouseRegion(
-                                  cursor: MaterialStateMouseCursor.clickable,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        index = 0;
-                                      });
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: index == 0 ? Colors.grey.withOpacity(0.4) : Colors.white,
-                                        borderRadius: const BorderRadius.all(Radius.circular(4)),
+                                for (int i = 0; i < availablePhaseLabels.length; i++)
+                                  MouseRegion(
+                                    cursor: MaterialStateMouseCursor.clickable,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          index = i;
+                                        });
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: index == i ? Colors.grey.withOpacity(0.4) : Colors.white,
+                                          borderRadius: const BorderRadius.all(Radius.circular(4)),
+                                        ),
+                                        width: 110,
+                                        height: 30,
+                                        child: Center(child: Text(availablePhaseLabels[i])),
                                       ),
-                                      width: 100,
-                                      height: 30,
-                                      child: const Center(child: Text("Baseline")),
                                     ),
                                   ),
-                                ),
-                                MouseRegion(
-                                  cursor: MaterialStateMouseCursor.clickable,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        index = 1;
-                                      });
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: index == 1 ? Colors.grey.withOpacity(0.4) : Colors.white,
-                                        borderRadius: const BorderRadius.all(Radius.circular(4)),
-                                      ),
-                                      width: 100,
-                                      height: 30,
-                                      child: const Center(child: Text("Stimulation 1")),
-                                    ),
-                                  ),
-                                ),
-                                MouseRegion(
-                                  cursor: MaterialStateMouseCursor.clickable,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        index = 2;
-                                      });
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: index == 2 ? Colors.grey.withOpacity(0.4) : Colors.white,
-                                        borderRadius: const BorderRadius.all(Radius.circular(4)),
-                                      ),
-                                      width: 100,
-                                      height: 30,
-                                      child: const Center(child: Text("Recovery 1")),
-                                    ),
-                                  ),
-                                ),
-                                MouseRegion(
-                                  cursor: MaterialStateMouseCursor.clickable,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        index = 3;
-                                      });
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: index == 3 ? Colors.grey.withOpacity(0.4) : Colors.white,
-                                        borderRadius: const BorderRadius.all(Radius.circular(4)),
-                                      ),
-                                      width: 100,
-                                      height: 30,
-                                      child: const Center(child: Text("Stimulation 2")),
-                                    ),
-                                  ),
-                                ),
-                                MouseRegion(
-                                  cursor: MaterialStateMouseCursor.clickable,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        index = 4;
-                                      });
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: index == 4 ? Colors.grey.withOpacity(0.4) : Colors.white,
-                                        borderRadius: const BorderRadius.all(Radius.circular(4)),
-                                      ),
-                                      width: 100,
-                                      height: 30,
-                                      child: const Center(child: Text("Recovery 2")),
-                                    ),
-                                  ),
-                                ),
                               ],
                             ),
                             Container(
@@ -416,7 +344,11 @@ class _Page1State extends State<Page1> with SingleTickerProviderStateMixin {
   }
 
   Widget _buildTab() {
-    return Page1Tab1(page1TabModel: page1TabModelList[index]);
+    if (page1TabModelList.isEmpty) {
+      return const Center(child: Text("No data"));
+    }
+    final safeIndex = index.clamp(0, page1TabModelList.length - 1);
+    return Page1Tab1(page1TabModel: page1TabModelList[safeIndex]);
   }
 }
 

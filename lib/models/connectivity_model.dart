@@ -18,11 +18,11 @@ class ConnectivityModel {
 
 
     return ConnectivityModel(
-      baseline: json['baseline']['connectivity_$type'],
-      stimulation1: json['stimulation1']['connectivity_$type'],
-      recovery1: json['recovery1']['connectivity_$type'],
-      stimulation2: json['stimulation2']['connectivity_$type'],
-      recovery2: json['recovery2']['connectivity_$type'],
+      baseline: (json['baseline'] as Map?)?['connectivity_$type'] as String?,
+      stimulation1: (json['stimulation1'] as Map?)?['connectivity_$type'] as String?,
+      recovery1: (json['recovery1'] as Map?)?['connectivity_$type'] as String?,
+      stimulation2: (json['stimulation2'] as Map?)?['connectivity_$type'] as String?,
+      recovery2: (json['recovery2'] as Map?)?['connectivity_$type'] as String?,
     );
   }
 }

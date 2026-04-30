@@ -17,11 +17,11 @@ class TopographyModel {
   factory TopographyModel.fromJson(Map<String, dynamic> json, String type) {
 
     return TopographyModel(
-      baseline: json['baseline']['topography_$type'],
-      stimulation1: json['stimulation1']['topography_$type'],
-      recovery1: json['recovery1']['topography_$type'],
-      stimulation2: json['stimulation2']['topography_$type'],
-      recovery2: json['recovery2']['topography_$type'],
+      baseline: (json['baseline'] as Map?)?['topography_$type'] as String?,
+      stimulation1: (json['stimulation1'] as Map?)?['topography_$type'] as String?,
+      recovery1: (json['recovery1'] as Map?)?['topography_$type'] as String?,
+      stimulation2: (json['stimulation2'] as Map?)?['topography_$type'] as String?,
+      recovery2: (json['recovery2'] as Map?)?['topography_$type'] as String?,
     );
   }
 }

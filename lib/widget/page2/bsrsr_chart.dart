@@ -154,6 +154,16 @@ class _BsrsrChartWidgetState extends State<BsrsrChartWidget> {
     );
   }
 
+  bool get _hasPhase45 =>
+      widget.topographyList.isNotEmpty &&
+      (widget.topographyList[0].stimulation2 != null ||
+       widget.topographyList[0].recovery2 != null);
+
+  bool get _hasDiff34 =>
+      widget.diffTopographyList.isNotEmpty &&
+      (widget.diffTopographyList[0].diff3 != null ||
+       widget.diffTopographyList[0].diff4 != null);
+
   Widget _buildTab() {
     return Column(
       children: [
@@ -183,14 +193,14 @@ class _BsrsrChartWidgetState extends State<BsrsrChartWidget> {
                 const Text("Recovery1"),
               ],
             ),
-            Column(
+            if (_hasPhase45) Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _networkImage(widget.topographyList[index].stimulation2),
                 const Text("Stimulation2"),
               ],
             ),
-            Column(
+            if (_hasPhase45) Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _networkImage(widget.topographyList[index].recovery2),
@@ -220,14 +230,14 @@ class _BsrsrChartWidgetState extends State<BsrsrChartWidget> {
                   const Text("Recovery1-Stimulation1"),
                 ],
               ),
-              Column(
+              if (_hasDiff34) Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   _networkImage(widget.diffTopographyList[index].diff3),
                   const Text("Stimulation2-Recovery1"),
                 ],
               ),
-              Column(
+              if (_hasDiff34) Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   _networkImage(widget.diffTopographyList[index].diff4),

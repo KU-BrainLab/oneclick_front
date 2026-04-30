@@ -16,10 +16,10 @@ class DiffConnectivity2Model {
 
 
     return DiffConnectivity2Model(
-      diff1: json['diff1']['connectivity2_$type'],
-      diff2: json['diff2']['connectivity2_$type'],
-      diff3: json['diff3']['connectivity2_$type'],
-      diff4: json['diff4']['connectivity2_$type'],
+      diff1: (json['diff1'] as Map?)?['connectivity2_$type'] as String?,
+      diff2: (json['diff2'] as Map?)?['connectivity2_$type'] as String?,
+      diff3: (json['diff3'] as Map?)?['connectivity2_$type'] as String?,
+      diff4: (json['diff4'] as Map?)?['connectivity2_$type'] as String?,
     );
   }
 }
