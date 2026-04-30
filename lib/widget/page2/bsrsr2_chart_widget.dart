@@ -6,7 +6,8 @@ import 'package:omnifit_front/models/diff_connectivity2_model.dart';
 class Bsrsr2ChartWidget extends StatefulWidget {
   final List<Connectivity2Model> connectivityList;
   final List<DiffConnectivity2Model> diffConnectivityList;
-  const Bsrsr2ChartWidget({Key? key, required this.connectivityList, required this.diffConnectivityList}) : super(key: key);
+  final bool hasPhase45;
+  const Bsrsr2ChartWidget({Key? key, required this.connectivityList, required this.diffConnectivityList, this.hasPhase45 = true}) : super(key: key);
 
   @override
   State<Bsrsr2ChartWidget> createState() => _Bsrsr2ChartWidgetState();
@@ -154,16 +155,6 @@ class _Bsrsr2ChartWidgetState extends State<Bsrsr2ChartWidget> {
     );
   }
 
-  bool get _hasPhase45 =>
-      widget.connectivityList.isNotEmpty &&
-      (widget.connectivityList[0].stimulation2 != null ||
-       widget.connectivityList[0].recovery2 != null);
-
-  bool get _hasDiff34 =>
-      widget.diffConnectivityList.isNotEmpty &&
-      (widget.diffConnectivityList[0].diff3 != null ||
-       widget.diffConnectivityList[0].diff4 != null);
-
   Widget _buildTab() {
     return Column(
       children: [
@@ -193,14 +184,14 @@ class _Bsrsr2ChartWidgetState extends State<Bsrsr2ChartWidget> {
                 const Text("Recovery1"),
               ],
             ),
-            if (_hasPhase45) Column(
+            if (widget.hasPhase45) Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _networkImage(widget.connectivityList[index].stimulation2),
                 const Text("Stimulation2"),
               ],
             ),
-            if (_hasPhase45) Column(
+            if (widget.hasPhase45) Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _networkImage(widget.connectivityList[index].recovery2),
@@ -230,14 +221,14 @@ class _Bsrsr2ChartWidgetState extends State<Bsrsr2ChartWidget> {
                   const Text("Recovery1-Stimulation1"),
                 ],
               ),
-              if (_hasDiff34) Column(
+              if (widget.hasPhase45) Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   _networkImage(widget.diffConnectivityList[index].diff3),
                   const Text("Stimulation2-Recovery1"),
                 ],
               ),
-              if (_hasDiff34) Column(
+              if (widget.hasPhase45) Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   _networkImage(widget.diffConnectivityList[index].diff4),

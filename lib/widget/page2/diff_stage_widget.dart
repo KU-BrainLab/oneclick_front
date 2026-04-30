@@ -12,11 +12,13 @@ import 'package:omnifit_front/models/diff_stage_topography_model.dart';
 class DiffStageWidget extends StatefulWidget {
   final List<List<DiffStageTopographyModel>> diffStageTopoList;
   final List<List<DiffStageConnectivityModel>> diffStageConnList;
+  final bool hasPhase45;
 
   const DiffStageWidget({
     super.key,
     required this.diffStageTopoList,
     required this.diffStageConnList,
+    this.hasPhase45 = true,
   });
 
   @override
@@ -35,9 +37,7 @@ class _DiffStageWidgetState extends State<DiffStageWidget> {
   @override
   void initState() {
     super.initState();
-    final has34 = widget.diffStageTopoList.isNotEmpty &&
-        widget.diffStageTopoList[0].any((m) => m.diff3 != null || m.diff4 != null);
-    _phases = has34 ? _allPhases : _allPhases.sublist(0, 2);
+    _phases = widget.hasPhase45 ? _allPhases : _allPhases.sublist(0, 2);
   }
 
   String? _getPhaseField(DiffStageTopographyModel m) {

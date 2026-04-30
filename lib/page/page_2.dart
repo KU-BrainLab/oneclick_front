@@ -84,6 +84,7 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
   late TabController tabController1 = TabController(length: 6, vsync: this, initialIndex: 0, animationDuration: const Duration(milliseconds: 800));
   late TabController tabController2 = TabController(length: 6, vsync: this, initialIndex: 0, animationDuration: const Duration(milliseconds: 800));
   String? note;
+  bool hasPhase45 = true;
 
   @override
   void initState() {
@@ -115,6 +116,16 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
         }
         
         final valueMap = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+
+        // Detect phase count from trigger (3-phase: 4 values, 5-phase: 6 values)
+        final triggerList = valueMap['trigger'] as List<dynamic>?;
+        if (triggerList != null) {
+          hasPhase45 = (triggerList.length - 1) >= 5;
+        } else {
+          hasPhase45 = valueMap['stimulation2'] != null &&
+              valueMap['stimulation2'] is Map &&
+              (valueMap['stimulation2'] as Map).isNotEmpty;
+        }
 
         // Safely parse the data
         hypnogramModel = HypnogramModel.fromJson(valueMap['sleep_staging']['sleep_stage']);
@@ -294,12 +305,12 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
                       // 데이터 로드 성공 시 결과 내용 표시
                       : Column(
                           children: [
-                            BsrsrChartWidget(topographyList: topographyList, diffTopographyList: diffTopographyList,),
+                            BsrsrChartWidget(topographyList: topographyList, diffTopographyList: diffTopographyList, hasPhase45: hasPhase45),
                             const SizedBox(height: 20),
-                            Bsrsr1ChartWidget(connectivityList: connectivityList, diffConnectivityList: diffConnectivityList),
+                            Bsrsr1ChartWidget(connectivityList: connectivityList, diffConnectivityList: diffConnectivityList, hasPhase45: hasPhase45),
                             const SizedBox(height: 20),
                             if (connectivity2List.isNotEmpty)
-                              Bsrsr2ChartWidget(connectivityList: connectivity2List, diffConnectivityList: diffConnectivity2List),
+                              Bsrsr2ChartWidget(connectivityList: connectivity2List, diffConnectivityList: diffConnectivity2List, hasPhase45: hasPhase45),
                             if (connectivity2List.isNotEmpty) const SizedBox(height: 20),
                             FrontalLimbicWidget(model: frontalLimbicModel),
                             const SizedBox(height: 20),
@@ -311,6 +322,7 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
                               DiffStageWidget(
                                 diffStageTopoList: diffStageTopoList,
                                 diffStageConnList: diffStageConnList,
+                                hasPhase45: hasPhase45,
                               ),
                               const SizedBox(height: 20),
                             ],
