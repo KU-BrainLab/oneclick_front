@@ -4,7 +4,8 @@ import 'package:omnifit_front/models/faa_model.dart';
 
 class FaaWidget extends StatelessWidget {
   final FaaModel model;
-  const FaaWidget({super.key, required this.model});
+  final bool hasPhase45;
+  const FaaWidget({super.key, required this.model, this.hasPhase45 = true});
 
   @override
   Widget build(BuildContext context) {
@@ -20,82 +21,46 @@ class FaaWidget extends StatelessWidget {
     );
   }
 
+  Widget _phaseColumn(BuildContext context, String label, String? path) {
+    if (path == null || path.isEmpty) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const SizedBox(width: 159, height: 159, child: Center(child: Text("No data"))),
+          Text(label),
+        ],
+      );
+    }
+    final url = "$BASE_URL$path";
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: () => showDialog1(context, url),
+            child: Image.network(url, width: 159, filterQuality: FilterQuality.high,
+              errorBuilder: (_, __, ___) =>
+                const SizedBox(width: 159, height: 159, child: Center(child: Text("No data"))),
+            ),
+          ),
+        ),
+        Text(label),
+      ],
+    );
+  }
+
   Widget _buildTab(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const SizedBox(width: 20,),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                onTap: () {
-                  showDialog1(context, "$BASE_URL${model.faa_baseline}");
-                },
-                child: Image.network("$BASE_URL${model.faa_baseline}", width: 159, filterQuality: FilterQuality.high)),
-            ),
-            const Text("Baseline"),
-          ],
-        ),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                onTap: () {
-                  showDialog1(context, "$BASE_URL${model.faa_stimulation1}");
-                },
-                child: Image.network("$BASE_URL${model.faa_stimulation1}", width: 159, filterQuality: FilterQuality.high)),
-            ),
-            const Text("Stimulation1"),
-          ],
-        ),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                onTap: () {
-                  showDialog1(context, "$BASE_URL${model.faa_recovery1}");
-                },
-                child: Image.network("$BASE_URL${model.faa_recovery1}", width: 159, filterQuality: FilterQuality.high)),
-            ),
-            const Text("Recovery1"),
-          ],
-        ),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                onTap: () {
-                  showDialog1(context, "$BASE_URL${model.faa_stimulation2}");
-                },
-                child: Image.network("$BASE_URL${model.faa_stimulation2}", width: 159, filterQuality: FilterQuality.high)),
-            ),
-            const Text("Stimulation2"),
-          ],
-        ),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                onTap: () {
-                  showDialog1(context, "$BASE_URL${model.faa_recovery2}");
-                },
-                child: Image.network("$BASE_URL${model.faa_recovery2}", width: 159, filterQuality: FilterQuality.high)),
-            ),
-            const Text("Recovery2"),
-          ],
-        ),
-        const SizedBox(width: 20,),
+        const SizedBox(width: 20),
+        _phaseColumn(context, "Baseline",    model.faa_baseline),
+        _phaseColumn(context, "Stimulation1", model.faa_stimulation1),
+        _phaseColumn(context, "Recovery1",   model.faa_recovery1),
+        if (hasPhase45) _phaseColumn(context, "Stimulation2", model.faa_stimulation2),
+        if (hasPhase45) _phaseColumn(context, "Recovery2",    model.faa_recovery2),
+        const SizedBox(width: 20),
       ],
     );
   }

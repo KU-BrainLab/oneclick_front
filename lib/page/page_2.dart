@@ -315,7 +315,7 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
                             FrontalLimbicWidget(model: frontalLimbicModel),
                             const SizedBox(height: 20),
                             if (faaModel != null) ...[
-                              FaaWidget(model: faaModel!),
+                              FaaWidget(model: faaModel!, hasPhase45: hasPhase45),
                               const SizedBox(height: 20),
                             ],
                             if (diffStageTopoList.isNotEmpty) ...[
