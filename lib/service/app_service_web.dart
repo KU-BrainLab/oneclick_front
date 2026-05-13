@@ -39,7 +39,7 @@ class AppService extends ChangeNotifier {
   int captureTargetWidthPx = 1200;
   double pdfContentScale = 1.0;
   double pdfMarginHorizontalMm = 20;
-  double pdfMarginVerticalMm = 0;
+  double pdfMarginVerticalMm = 12;
 
   void initialize() {
     final user = storageBox.get(_kCurrentUserKey);
@@ -443,46 +443,144 @@ class _PdfBuildParams {
 
 Future<Uint8List> _buildPdfBytesWorker(_PdfBuildParams params) async {
   final img.Image? full = img.decodePng(params.bytes);
-  if (full == null) {
-    throw Exception('PNG 디코드 실패');
-  }
+  if (full == null) throw Exception('PNG 디코드 실패');
 
   const PdfPageFormat pageFormat = PdfPageFormat.a4;
   final double hMargin = params.hMarginMm * PdfPageFormat.mm;
   final double vMargin = params.vMarginMm * PdfPageFormat.mm;
 
-  final double contentWidthPtFull = pageFormat.width - hMargin * 2;
-  final double contentHeightPtFull = pageFormat.height - vMargin * 2;
-
-  final double contentWidthPt = contentWidthPtFull * params.contentScale;
-  final double contentHeightPt = contentHeightPtFull * params.contentScale;
+  final double contentWidthPt = (pageFormat.width - hMargin * 2) * params.contentScale;
+  final double contentHeightPt = (pageFormat.height - vMargin * 2) * params.contentScale;
 
   final double scale = contentWidthPt / full.width;
-  final int sliceHeightPx = (contentHeightPt / scale).floor().clamp(1, full.height);
+  final int idealSliceHeightPx = (contentHeightPt / scale).floor().clamp(1, full.height);
+  // 페이지 높이의 40% 범위 안에서 안전한 절단선을 탐색
+  final int searchWindow = (idealSliceHeightPx * 0.40).round();
+
+  // 강제 페이지 분리 마커 행 탐색 (Color 0xFFFF0080 = hot-pink)
+  final Set<int> markerRows = _findPageBreakMarkers(full).toSet();
 
   final pdf = pw.Document();
 
   int y = 0;
   while (y < full.height) {
-    final int h = (y + sliceHeightPx > full.height) ? (full.height - y) : sliceHeightPx;
+    final int idealEnd = y + idealSliceHeightPx;
+
+    if (idealEnd >= full.height) {
+      final img.Image slice =
+          img.copyCrop(full, x: 0, y: y, width: full.width, height: full.height - y);
+      pdf.addPage(_buildPdfPage(
+          pageFormat, hMargin, vMargin, contentWidthPt, Uint8List.fromList(img.encodePng(slice))));
+      break;
+    }
+
+    // 현재 페이지 범위 내 강제 분리 마커 확인
+    final int? forcedBreak = markerRows
+        .where((r) => r > y && r <= idealEnd + searchWindow)
+        .fold<int?>(null, (prev, r) => (prev == null || r < prev) ? r : prev);
+
+    int cutY;
+    if (forcedBreak != null) {
+      // 마커 행 바로 앞까지 포함 (copyCrop height = forcedBreak-y → rows [y, forcedBreak-1])
+      cutY = forcedBreak;
+    } else {
+      cutY = _findSafeCutRow(full, idealEnd, searchWindow);
+    }
+
+    final int h = (cutY - y).clamp(1, full.height - y);
     final img.Image slice = img.copyCrop(full, x: 0, y: y, width: full.width, height: h);
-    final Uint8List sliceBytes = Uint8List.fromList(img.encodePng(slice));
+    pdf.addPage(_buildPdfPage(
+        pageFormat, hMargin, vMargin, contentWidthPt, Uint8List.fromList(img.encodePng(slice))));
 
-    pdf.addPage(
-      pw.Page(
-        pageFormat: pageFormat,
-        margin: pw.EdgeInsets.symmetric(horizontal: hMargin, vertical: vMargin),
-        build: (context) {
-          final pwImage = pw.MemoryImage(sliceBytes);
-          return pw.Center(
-            child: pw.Image(pwImage, width: contentWidthPt, fit: pw.BoxFit.fitWidth),
-          );
-        },
-      ),
-    );
-
+    // 마커 행 건너뛰고 다음 페이지 시작 (직접 픽셀 확인으로 4행 모두 스킵)
     y += h;
+    while (y < full.height && _isPageBreakMarkerRow(full, y)) y++;
   }
 
   return pdf.save();
+}
+
+pw.Page _buildPdfPage(
+    PdfPageFormat format, double hMargin, double vMargin, double contentWidth, Uint8List bytes) {
+  return pw.Page(
+    pageFormat: format,
+    margin: pw.EdgeInsets.symmetric(horizontal: hMargin, vertical: vMargin),
+    build: (ctx) =>
+        pw.Center(child: pw.Image(pw.MemoryImage(bytes), width: contentWidth, fit: pw.BoxFit.fitWidth)),
+  );
+}
+
+/// 단일 행이 hot-pink 마커 행인지 직접 확인 (스킵 루프용)
+bool _isPageBreakMarkerRow(img.Image image, int y) {
+  int hit = 0, total = 0;
+  for (int x = 0; x < image.width; x += 4) {
+    final p = image.getPixel(x, y);
+    if (p.r >= 240 && p.g <= 20 && p.b >= 120) hit++;
+    total++;
+  }
+  return total > 0 && hit * 100 >= total * 50;
+}
+
+/// Color(0xFFFF0080) hot-pink 행을 찾아 강제 페이지 분리 위치로 반환.
+/// 인접한 연속 마커 행은 첫 행만 반환.
+List<int> _findPageBreakMarkers(img.Image image) {
+  final List<int> result = [];
+  for (int row = 0; row < image.height; row++) {
+    int hit = 0, total = 0;
+    for (int x = 0; x < image.width; x += 4) {
+      final p = image.getPixel(x, row);
+      if (p.r >= 240 && p.g <= 20 && p.b >= 120) hit++;
+      total++;
+    }
+    if (total > 0 && hit * 100 >= total * 50) {
+      // 직전 마커와 5행 이상 떨어진 경우만 새 마커로 기록
+      if (result.isEmpty || row > result.last + 5) result.add(row);
+    }
+  }
+  return result;
+}
+
+/// idealY ± searchWindow 범위에서 연속 밝은 구간(≥ minRun행)을 찾아
+/// 그 구간의 【끝 행】에서 절단한다.
+///
+/// "끝 행에서 절단" = 다음 페이지가 공백 없이 바로 콘텐츠로 시작함.
+///
+/// 동작 원리:
+///   SizedBox(height:300) → 300행 연속 밝은 구간 감지 → 구간 끝(콘텐츠 직전)에서 절단
+///   차트 내부 흰 영역   → 174행 미만 → minRun(250) 미달 → 무시 → 차트 내부 절단 안 함
+int _findSafeCutRow(img.Image image, int idealY, int searchWindow) {
+  final int searchLimit = (idealY - searchWindow).clamp(0, idealY);
+  final int forwardCap  = (idealY + searchWindow).clamp(0, image.height - 1);
+  const int minRun = 250;
+
+  int run = 0;
+  for (int row = idealY; row >= searchLimit; row--) {
+    if (_isLightRow(image, row)) {
+      run++;
+      if (run >= minRun) {
+        // 여백 구간 발견 → 앞 방향으로 끝까지 스캔
+        int endRow = row + minRun - 1;
+        while (endRow < forwardCap && _isLightRow(image, endRow + 1)) {
+          endRow++;
+        }
+        // 여백 구간의 마지막 행에서 절단 → 다음 페이지 = 콘텐츠 시작
+        return endRow;
+      }
+    } else {
+      run = 0;
+    }
+  }
+
+  return idealY; // 적합한 여백 없음 → 원래 위치에서 절단
+}
+
+/// 한 행에서 4픽셀 간격으로 샘플링해 95% 이상이 밝으면(RGB ≥ 230) true
+bool _isLightRow(img.Image image, int y, {int sampleStep = 4}) {
+  int light = 0, total = 0;
+  for (int x = 0; x < image.width; x += sampleStep) {
+    final p = image.getPixel(x, y);
+    if (p.r >= 230 && p.g >= 230 && p.b >= 230) light++;
+    total++;
+  }
+  return total > 0 && light * 100 >= total * 95;
 }

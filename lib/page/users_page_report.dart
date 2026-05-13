@@ -17,6 +17,7 @@ import 'package:omnifit_front/page/report_page1.dart';
 import 'package:omnifit_front/page/report_page2.dart';
 import 'package:omnifit_front/page/report_page3.dart';
 import 'package:omnifit_front/page/report_page4.dart';
+import 'package:omnifit_front/page/report_merged.dart';
 import 'package:omnifit_front/page/users_page.dart';
 import 'package:omnifit_front/service/app_service.dart';
 import 'package:omnifit_front/widget/custom_data_table.dart' as custom;
@@ -511,6 +512,18 @@ class _UsersPageState extends State<UsersPageReport> {
                           ),
                         ),
                       ),
+                      const custom.DataColumn(
+                        label: Expanded(
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: Text(
+                              '통합 리포트',
+                              style: TextStyle(fontStyle: FontStyle.italic),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                      ),
                       // 새로 추가: PDF 병합
                       const custom.DataColumn(
                         label: Expanded(
@@ -602,6 +615,27 @@ class _UsersPageState extends State<UsersPageReport> {
                                       child: const Icon(Icons.search)),
                                 ),
                               )),
+                              // 통합 리포트 버튼
+                              custom.DataCell(
+                                Align(
+                                  alignment: Alignment.center,
+                                  child: MouseRegion(
+                                    cursor: MaterialStateMouseCursor.clickable,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        AppService.instance.context.push(
+                                          ReportMerged.route,
+                                          extra: {
+                                            "user": e,
+                                            "trigger": e.trigger?.map((i) => i.toDouble()).toList(),
+                                          },
+                                        );
+                                      },
+                                      child: const Icon(Icons.summarize_outlined),
+                                    ),
+                                  ),
+                                ),
+                              ),
                               // PDF 병합 버튼
                               custom.DataCell(
                                 Align(

@@ -11,6 +11,7 @@ import 'package:omnifit_front/page/report_page1.dart';
 import 'package:omnifit_front/page/report_page2.dart';
 import 'package:omnifit_front/page/report_page3.dart';
 import 'package:omnifit_front/page/report_page4.dart';
+import 'package:omnifit_front/page/report_merged.dart';
 import 'package:omnifit_front/page/users_page_report.dart';
 import 'package:omnifit_front/service/app_service.dart';
 
@@ -118,6 +119,19 @@ final router = GoRouter(
     GoRoute(
       path: UsersPageReport.route,
       pageBuilder: (context, state) => const NoTransitionPage(child: UsersPageReport()),
+    ),
+    GoRoute(
+      path: ReportMerged.route,
+      pageBuilder: (context, state) {
+        final extra = state.extra;
+        if (extra == null || extra is! Map<String, dynamic> || extra["user"] == null) {
+          return const NoTransitionPage(child: UsersPageReport());
+        }
+        return NoTransitionPage(
+            child: ReportMerged(
+                user: extra["user"] as UserModel,
+                trigger: extra["trigger"] as List<double>?));
+      },
     ),
   ],
 );
