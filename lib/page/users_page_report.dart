@@ -1,33 +1,19 @@
-import 'dart:async';
 import 'dart:convert';
-import 'dart:html' as html;
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
-import 'package:syncfusion_flutter_pdf/pdf.dart';
 
 import 'package:omnifit_front/constants/assets.dart';
 import 'package:omnifit_front/constants/constants.dart';
 import 'package:omnifit_front/model/user_model.dart';
-import 'package:omnifit_front/page/report_page1.dart';
-import 'package:omnifit_front/page/report_page2.dart';
-import 'package:omnifit_front/page/report_page3.dart';
-import 'package:omnifit_front/page/report_page4.dart';
 import 'package:omnifit_front/page/report_merged.dart';
 import 'package:omnifit_front/page/users_page.dart';
 import 'package:omnifit_front/service/app_service.dart';
 import 'package:omnifit_front/widget/custom_data_table.dart' as custom;
 import 'package:omnifit_front/widget/web_pagination.dart';
-
-class PickedPdf {
-  final String name;
-  final Uint8List bytes;
-  PickedPdf({required this.name, required this.bytes});
-}
 
 class UsersPageReport extends StatefulWidget {
   static const route = '/users/report';
@@ -99,7 +85,8 @@ class _UsersPageState extends State<UsersPageReport> {
 
       valueMap['results'].forEach((e) {
         users.add(UserModel.fromJson(e));
-      });    } else if (response.statusCode == 401) {
+      });
+    } else if (response.statusCode == 401) {
       AppService.instance.manageAutoLogout();
     }
     setState(() {});
@@ -109,211 +96,6 @@ class _UsersPageState extends State<UsersPageReport> {
     await storageBox.put("sortColumnIndex", columnIndex);
     await storageBox.put("ascSort", sortAscending);
     initData(columnIndex: columnIndex, sortAscending: sortAscending);
-  }
-
-  Future<List<PickedPdf>> pickMultiplePdfsWithMeta() async {
-    final input = html.FileUploadInputElement()
-      ..accept = 'application/pdf'
-      ..multiple = true;
-
-    final completer = Completer<List<PickedPdf>>();
-
-    input.onChange.listen((event) {
-      final files = input.files;
-      if (files == null || files.isEmpty) {
-        completer.complete(<PickedPdf>[]);
-        return;
-      }
-
-      final futures = <Future<PickedPdf>>[];
-      for (final html.File file in files) {
-        final reader = html.FileReader();
-        final fileCompleter = Completer<PickedPdf>();
-
-        reader.onLoadEnd.listen((_) {
-          final result = reader.result;
-          if (result is ByteBuffer) {
-            fileCompleter.complete(
-              PickedPdf(name: file.name, bytes: result.asUint8List()),
-            );
-          } else if (result is Uint8List) {
-            fileCompleter.complete(
-              PickedPdf(name: file.name, bytes: result),
-            );
-          } else {
-            fileCompleter.completeError('파일을 읽을 수 없습니다: ${file.name}');
-          }
-        });
-        reader.onError
-            .listen((e) => fileCompleter.completeError('파일 읽기 실패: $e'));
-        reader.readAsArrayBuffer(file);
-        futures.add(fileCompleter.future);
-      }
-
-      Future.wait(futures)
-          .then((list) => completer.complete(list))
-          .catchError((e) => completer.completeError(e));
-    });
-
-    // 파일 선택창
-    input.click();
-    return completer.future;
-  }
-
-  Future<List<PickedPdf>?> showReorderDialog(
-      BuildContext context, List<PickedPdf> initial) async {
-    final items = List<PickedPdf>.from(initial);
-    return showDialog<List<PickedPdf>>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) {
-        return AlertDialog(
-          title: const Text('병합 순서를 정하세요'),
-          content: SizedBox(
-            width: 420,
-            height: 360,
-            child: StatefulBuilder(
-              builder: (context, setState) {
-                return Column(
-                  children: [
-                    Row(
-                      children: [
-                        Text('${items.length}개 파일',
-                            style:
-                                const TextStyle(fontWeight: FontWeight.w600)),
-                        const Spacer(),
-                        TextButton(
-                          onPressed: () {
-                            items.sort((a, b) => a.name
-                                .toLowerCase()
-                                .compareTo(b.name.toLowerCase()));
-                            setState(() {});
-                          },
-                          child: const Text('이름↑'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            items.sort((a, b) => b.name
-                                .toLowerCase()
-                                .compareTo(a.name.toLowerCase()));
-                            setState(() {});
-                          },
-                          child: const Text('이름↓'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Expanded(
-                      child: ReorderableListView.builder(
-                        itemCount: items.length,
-                        onReorder: (oldIndex, newIndex) {
-                          if (newIndex > oldIndex) newIndex -= 1;
-                          final moved = items.removeAt(oldIndex);
-                          items.insert(newIndex, moved);
-                          setState(() {});
-                        },
-                        itemBuilder: (context, index) {
-                          final it = items[index];
-                          return ListTile(
-                            key: ValueKey(it.name),
-                            leading: const Icon(Icons.drag_handle),
-                            title: Text(it.name,
-                                maxLines: 1, overflow: TextOverflow.ellipsis),
-                            subtitle: Text('순서: ${index + 1}'),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(ctx, null),
-                child: const Text('취소')),
-            FilledButton(
-                onPressed: () => Navigator.pop(ctx, items),
-                child: const Text('확인')),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<Uint8List> mergePdfBytes(List<Uint8List> pdfFiles) async {
-    final PdfDocument outDoc = PdfDocument();
-
-    outDoc.pageSettings.margins.all = 0;
-
-    for (final fileBytes in pdfFiles) {
-      final PdfDocument src = PdfDocument(inputBytes: fileBytes);
-      for (int i = 0; i < src.pages.count; i++) {
-        final srcPage = src.pages[i];
-
-        outDoc.pageSettings.size = Size(srcPage.size.width, srcPage.size.height);
-
-        final PdfPage dstPage = outDoc.pages.add();
-
-        dstPage.rotation = srcPage.rotation;
-
-        final PdfTemplate template = srcPage.createTemplate();
-
-        dstPage.graphics.drawPdfTemplate(
-          template,
-          const Offset(0, 0),
-          Size(srcPage.size.width, srcPage.size.height),
-        );
-      }
-      src.dispose();
-    }
-
-    final bytes = await outDoc.save();
-    outDoc.dispose();
-    return Uint8List.fromList(bytes);
-  }
-
-
-  void downloadBytes(Uint8List bytes, String filename) {
-    final blob = html.Blob([bytes], 'application/pdf');
-    final url = html.Url.createObjectUrlFromBlob(blob);
-    final anchor = html.AnchorElement(href: url)
-      ..download = filename
-      ..style.display = 'none';
-    html.document.body?.append(anchor);
-    anchor.click();
-    anchor.remove();
-    html.Url.revokeObjectUrl(url);
-  }
-
-  Future<void> onClickMergePdf(UserModel user) async {
-    try {
-      final List<PickedPdf> picked = await pickMultiplePdfsWithMeta();
-      if (picked.isEmpty) return;
-
-      final List<PickedPdf>? ordered = await showReorderDialog(context, picked);
-      if (ordered == null || ordered.isEmpty) return;
-
-      final Uint8List merged =
-          await mergePdfBytes(ordered.map((e) => e.bytes).toList());
-
-      final dateStr = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-      final filename = '${user.name}_${user.id}_merged_$dateStr.pdf';
-      downloadBytes(merged, filename);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('PDF 병합이 완료되었습니다.')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('PDF 병합 실패: $e')),
-        );
-      }
-    }
   }
 
   // ===========================
@@ -339,8 +121,7 @@ class _UsersPageState extends State<UsersPageReport> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(0),
                             ),
-                            side:
-                                const BorderSide(width: 2, color: Colors.green),
+                            side: const BorderSide(width: 2, color: Colors.green),
                             foregroundColor: Colors.green,
                             backgroundColor: Colors.green,
                             elevation: 10.0,
@@ -469,68 +250,7 @@ class _UsersPageState extends State<UsersPageReport> {
                           child: Align(
                             alignment: Alignment.center,
                             child: Text(
-                              'hrv',
-                              style: TextStyle(fontStyle: FontStyle.italic),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const custom.DataColumn(
-                        label: Expanded(
-                          child: Align(
-                            alignment: Alignment.center,
-                            child: Text(
-                              'eeg',
-                              style: TextStyle(fontStyle: FontStyle.italic),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const custom.DataColumn(
-                        label: Expanded(
-                          child: Align(
-                            alignment: Alignment.center,
-                            child: Text(
-                              '설문결과',
-                              style: TextStyle(fontStyle: FontStyle.italic),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const custom.DataColumn(
-                        label: Expanded(
-                          child: Align(
-                            alignment: Alignment.center,
-                            child: Text(
-                              '수면결과',
-                              style: TextStyle(fontStyle: FontStyle.italic),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const custom.DataColumn(
-                        label: Expanded(
-                          child: Align(
-                            alignment: Alignment.center,
-                            child: Text(
                               '통합 리포트',
-                              style: TextStyle(fontStyle: FontStyle.italic),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      ),
-                      // 새로 추가: PDF 병합
-                      const custom.DataColumn(
-                        label: Expanded(
-                          child: Align(
-                            alignment: Alignment.center,
-                            child: Text(
-                              'PDF 병합',
                               style: TextStyle(fontStyle: FontStyle.italic),
                               textAlign: TextAlign.center,
                             ),
@@ -562,60 +282,13 @@ class _UsersPageState extends State<UsersPageReport> {
                                 Align(
                                   alignment: Alignment.center,
                                   child: Text(
-                                    DateFormat('yyyy/MM/dd HH:mm').format(e.measurement_date),
+                                    DateFormat('yyyy/MM/dd HH:mm')
+                                        .format(e.measurement_date),
                                     textAlign: TextAlign.center,
                                   ),
                                 ),
                               ),
-                              custom.DataCell(Align(
-                                alignment: Alignment.center,
-                                child: MouseRegion(
-                                  cursor: MaterialStateMouseCursor.clickable,
-                                  child: GestureDetector(
-                                      onTap: () {
-                                        AppService.instance.context.push(ReportPage1.route,
-                                            extra: {"user": e, "trigger": e.trigger?.map((i) => i.toDouble()).toList()});
-                                      },
-                                      child: const Icon(Icons.search)),
-                                ),
-                              )),
-                              custom.DataCell(Align(
-                                alignment: Alignment.center,
-                                child: MouseRegion(
-                                  cursor: MaterialStateMouseCursor.clickable,
-                                  child: GestureDetector(
-                                      onTap: () {
-                                        AppService.instance.context.push(ReportPage2.route,
-                                            extra: {"user": e});
-                                      },
-                                      child: const Icon(Icons.search)),
-                                ),
-                              )),
-                              custom.DataCell(Align(
-                                alignment: Alignment.center,
-                                child: MouseRegion(
-                                  cursor: MaterialStateMouseCursor.clickable,
-                                  child: GestureDetector(
-                                      onTap: () {
-                                        AppService.instance.context.push(ReportPage3.route,
-                                            extra: {"user": e});
-                                      },
-                                      child: const Icon(Icons.search)),
-                                ),
-                              )),
-                              custom.DataCell(Align(
-                                alignment: Alignment.center,
-                                child: MouseRegion(
-                                  cursor: MaterialStateMouseCursor.clickable,
-                                  child: GestureDetector(
-                                      onTap: () {
-                                        AppService.instance.context.push(ReportPage4.route,
-                                            extra: {"user": e});
-                                      },
-                                      child: const Icon(Icons.search)),
-                                ),
-                              )),
-                              // 통합 리포트 버튼
+                              // 통합 리포트 (돋보기)
                               custom.DataCell(
                                 Align(
                                   alignment: Alignment.center,
@@ -627,35 +300,13 @@ class _UsersPageState extends State<UsersPageReport> {
                                           ReportMerged.route,
                                           extra: {
                                             "user": e,
-                                            "trigger": e.trigger?.map((i) => i.toDouble()).toList(),
+                                            "trigger": e.trigger
+                                                ?.map((i) => i.toDouble())
+                                                .toList(),
                                           },
                                         );
                                       },
-                                      child: const Icon(Icons.summarize_outlined),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              // PDF 병합 버튼
-                              custom.DataCell(
-                                Align(
-                                  alignment: Alignment.center,
-                                  child: MouseRegion(
-                                    cursor: MaterialStateMouseCursor.clickable,
-                                    child: ElevatedButton.icon(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.green,
-                                        foregroundColor: Colors.white,
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 12, vertical: 8),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(4),
-                                        ),
-                                      ),
-                                      onPressed: () => onClickMergePdf(e),
-                                      icon: const Icon(Icons.picture_as_pdf),
-                                      label: const Text('병합'),
+                                      child: const Icon(Icons.search),
                                     ),
                                   ),
                                 ),
@@ -677,8 +328,7 @@ class _UsersPageState extends State<UsersPageReport> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(0),
                         ),
-                        side:
-                            const BorderSide(width: 2, color: Colors.white),
+                        side: const BorderSide(width: 2, color: Colors.white),
                         foregroundColor: Colors.white,
                         backgroundColor: Colors.white,
                         elevation: 10.0,
