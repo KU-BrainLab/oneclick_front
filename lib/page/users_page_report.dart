@@ -323,23 +323,26 @@ class _UsersPageState extends State<UsersPageReport> {
                         currentPage = page;
                         initData();
                       }),
-                  OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(0),
-                        ),
-                        side: const BorderSide(width: 2, color: Colors.white),
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.white,
-                        elevation: 10.0,
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey.shade600,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      onPressed: () {
-                        AppService.instance.context.go(UsersPage.route);
-                      },
-                      child: const Text(
-                        "",
-                        style: TextStyle(color: Colors.white),
-                      )),
+                    ),
+                    onPressed: () {
+                      AppService.instance.context.go(UsersPage.route);
+                    },
+                    icon: const Icon(Icons.arrow_back),
+                    label: const Text(
+                      '목록으로',
+                      style: TextStyle(fontSize: 15),
+                    ),
+                  ),
                 ],
               ),
             ),
