@@ -230,8 +230,11 @@ class AppService extends ChangeNotifier {
         ..style.display = 'none';
       html.document.body?.append(anchor);
       anchor.click();
-      anchor.remove();
-      html.Url.revokeObjectUrl(url);
+      // 브라우저가 다운로드를 시작할 때까지 URL 유지 후 정리
+      Future.delayed(const Duration(seconds: 10), () {
+        anchor.remove();
+        html.Url.revokeObjectUrl(url);
+      });
       debugPrint('[PDF] (web) download: $name');
 
       if (refreshAfter) {
