@@ -450,23 +450,26 @@ class _UsersPageState extends State<UsersPage> {
                         initData();
                       }),
 
-                      OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(0),
-                          ),
-                          side: const BorderSide(width: 2, color: Colors.white),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
                           foregroundColor: Colors.white,
-                          backgroundColor: Colors.white,
-                          elevation: 10.0,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
                         onPressed: () {
                           context.go(UsersPageReport.route);
                         },
-                        child: const Text(
-                          "",
-                          style: TextStyle(color: Colors.white),
-                        )),
+                        icon: const Icon(Icons.assignment_outlined),
+                        label: const Text(
+                          '리포트 보기',
+                          style: TextStyle(fontSize: 15),
+                        ),
+                      ),
                 ],
               ),
             ),
