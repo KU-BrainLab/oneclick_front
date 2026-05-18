@@ -10,6 +10,7 @@ import 'package:omnifit_front/constants/assets.dart';
 import 'package:omnifit_front/constants/constants.dart';
 import 'package:omnifit_front/model/user_model.dart';
 import 'package:omnifit_front/page/report_merged.dart';
+import 'package:omnifit_front/page/report_merged_fc.dart';
 import 'package:omnifit_front/page/users_page.dart';
 import 'package:omnifit_front/service/app_service.dart';
 import 'package:omnifit_front/widget/custom_data_table.dart' as custom;
@@ -257,6 +258,18 @@ class _UsersPageState extends State<UsersPageReport> {
                           ),
                         ),
                       ),
+                      const custom.DataColumn(
+                        label: Expanded(
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: Text(
+                              'FC 통합 리포트',
+                              style: TextStyle(fontStyle: FontStyle.italic),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                     rows: users
                         .map((e) => custom.DataRow(cells: [
@@ -307,6 +320,29 @@ class _UsersPageState extends State<UsersPageReport> {
                                         );
                                       },
                                       child: const Icon(Icons.search),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              // FC 통합 리포트 (돋보기)
+                              custom.DataCell(
+                                Align(
+                                  alignment: Alignment.center,
+                                  child: MouseRegion(
+                                    cursor: MaterialStateMouseCursor.clickable,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        AppService.instance.context.push(
+                                          ReportMergedFc.route,
+                                          extra: {
+                                            "user": e,
+                                            "trigger": e.trigger
+                                                ?.map((i) => i.toDouble())
+                                                .toList(),
+                                          },
+                                        );
+                                      },
+                                      child: const Icon(Icons.account_tree_outlined),
                                     ),
                                   ),
                                 ),
