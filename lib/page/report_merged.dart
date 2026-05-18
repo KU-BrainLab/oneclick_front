@@ -417,22 +417,26 @@ class _ReportMergedState extends State<ReportMerged> {
       children: [
         const SizedBox(width: 20),
         for (final phase in phases)
-          Column(
-            children: [
-              MouseRegion(
-                cursor: SystemMouseCursors.click,
-                child: phase.$2 != null
-                    ? Image.network(
-                        "$BASE_URL${phase.$2}",
-                        width: 150,
-                        filterQuality: FilterQuality.high,
-                        errorBuilder: (_, __, ___) =>
-                            const SizedBox(width: 150, height: 150, child: Center(child: Text("No data"))),
-                      )
-                    : const SizedBox(width: 150, height: 150, child: Center(child: Text("No data"))),
-              ),
-              Text(phase.$1),
-            ],
+          Container(
+            decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 1)),
+            padding: const EdgeInsets.all(4),
+            child: Column(
+              children: [
+                MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: phase.$2 != null
+                      ? Image.network(
+                          "$BASE_URL${phase.$2}",
+                          width: 150,
+                          filterQuality: FilterQuality.high,
+                          errorBuilder: (_, __, ___) =>
+                              const SizedBox(width: 150, height: 150, child: Center(child: Text("No data"))),
+                        )
+                      : const SizedBox(width: 150, height: 150, child: Center(child: Text("No data"))),
+                ),
+                Text(phase.$1),
+              ],
+            ),
           ),
         const SizedBox(width: 20),
       ],
