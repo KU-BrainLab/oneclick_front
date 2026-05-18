@@ -111,7 +111,7 @@ class AppService extends ChangeNotifier {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    const Text('잠시만 기다려주세요…', style: TextStyle(fontSize: 12, color: Colors.black54)),
+                    const Text('Please wait…', style: TextStyle(fontSize: 12, color: Colors.black54)),
                   ],
                 ),
               ),
@@ -188,7 +188,7 @@ class AppService extends ChangeNotifier {
 
     try {
       debugPrint('[PDF] (web) manage START | kIsWeb=$kIsWeb | key=$repaintKey');
-      _showLoadingOverlay(message: '화면 캡처 준비 중…');
+      _showLoadingOverlay(message: 'Preparing capture…');
 
       await Future<void>.delayed(const Duration(milliseconds: 16));
       await WidgetsBinding.instance.endOfFrame;
@@ -197,7 +197,7 @@ class AppService extends ChangeNotifier {
       final boundary = await _resolveBoundarySafe(repaintKey);
       debugPrint('[PDF] (web) STEP2 ok (size=${boundary.size})');
 
-      _updateLoadingMessage('이미지 캡처 중…');
+      _updateLoadingMessage('Capturing screen…');
 
       await WidgetsBinding.instance.endOfFrame;
 
@@ -211,7 +211,7 @@ class AppService extends ChangeNotifier {
       }
       final Uint8List pngBytes = byteData.buffer.asUint8List();
 
-      _updateLoadingMessage('PDF 페이지 구성 중…');
+      _updateLoadingMessage('Building PDF pages…');
 
       final Uint8List pdfBytes = await _buildPdfBytes(
         pngBytes,
@@ -221,7 +221,7 @@ class AppService extends ChangeNotifier {
       );
 
       final name = _sanitizeFileName((fileName == null || fileName.trim().isEmpty) ? 'report.pdf' : fileName.trim());
-      _updateLoadingMessage('파일 저장 준비 중…');
+      _updateLoadingMessage('Saving file…');
 
       final blob = html.Blob([pdfBytes], 'application/pdf');
       final url = html.Url.createObjectUrlFromBlob(blob);
