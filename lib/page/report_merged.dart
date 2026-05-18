@@ -419,7 +419,6 @@ class _ReportMergedState extends State<ReportMerged> {
         for (final phase in phases)
           Container(
             decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 1)),
-            padding: const EdgeInsets.all(4),
             child: Column(
               children: [
                 MouseRegion(
