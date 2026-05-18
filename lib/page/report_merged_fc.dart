@@ -260,8 +260,6 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
 
                         // 2. EEG Topography + wPLI + PLV (밴드별)
                         for (int i = 0; i < _bandNames.length; i++) ...[
-                          if (i == 4) const SizedBox(height: 90),
-
                           // Topography
                           _sectionTitle("EEG_${_bandNames[i]}"),
                           const SizedBox(height: 16),
@@ -287,7 +285,13 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
                             _buildConnectivity2Row(plvList[i])
                           else
                             const Center(child: Text("데이터 없음")),
-                          const SizedBox(height: 80),  // 대역 간 구분
+
+                          // 마지막 대역이 아니면 강제 페이지 분리 마커 삽입
+                          if (i < _bandNames.length - 1) ...[
+                            const SizedBox(height: 40),
+                            Container(height: 4, color: const Color(0xFFFF0080)),
+                          ] else
+                            const SizedBox(height: 80),
                         ],
 
                         // 3. Related PSD + Raw PSD
