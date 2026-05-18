@@ -342,7 +342,7 @@ class _UsersPageState extends State<UsersPageReport> {
                                           },
                                         );
                                       },
-                                      child: const Icon(Icons.account_tree_outlined),
+                                      child: const Icon(Icons.hub_outlined),
                                     ),
                                   ),
                                 ),
