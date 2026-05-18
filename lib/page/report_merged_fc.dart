@@ -286,12 +286,9 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
                           else
                             const Center(child: Text("데이터 없음")),
 
-                          // 마지막 대역이 아니면 강제 페이지 분리 마커 삽입
-                          if (i < _bandNames.length - 1) ...[
-                            const SizedBox(height: 40),
-                            Container(height: 4, color: const Color(0xFFFF0080)),
-                          ] else
-                            const SizedBox(height: 80),
+                          // 대역 마다 강제 페이지 분리 마커 삽입 (PSD 앞도 포함)
+                          const SizedBox(height: 40),
+                          Container(height: 4, color: const Color(0xFFFF0080)),
                         ],
 
                         // 3. Related PSD + Raw PSD

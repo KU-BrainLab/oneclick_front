@@ -472,8 +472,10 @@ Future<Uint8List> _buildPdfBytesWorker(_PdfBuildParams params) async {
     if (idealEnd >= full.height) {
       final img.Image slice =
           img.copyCrop(full, x: 0, y: y, width: full.width, height: full.height - y);
+      // 마지막(짧은) 슬라이스를 페이지 높이로 패딩 → 상단 정렬
+      final img.Image padded = _padSliceToPageHeight(slice, idealSliceHeightPx);
       pdf.addPage(_buildPdfPage(
-          pageFormat, hMargin, vMargin, contentWidthPt, Uint8List.fromList(img.encodePng(slice))));
+          pageFormat, hMargin, vMargin, contentWidthPt, Uint8List.fromList(img.encodePng(padded))));
       break;
     }
 
@@ -492,8 +494,10 @@ Future<Uint8List> _buildPdfBytesWorker(_PdfBuildParams params) async {
 
     final int h = (cutY - y).clamp(1, full.height - y);
     final img.Image slice = img.copyCrop(full, x: 0, y: y, width: full.width, height: h);
+    // 강제 분리로 짧아진 슬라이스를 페이지 높이로 패딩 → 상단 정렬
+    final img.Image padded = _padSliceToPageHeight(slice, idealSliceHeightPx);
     pdf.addPage(_buildPdfPage(
-        pageFormat, hMargin, vMargin, contentWidthPt, Uint8List.fromList(img.encodePng(slice))));
+        pageFormat, hMargin, vMargin, contentWidthPt, Uint8List.fromList(img.encodePng(padded))));
 
     // 마커 행 건너뛰고 다음 페이지 시작 (직접 픽셀 확인으로 4행 모두 스킵)
     y += h;
@@ -575,6 +579,18 @@ int _findSafeCutRow(img.Image image, int idealY, int searchWindow) {
   }
 
   return idealY; // 적합한 여백 없음 → 원래 위치에서 절단
+}
+
+/// 슬라이스 이미지를 [targetHeight]까지 하단에 흰색 패딩을 추가해 반환.
+/// 이미 충분히 크면 그대로 반환. 이 함수로 짧은 슬라이스도 항상 상단 정렬됨.
+img.Image _padSliceToPageHeight(img.Image slice, int targetHeight) {
+  if (slice.height >= targetHeight) return slice;
+  final padded = img.Image(width: slice.width, height: targetHeight);
+  // 흰색으로 초기화
+  img.fill(padded, color: img.ColorRgb8(255, 255, 255));
+  // 슬라이스를 상단에 복사
+  img.compositeImage(padded, slice, dstX: 0, dstY: 0);
+  return padded;
 }
 
 /// 한 행에서 4픽셀 간격으로 샘플링해 95% 이상이 밝으면(RGB ≥ 230) true
