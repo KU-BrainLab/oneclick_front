@@ -148,9 +148,6 @@ class _Bsrsr1ChartWidgetState extends State<Bsrsr1ChartWidget> {
         ),
         Container(
           decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 1)),
-          height: widget.diffConnectivityList.isEmpty
-              ? _imgWidth + 40
-              : _imgWidth * 2 + 80,
           width: double.infinity,
           child: _buildTab(),
         ),
