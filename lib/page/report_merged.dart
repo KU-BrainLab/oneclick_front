@@ -38,6 +38,9 @@ class ReportMerged extends StatefulWidget {
 class _ReportMergedState extends State<ReportMerged> {
   bool isLoading = true;
 
+  // 이 인스턴스 전용 RepaintBoundary key (AppService.screenKey 공유 시 동일 키 충돌 방지)
+  final GlobalKey _screenKey = GlobalKey();
+
   // EEG
   List<TopographyModel> topographyList = [];
   RelatedPsdModel? relatedPsdModel;
@@ -205,7 +208,8 @@ class _ReportMergedState extends State<ReportMerged> {
                         onPressed: () {
                           final fileName =
                               '${DateFormat('yyyyMMdd').format(widget.user.measurement_date)}_${widget.user.name}_통합.pdf';
-                          AppService.instance.managePdfDistribution(
+                          AppService.instance.managePdfDistributionFromKey(
+                            repaintKey: _screenKey,
                             fileName: fileName,
                             refreshAfter: true,
                           );
@@ -219,7 +223,7 @@ class _ReportMergedState extends State<ReportMerged> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40.0),
                   child: RepaintBoundary(
-                    key: AppService.instance.screenKey,
+                    key: _screenKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
