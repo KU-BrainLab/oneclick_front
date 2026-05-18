@@ -259,7 +259,7 @@ class _ReportMergedState extends State<ReportMerged> {
                           if (i < topographyList.length) ...[
                             _sectionTitle("EEG_${_bandNames[i]}"),
                             const SizedBox(height: 16),
-                            _figure(_buildTopographyRow(topographyList[i])),
+                            _buildTopographyRow(topographyList[i]),
                             const SizedBox(height: 40),
                           ] else ...[
                             _sectionTitle("EEG_${_bandNames[i]}"),
@@ -273,13 +273,13 @@ class _ReportMergedState extends State<ReportMerged> {
                         _sectionTitle("PSD"),
                         const SizedBox(height: 16),
                         if (relatedPsdModel != null && rawPsdModel != null)
-                          _figure(Row(
+                          Row(
                             children: [
                               Expanded(child: CircleChartWidget(model: relatedPsdModel!)),
                               const SizedBox(width: 10),
                               Expanded(child: DefaultLineChart(model: rawPsdModel!)),
                             ],
-                          ))
+                          )
                         else
                           const Center(child: Text("데이터 없음")),
                         const SizedBox(height: 40),
@@ -288,7 +288,7 @@ class _ReportMergedState extends State<ReportMerged> {
                         _sectionTitle("Sleep Stage"),
                         const SizedBox(height: 16),
                         if (hypnogramModel != null)
-                          _figure(HypnogramWidget(model: hypnogramModel!))
+                          HypnogramWidget(model: hypnogramModel!)
                         else
                           const Center(child: Text("데이터 없음")),
                         // ── 강제 페이지 분리 마커 ──
@@ -298,7 +298,7 @@ class _ReportMergedState extends State<ReportMerged> {
                         _sectionTitle("Questionnaire"),
                         const SizedBox(height: 16),
                         if (psqiList.isNotEmpty)
-                          _figure(_buildSurveyChart("PSQI-K", psqiList, 25, [
+                          _buildSurveyChart("PSQI-K", psqiList, 25, [
                             PlotBand(
                                 isVisible: true,
                                 color: const Color(0xff6db290).withAlpha(102),
@@ -309,12 +309,12 @@ class _ReportMergedState extends State<ReportMerged> {
                                 color: const Color(0xFF44948f).withAlpha(102),
                                 start: 8,
                                 end: 26),
-                          ]))
+                          ])
                         else
                           const Center(child: Text("PSQI 데이터 없음")),
                         if (isiList.isNotEmpty) ...[
                           const SizedBox(height: 20),
-                          _figure(_buildSurveyChart("ISI", isiList, 35, [
+                          _buildSurveyChart("ISI", isiList, 35, [
                             PlotBand(
                                 isVisible: true,
                                 color: const Color(0xff6db290).withAlpha(102),
@@ -330,7 +330,7 @@ class _ReportMergedState extends State<ReportMerged> {
                                 color: const Color(0xFF24768b).withAlpha(102),
                                 start: 15,
                                 end: 36),
-                          ])),
+                          ]),
                           const SizedBox(height: 40),
                         ] else ...[
                           const SizedBox(height: 8),
@@ -345,7 +345,7 @@ class _ReportMergedState extends State<ReportMerged> {
                         _sectionTitle("HRV - NNI"),
                         const SizedBox(height: 16),
                         if (nniModel != null)
-                          _figure(Graph1(graph1model: nniModel!))
+                          Graph1(graph1model: nniModel!)
                         else
                           const Center(child: Text("데이터 없음")),
                         const SizedBox(height: 40),
@@ -354,7 +354,7 @@ class _ReportMergedState extends State<ReportMerged> {
                         _sectionTitle("HRV - RMSSD"),
                         const SizedBox(height: 16),
                         if (rmssdModel != null)
-                          _figure(MultiColorLineChartWidget(model: rmssdModel!, maxX: rmssdModel!.maxX))
+                          MultiColorLineChartWidget(model: rmssdModel!, maxX: rmssdModel!.maxX)
                         else
                           const Center(child: Text("데이터 없음")),
 
@@ -376,16 +376,6 @@ class _ReportMergedState extends State<ReportMerged> {
       title,
       textAlign: TextAlign.center,
       style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-    );
-  }
-
-  /// figure 콘텐츠를 검은 테두리로 감싸는 공통 래퍼
-  Widget _figure(Widget child) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 1)),
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      child: child,
     );
   }
 
