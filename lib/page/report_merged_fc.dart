@@ -269,7 +269,7 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
                             _buildTopographyRow(topographyList[i])
                           else
                             const Center(child: Text("데이터 없음")),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 48),  // EEG ↔ wPLI
 
                           // wPLI
                           _sectionTitle("wPLI_${_bandNames[i]}"),
@@ -278,7 +278,7 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
                             _buildConnectivityRow(wPliList[i])
                           else
                             const Center(child: Text("데이터 없음")),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 48),  // wPLI ↔ PLV
 
                           // PLV
                           _sectionTitle("PLV_${_bandNames[i]}"),
@@ -287,7 +287,7 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
                             _buildConnectivity2Row(plvList[i])
                           else
                             const Center(child: Text("데이터 없음")),
-                          const SizedBox(height: 40),
+                          const SizedBox(height: 80),  // 대역 간 구분
                         ],
 
                         // 3. Related PSD + Raw PSD
