@@ -465,7 +465,7 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
         const SizedBox(width: 20),
         for (final phase in phases)
           Container(
-            decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 1)),
+            decoration: BoxDecoration(border: Border.all(color: Colors.black.withOpacity(0.3), width: 1)),
             child: Column(
               children: [
                 MouseRegion(
