@@ -40,6 +40,9 @@ class ReportMergedFc extends StatefulWidget {
 class _ReportMergedFcState extends State<ReportMergedFc> {
   bool isLoading = true;
 
+  // FC 리포트 전용 RepaintBoundary key (AppService.screenKey와 충돌 방지)
+  final GlobalKey _fcScreenKey = GlobalKey();
+
   // EEG
   List<TopographyModel> topographyList = [];
   List<ConnectivityModel> wPliList = [];    // connectivity_$type = wPLI
@@ -211,7 +214,8 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
                         onPressed: () {
                           final fileName =
                               '${DateFormat('yyyyMMdd').format(widget.user.measurement_date)}_${widget.user.name}_FC통합.pdf';
-                          AppService.instance.managePdfDistribution(
+                          AppService.instance.managePdfDistributionFromKey(
+                            repaintKey: _fcScreenKey,
                             fileName: fileName,
                             refreshAfter: true,
                           );
@@ -225,7 +229,7 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40.0),
                   child: RepaintBoundary(
-                    key: AppService.instance.screenKey,
+                    key: _fcScreenKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [

@@ -309,7 +309,7 @@ class _UsersPageState extends State<UsersPageReport> {
                                     cursor: MaterialStateMouseCursor.clickable,
                                     child: GestureDetector(
                                       onTap: () {
-                                        AppService.instance.context.push(
+                                        context.push(
                                           ReportMerged.route,
                                           extra: {
                                             "user": e,
@@ -332,7 +332,7 @@ class _UsersPageState extends State<UsersPageReport> {
                                     cursor: MaterialStateMouseCursor.clickable,
                                     child: GestureDetector(
                                       onTap: () {
-                                        AppService.instance.context.push(
+                                        context.push(
                                           ReportMergedFc.route,
                                           extra: {
                                             "user": e,
