@@ -50,7 +50,7 @@ class FaaWidget extends StatelessWidget {
   }
 
   Widget _buildTab(BuildContext context) {
-    final double imgWidth = phaseCount >= 5 ? 159.0 : phaseCount >= 3 ? 240.0 : 500.0;
+    final double imgWidth = phaseCount >= 5 ? 130.0 : phaseCount >= 3 ? 180.0 : 250.0;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
