@@ -13,7 +13,6 @@ class FaaWidget extends StatelessWidget {
       children: [
         Container(
           decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 1)),
-          height: phaseCount >= 5 ? 200 : phaseCount >= 3 ? 280 : 280,
           width: double.infinity,
           child: _buildTab(context),
         ),
