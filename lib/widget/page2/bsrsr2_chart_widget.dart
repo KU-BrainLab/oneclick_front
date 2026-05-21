@@ -6,8 +6,8 @@ import 'package:omnifit_front/models/diff_connectivity2_model.dart';
 class Bsrsr2ChartWidget extends StatefulWidget {
   final List<Connectivity2Model> connectivityList;
   final List<DiffConnectivity2Model> diffConnectivityList;
-  final bool hasPhase45;
-  const Bsrsr2ChartWidget({Key? key, required this.connectivityList, required this.diffConnectivityList, this.hasPhase45 = true}) : super(key: key);
+  final int phaseCount;
+  const Bsrsr2ChartWidget({Key? key, required this.connectivityList, required this.diffConnectivityList, this.phaseCount = 5}) : super(key: key);
 
   @override
   State<Bsrsr2ChartWidget> createState() => _Bsrsr2ChartWidgetState();
@@ -154,7 +154,7 @@ class _Bsrsr2ChartWidgetState extends State<Bsrsr2ChartWidget> {
     );
   }
 
-  double get _imgWidth => widget.hasPhase45 ? 150.0 : 230.0;
+  double get _imgWidth => widget.phaseCount >= 5 ? 150.0 : widget.phaseCount >= 3 ? 230.0 : 500.0;
 
   Widget _buildTab() {
     return Column(
@@ -171,28 +171,28 @@ class _Bsrsr2ChartWidgetState extends State<Bsrsr2ChartWidget> {
                 const Text("Baseline"),
               ],
             ),
-            Column(
+            if (widget.phaseCount >= 3) Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _networkImage(widget.connectivityList[index].stimulation1),
                 const Text("Stimulation1"),
               ],
             ),
-            Column(
+            if (widget.phaseCount >= 3) Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _networkImage(widget.connectivityList[index].recovery1),
                 const Text("Recovery1"),
               ],
             ),
-            if (widget.hasPhase45) Column(
+            if (widget.phaseCount >= 5) Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _networkImage(widget.connectivityList[index].stimulation2),
                 const Text("Stimulation2"),
               ],
             ),
-            if (widget.hasPhase45) Column(
+            if (widget.phaseCount >= 5) Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _networkImage(widget.connectivityList[index].recovery2),
@@ -202,8 +202,8 @@ class _Bsrsr2ChartWidgetState extends State<Bsrsr2ChartWidget> {
             const SizedBox(width: 20),
           ],
         ),
-        if(widget.diffConnectivityList.isNotEmpty) const SizedBox(height: 20),
-        if(widget.diffConnectivityList.isNotEmpty)
+        if(widget.diffConnectivityList.isNotEmpty && widget.phaseCount >= 3) const SizedBox(height: 20),
+        if(widget.diffConnectivityList.isNotEmpty && widget.phaseCount >= 3)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -222,14 +222,14 @@ class _Bsrsr2ChartWidgetState extends State<Bsrsr2ChartWidget> {
                   const Text("Recovery1-Stimulation1"),
                 ],
               ),
-              if (widget.hasPhase45) Column(
+              if (widget.phaseCount >= 5) Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   _networkImage(widget.diffConnectivityList[index].diff3),
                   const Text("Stimulation2-Recovery1"),
                 ],
               ),
-              if (widget.hasPhase45) Column(
+              if (widget.phaseCount >= 5) Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   _networkImage(widget.diffConnectivityList[index].diff4),

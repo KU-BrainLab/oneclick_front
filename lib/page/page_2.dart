@@ -84,7 +84,7 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
   late TabController tabController1 = TabController(length: 6, vsync: this, initialIndex: 0, animationDuration: const Duration(milliseconds: 800));
   late TabController tabController2 = TabController(length: 6, vsync: this, initialIndex: 0, animationDuration: const Duration(milliseconds: 800));
   String? note;
-  bool hasPhase45 = true;
+  int phaseCount = 5;
 
   @override
   void initState() {
@@ -120,11 +120,20 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
         // Detect phase count from trigger (3-phase: 4 values, 5-phase: 6 values)
         final triggerList = valueMap['trigger'] as List<dynamic>?;
         if (triggerList != null) {
-          hasPhase45 = (triggerList.length - 1) >= 5;
+          final len = triggerList.length - 1;
+          if (len >= 5) phaseCount = 5;
+          else if (len >= 3) phaseCount = 3;
+          else phaseCount = 1;
         } else {
-          hasPhase45 = valueMap['stimulation2'] != null &&
+          final hasStim2 = valueMap['stimulation2'] != null &&
               valueMap['stimulation2'] is Map &&
               (valueMap['stimulation2'] as Map).isNotEmpty;
+          final hasStim1 = valueMap['stimulation1'] != null &&
+              valueMap['stimulation1'] is Map &&
+              (valueMap['stimulation1'] as Map).isNotEmpty;
+          if (hasStim2) phaseCount = 5;
+          else if (hasStim1) phaseCount = 3;
+          else phaseCount = 1;
         }
 
         // Safely parse the data
@@ -305,24 +314,24 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
                       // 데이터 로드 성공 시 결과 내용 표시
                       : Column(
                           children: [
-                            BsrsrChartWidget(topographyList: topographyList, diffTopographyList: diffTopographyList, hasPhase45: hasPhase45),
+                            BsrsrChartWidget(topographyList: topographyList, diffTopographyList: diffTopographyList, phaseCount: phaseCount),
                             const SizedBox(height: 20),
-                            Bsrsr1ChartWidget(connectivityList: connectivityList, diffConnectivityList: diffConnectivityList, hasPhase45: hasPhase45),
+                            Bsrsr1ChartWidget(connectivityList: connectivityList, diffConnectivityList: diffConnectivityList, phaseCount: phaseCount),
                             const SizedBox(height: 20),
                             if (connectivity2List.isNotEmpty)
-                              Bsrsr2ChartWidget(connectivityList: connectivity2List, diffConnectivityList: diffConnectivity2List, hasPhase45: hasPhase45),
+                              Bsrsr2ChartWidget(connectivityList: connectivity2List, diffConnectivityList: diffConnectivity2List, phaseCount: phaseCount),
                             if (connectivity2List.isNotEmpty) const SizedBox(height: 20),
                             FrontalLimbicWidget(model: frontalLimbicModel),
                             const SizedBox(height: 20),
                             if (faaModel != null) ...[
-                              FaaWidget(model: faaModel!, hasPhase45: hasPhase45),
+                              FaaWidget(model: faaModel!, phaseCount: phaseCount),
                               const SizedBox(height: 20),
                             ],
                             if (diffStageTopoList.isNotEmpty) ...[
                               DiffStageWidget(
                                 diffStageTopoList: diffStageTopoList,
                                 diffStageConnList: diffStageConnList,
-                                hasPhase45: hasPhase45,
+                                phaseCount: phaseCount,
                               ),
                               const SizedBox(height: 20),
                             ],

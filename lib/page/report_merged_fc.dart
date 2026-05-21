@@ -426,34 +426,34 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
   }
 
   Widget _buildTopographyRow(TopographyModel topo) {
-    final phases = [
+    final phases = <(String, String?)>[
       ('Baseline', topo.baseline),
-      ('Stimulation1', topo.stimulation1),
-      ('Recovery1', topo.recovery1),
-      ('Stimulation2', topo.stimulation2),
-      ('Recovery2', topo.recovery2),
+      if (topo.stimulation1 != null) ('Stimulation1', topo.stimulation1),
+      if (topo.recovery1 != null) ('Recovery1', topo.recovery1),
+      if (topo.stimulation2 != null) ('Stimulation2', topo.stimulation2),
+      if (topo.recovery2 != null) ('Recovery2', topo.recovery2),
     ];
     return _buildImageRow(phases);
   }
 
   Widget _buildConnectivityRow(ConnectivityModel conn) {
-    final phases = [
+    final phases = <(String, String?)>[
       ('Baseline', conn.baseline),
-      ('Stimulation1', conn.stimulation1),
-      ('Recovery1', conn.recovery1),
-      ('Stimulation2', conn.stimulation2),
-      ('Recovery2', conn.recovery2),
+      if (conn.stimulation1 != null) ('Stimulation1', conn.stimulation1),
+      if (conn.recovery1 != null) ('Recovery1', conn.recovery1),
+      if (conn.stimulation2 != null) ('Stimulation2', conn.stimulation2),
+      if (conn.recovery2 != null) ('Recovery2', conn.recovery2),
     ];
     return _buildImageRow(phases);
   }
 
   Widget _buildConnectivity2Row(Connectivity2Model conn2) {
-    final phases = [
+    final phases = <(String, String?)>[
       ('Baseline', conn2.baseline),
-      ('Stimulation1', conn2.stimulation1),
-      ('Recovery1', conn2.recovery1),
-      ('Stimulation2', conn2.stimulation2),
-      ('Recovery2', conn2.recovery2),
+      if (conn2.stimulation1 != null) ('Stimulation1', conn2.stimulation1),
+      if (conn2.recovery1 != null) ('Recovery1', conn2.recovery1),
+      if (conn2.stimulation2 != null) ('Stimulation2', conn2.stimulation2),
+      if (conn2.recovery2 != null) ('Recovery2', conn2.recovery2),
     ];
     return _buildImageRow(phases);
   }

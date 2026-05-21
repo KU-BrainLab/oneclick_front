@@ -405,15 +405,15 @@ class _ReportMergedState extends State<ReportMerged> {
   }
 
   Widget _buildTopographyRow(TopographyModel topo) {
-    final phases = [
+    final phases = <(String, String?)>[
       ('Baseline', topo.baseline),
-      ('Stimulation1', topo.stimulation1),
-      ('Recovery1', topo.recovery1),
-      ('Stimulation2', topo.stimulation2),
-      ('Recovery2', topo.recovery2),
+      if (topo.stimulation1 != null) ('Stimulation1', topo.stimulation1),
+      if (topo.recovery1 != null) ('Recovery1', topo.recovery1),
+      if (topo.stimulation2 != null) ('Stimulation2', topo.stimulation2),
+      if (topo.recovery2 != null) ('Recovery2', topo.recovery2),
     ];
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         const SizedBox(width: 20),
         for (final phase in phases)

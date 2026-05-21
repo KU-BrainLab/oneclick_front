@@ -6,8 +6,8 @@ import 'package:omnifit_front/models/topography_model.dart';
 class BsrsrChartWidget extends StatefulWidget {
   final List<TopographyModel> topographyList;
   final List<DiffTopographyModel> diffTopographyList;
-  final bool hasPhase45;
-  const BsrsrChartWidget({Key? key, required this.topographyList, required this.diffTopographyList, this.hasPhase45 = true}) : super(key: key);
+  final int phaseCount;
+  const BsrsrChartWidget({Key? key, required this.topographyList, required this.diffTopographyList, this.phaseCount = 5}) : super(key: key);
 
   @override
   State<BsrsrChartWidget> createState() => _BsrsrChartWidgetState();
@@ -154,7 +154,7 @@ class _BsrsrChartWidgetState extends State<BsrsrChartWidget> {
     );
   }
 
-  double get _imgWidth => widget.hasPhase45 ? 150.0 : 230.0;
+  double get _imgWidth => widget.phaseCount >= 5 ? 150.0 : widget.phaseCount >= 3 ? 230.0 : 500.0;
 
   Widget _buildTab() {
     return Column(
@@ -171,28 +171,28 @@ class _BsrsrChartWidgetState extends State<BsrsrChartWidget> {
                 const Text("Baseline"),
               ],
             ),
-            Column(
+            if (widget.phaseCount >= 3) Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _networkImage(widget.topographyList[index].stimulation1),
                 const Text("Stimulation1"),
               ],
             ),
-            Column(
+            if (widget.phaseCount >= 3) Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _networkImage(widget.topographyList[index].recovery1),
                 const Text("Recovery1"),
               ],
             ),
-            if (widget.hasPhase45) Column(
+            if (widget.phaseCount >= 5) Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _networkImage(widget.topographyList[index].stimulation2),
                 const Text("Stimulation2"),
               ],
             ),
-            if (widget.hasPhase45) Column(
+            if (widget.phaseCount >= 5) Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _networkImage(widget.topographyList[index].recovery2),
@@ -202,8 +202,8 @@ class _BsrsrChartWidgetState extends State<BsrsrChartWidget> {
             const SizedBox(width: 20),
           ],
         ),
-        if(widget.diffTopographyList.isNotEmpty) const SizedBox(height: 20),
-        if(widget.diffTopographyList.isNotEmpty)
+        if(widget.diffTopographyList.isNotEmpty && widget.phaseCount >= 3) const SizedBox(height: 20),
+        if(widget.diffTopographyList.isNotEmpty && widget.phaseCount >= 3)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -222,14 +222,14 @@ class _BsrsrChartWidgetState extends State<BsrsrChartWidget> {
                   const Text("Recovery1-Stimulation1"),
                 ],
               ),
-              if (widget.hasPhase45) Column(
+              if (widget.phaseCount >= 5) Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   _networkImage(widget.diffTopographyList[index].diff3),
                   const Text("Stimulation2-Recovery1"),
                 ],
               ),
-              if (widget.hasPhase45) Column(
+              if (widget.phaseCount >= 5) Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   _networkImage(widget.diffTopographyList[index].diff4),

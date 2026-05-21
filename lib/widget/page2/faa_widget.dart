@@ -4,8 +4,8 @@ import 'package:omnifit_front/models/faa_model.dart';
 
 class FaaWidget extends StatelessWidget {
   final FaaModel model;
-  final bool hasPhase45;
-  const FaaWidget({super.key, required this.model, this.hasPhase45 = true});
+  final int phaseCount;
+  const FaaWidget({super.key, required this.model, this.phaseCount = 5});
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +13,7 @@ class FaaWidget extends StatelessWidget {
       children: [
         Container(
           decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 1)),
-          height: hasPhase45 ? 200 : 280,
+          height: phaseCount >= 5 ? 200 : phaseCount >= 3 ? 280 : 280,
           width: double.infinity,
           child: _buildTab(context),
         ),
@@ -51,16 +51,16 @@ class FaaWidget extends StatelessWidget {
   }
 
   Widget _buildTab(BuildContext context) {
-    final double imgWidth = hasPhase45 ? 159.0 : 240.0;
+    final double imgWidth = phaseCount >= 5 ? 159.0 : phaseCount >= 3 ? 240.0 : 500.0;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         const SizedBox(width: 20),
         _phaseColumn(context, "Baseline",     model.faa_baseline,     imgWidth),
-        _phaseColumn(context, "Stimulation1", model.faa_stimulation1, imgWidth),
-        _phaseColumn(context, "Recovery1",    model.faa_recovery1,    imgWidth),
-        if (hasPhase45) _phaseColumn(context, "Stimulation2", model.faa_stimulation2, imgWidth),
-        if (hasPhase45) _phaseColumn(context, "Recovery2",    model.faa_recovery2,    imgWidth),
+        if (phaseCount >= 3) _phaseColumn(context, "Stimulation1", model.faa_stimulation1, imgWidth),
+        if (phaseCount >= 3) _phaseColumn(context, "Recovery1",    model.faa_recovery1,    imgWidth),
+        if (phaseCount >= 5) _phaseColumn(context, "Stimulation2", model.faa_stimulation2, imgWidth),
+        if (phaseCount >= 5) _phaseColumn(context, "Recovery2",    model.faa_recovery2,    imgWidth),
         const SizedBox(width: 20),
       ],
     );
