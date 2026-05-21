@@ -83,7 +83,6 @@ class _BsrsrChartWidgetState extends State<BsrsrChartWidget> {
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                   const SizedBox(height: 6),
                   _networkImage(widget.topographyList[i].baseline, width: _oneBandImgWidth),
-                  const Text("Baseline"),
                 ],
               ),
           ],

@@ -83,7 +83,6 @@ class _Bsrsr2ChartWidgetState extends State<Bsrsr2ChartWidget> {
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                   const SizedBox(height: 6),
                   _networkImage(widget.connectivityList[i].baseline, width: _oneBandImgWidth),
-                  const Text("Baseline"),
                 ],
               ),
           ],
