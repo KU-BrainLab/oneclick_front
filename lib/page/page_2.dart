@@ -189,7 +189,9 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
           ]);
         }
 
-        if (valueMap['diff1'] != null && valueMap['diff1']['connectivity2_alpha'] != null) {
+        // PLV(connectivity2) 존재 여부는 baseline 데이터로 판단 (diff1 유무와 무관)
+        if (valueMap['baseline'] != null &&
+            valueMap['baseline']['connectivity2_delta'] != null) {
           connectivity2List.addAll([
             Connectivity2Model.fromJson(valueMap, "delta"),
             Connectivity2Model.fromJson(valueMap, "theta"),
@@ -199,14 +201,16 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
             Connectivity2Model.fromJson(valueMap, "gamma"),
           ]);
 
-          diffConnectivity2List.addAll([
-            DiffConnectivity2Model.fromJson(valueMap, "delta"),
-            DiffConnectivity2Model.fromJson(valueMap, "theta"),
-            DiffConnectivity2Model.fromJson(valueMap, "alpha"),
-            DiffConnectivity2Model.fromJson(valueMap, "sigma"),
-            DiffConnectivity2Model.fromJson(valueMap, "beta"),
-            DiffConnectivity2Model.fromJson(valueMap, "gamma"),
-          ]);
+          if (valueMap['diff1'] != null) {
+            diffConnectivity2List.addAll([
+              DiffConnectivity2Model.fromJson(valueMap, "delta"),
+              DiffConnectivity2Model.fromJson(valueMap, "theta"),
+              DiffConnectivity2Model.fromJson(valueMap, "alpha"),
+              DiffConnectivity2Model.fromJson(valueMap, "sigma"),
+              DiffConnectivity2Model.fromJson(valueMap, "beta"),
+              DiffConnectivity2Model.fromJson(valueMap, "gamma"),
+            ]);
+          }
         }
 
         // Stage-specific diff (WAKE/N1/N2/N3/REM) — show whenever diff1 exists

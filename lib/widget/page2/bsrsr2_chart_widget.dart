@@ -18,7 +18,7 @@ class _Bsrsr2ChartWidgetState extends State<Bsrsr2ChartWidget> {
   int index = 0;
 
   static const _bandLabels = ['Delta', 'Theta', 'Alpha', 'Sigma', 'Beta', 'Gamma'];
-  static const _oneBandImgWidth = 140.0;
+  static const _oneBandImgWidth = 120.0;
 
   @override
   Widget build(BuildContext context) {

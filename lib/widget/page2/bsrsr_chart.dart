@@ -17,132 +17,24 @@ class _BsrsrChartWidgetState extends State<BsrsrChartWidget> {
 
   int index = 0;
 
+  static const _bandLabels = ['Delta', 'Theta', 'Alpha', 'Sigma', 'Beta', 'Gamma'];
+  static const _oneBandImgWidth = 120.0;
+
   @override
   Widget build(BuildContext context) {
+    if (widget.phaseCount == 1) {
+      return _buildAllBandsView();
+    }
     return Column(
       children: [
         Row(
           children: [
-            MouseRegion(
-              cursor: MaterialStateMouseCursor.clickable,
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    index = 0;
-                  });
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                      color: index == 0 ? Colors.grey.withOpacity(0.4) : Colors.white,
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      border: Border.all(color: Colors.black)
-                  ),
-                  width: 100,
-                  height: 30,
-                  child: Center(child: Text("Delta")),
-                ),
-              ),
-            ),
-            MouseRegion(
-              cursor: MaterialStateMouseCursor.clickable,
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    index = 1;
-                  });
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                      color: index == 1 ? Colors.grey.withOpacity(0.4) : Colors.white,
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      border: Border.all(color: Colors.black)
-                  ),
-                  width: 100,
-                  height: 30,
-                  child: Center(child: Text("Theta")),
-                ),
-              ),
-            ),
-            MouseRegion(
-              cursor: MaterialStateMouseCursor.clickable,
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    index = 2;
-                  });
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                      color: index == 2 ? Colors.grey.withOpacity(0.4) : Colors.white,
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      border: Border.all(color: Colors.black)
-                  ),
-                  width: 100,
-                  height: 30,
-                  child: Center(child: Text("Alpha")),
-                ),
-              ),
-            ),
-            MouseRegion(
-              cursor: MaterialStateMouseCursor.clickable,
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    index = 3;
-                  });
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                      color: index == 3 ? Colors.grey.withOpacity(0.4) : Colors.white,
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      border: Border.all(color: Colors.black)
-                  ),
-                  width: 100,
-                  height: 30,
-                  child: Center(child: Text("Sigma")),
-                ),
-              ),
-            ),
-            MouseRegion(
-              cursor: MaterialStateMouseCursor.clickable,
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    index = 4;
-                  });
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                      color: index == 4 ? Colors.grey.withOpacity(0.4) : Colors.white,
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      border: Border.all(color: Colors.black)
-                  ),
-                  width: 100,
-                  height: 30,
-                  child: Center(child: Text("Beta")),
-                ),
-              ),
-            ),
-            MouseRegion(
-              cursor: MaterialStateMouseCursor.clickable,
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    index = 5;
-                  });
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                      color: index == 5 ? Colors.grey.withOpacity(0.4) : Colors.white,
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
-                      border: Border.all(color: Colors.black)
-                  ),
-                  width: 100,
-                  height: 30,
-                  child: Center(child: Text("Gamma")),
-                ),
-              ),
-            ),
+            _tabButton("Delta", 0),
+            _tabButton("Theta", 1),
+            _tabButton("Alpha", 2),
+            _tabButton("Sigma", 3),
+            _tabButton("Beta", 4),
+            _tabButton("Gamma", 5),
           ],
         ),
         Container(
@@ -154,7 +46,53 @@ class _BsrsrChartWidgetState extends State<BsrsrChartWidget> {
     );
   }
 
-  double get _imgWidth => widget.phaseCount >= 5 ? 150.0 : widget.phaseCount >= 3 ? 230.0 : 500.0;
+  Widget _tabButton(String label, int i) {
+    return MouseRegion(
+      cursor: MaterialStateMouseCursor.clickable,
+      child: GestureDetector(
+        onTap: () => setState(() => index = i),
+        child: Container(
+          decoration: BoxDecoration(
+            color: index == i ? Colors.grey.withOpacity(0.4) : Colors.white,
+            borderRadius: const BorderRadius.all(Radius.circular(4)),
+            border: Border.all(color: Colors.black),
+          ),
+          width: 100,
+          height: 30,
+          child: Center(child: Text(label)),
+        ),
+      ),
+    );
+  }
+
+  // 1-phase: 6개 대역 한 번에 표시 (1×6)
+  Widget _buildAllBandsView() {
+    return Container(
+      decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 1)),
+      width: double.infinity,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            for (int i = 0; i < _bandLabels.length; i++)
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(_bandLabels[i],
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  const SizedBox(height: 6),
+                  _networkImage(widget.topographyList[i].baseline, width: _oneBandImgWidth),
+                  const Text("Baseline"),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  double get _imgWidth => widget.phaseCount >= 5 ? 130.0 : 190.0;
 
   Widget _buildTab() {
     return Column(
@@ -243,8 +181,8 @@ class _BsrsrChartWidgetState extends State<BsrsrChartWidget> {
     );
   }
 
-  Widget _networkImage(String? path) {
-    final w = _imgWidth;
+  Widget _networkImage(String? path, {double? width}) {
+    final w = width ?? _imgWidth;
     if (path == null) {
       return SizedBox(width: w, height: w, child: const Center(child: Text("No data")));
     }
@@ -264,7 +202,6 @@ class _BsrsrChartWidgetState extends State<BsrsrChartWidget> {
   }
 
   void showDialog1(BuildContext context, String image) {
-
     showDialog(
       context: context,
       builder: (BuildContext context) {
