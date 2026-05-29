@@ -10,13 +10,91 @@ import 'package:omnifit_front/model/user_model.dart';
 import 'package:omnifit_front/page/page_1.dart';
 import 'package:omnifit_front/page/page_2.dart';
 import 'package:omnifit_front/page/report_page1.dart';
-import 'package:omnifit_front/page/sleep_result.dart'; 
+import 'package:omnifit_front/page/sleep_result.dart';
 import 'package:omnifit_front/page/survey_page.dart';
 import 'package:omnifit_front/page/users_page_report.dart';
+import 'package:omnifit_front/service/ai_report_pdf_service.dart';
 import 'package:omnifit_front/service/app_service.dart';
 import 'package:omnifit_front/widget/custom_data_table.dart' as custom;
 import 'package:omnifit_front/widget/web_pagination.dart';
 import 'package:http/http.dart' as http;
+
+/// AI 리포트 PDF 다운로드 버튼 위젯
+class AiReportCell extends StatefulWidget {
+  final UserModel user;
+  const AiReportCell({super.key, required this.user});
+
+  @override
+  State<AiReportCell> createState() => _AiReportCellState();
+}
+
+class _AiReportCellState extends State<AiReportCell> {
+  bool _loading = false;
+  String _statusText = '';
+
+  Future<void> _downloadPdf() async {
+    setState(() {
+      _loading = true;
+      _statusText = '분석 중...';
+    });
+    try {
+      await AiReportPdfService.instance.generateAndDownload(
+        widget.user,
+        context,
+        onStatus: (msg) {
+          if (mounted) setState(() => _statusText = msg);
+        },
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('오류: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() { _loading = false; _statusText = ''; });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return Tooltip(
+        message: _statusText,
+        child: const SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.green),
+        ),
+      );
+    }
+
+    return MouseRegion(
+      cursor: MaterialStateMouseCursor.clickable,
+      child: GestureDetector(
+        onTap: _downloadPdf,
+        child: Tooltip(
+          message: 'AI 리포트 PDF 생성 및 다운로드',
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade400),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.picture_as_pdf_outlined, size: 14, color: Colors.green),
+                SizedBox(width: 4),
+                Text('PDF', style: TextStyle(color: Colors.green, fontSize: 12)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class UsersPage extends StatefulWidget {
   static const route = '/users';

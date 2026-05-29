@@ -270,6 +270,18 @@ class _UsersPageState extends State<UsersPageReport> {
                           ),
                         ),
                       ),
+                      const custom.DataColumn(
+                        label: Expanded(
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: Text(
+                              'AI 리포트',
+                              style: TextStyle(fontStyle: FontStyle.italic),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                     rows: users
                         .map((e) => custom.DataRow(cells: [
@@ -345,6 +357,13 @@ class _UsersPageState extends State<UsersPageReport> {
                                       child: const Icon(Icons.search),
                                     ),
                                   ),
+                                ),
+                              ),
+                              // AI 리포트 PDF
+                              custom.DataCell(
+                                Align(
+                                  alignment: Alignment.center,
+                                  child: AiReportCell(user: e),
                                 ),
                               ),
                             ]))
