@@ -12,6 +12,7 @@ class UserModel {
   int? report;
   List<int>? trigger;
   String? aiReport;
+  String? stimulusInfo;
 
   get sexName => sex == null ? '' : sex == 0 ? "남자" : "여자";
 
@@ -29,6 +30,7 @@ class UserModel {
     required this.report,
     this.trigger,
     this.aiReport,
+    this.stimulusInfo,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -46,6 +48,7 @@ class UserModel {
       report: json['report'],
       trigger: json['trigger'] != null ? List<int>.from(json['trigger']) : null,
       aiReport: json['ai_report'],
+      stimulusInfo: json['stimulus_info'],
     );
   }
 }

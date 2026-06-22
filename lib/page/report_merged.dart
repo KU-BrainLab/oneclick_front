@@ -40,6 +40,7 @@ class _ReportMergedState extends State<ReportMerged> {
 
   // 이 인스턴스 전용 RepaintBoundary key (AppService.screenKey 공유 시 동일 키 충돌 방지)
   final GlobalKey _screenKey = GlobalKey();
+  late final TextEditingController _memoController;
 
   // EEG
   List<TopographyModel> topographyList = [];
@@ -61,10 +62,17 @@ class _ReportMergedState extends State<ReportMerged> {
   @override
   void initState() {
     super.initState();
+    _memoController = TextEditingController(text: widget.user.stimulusInfo ?? '');
     if (widget.trigger != null && widget.trigger!.isNotEmpty) {
       AppService.instance.setIntervals(widget.trigger!);
     }
     _loadAll();
+  }
+
+  @override
+  void dispose() {
+    _memoController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadAll() async {
@@ -206,6 +214,7 @@ class _ReportMergedState extends State<ReportMerged> {
                           elevation: 10.0,
                         ),
                         onPressed: () {
+                          FocusScope.of(context).unfocus();
                           final fileName =
                               '${DateFormat('yyyyMMdd').format(widget.user.measurement_date)}_${widget.user.name}_통합.pdf';
                           AppService.instance.managePdfDistributionFromKey(
@@ -249,7 +258,14 @@ class _ReportMergedState extends State<ReportMerged> {
                         // 1. 피험자 정보
                         _sectionTitle("피험자 정보"),
                         const SizedBox(height: 12),
-                        _buildUserInfo(),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(flex: 2, child: _buildUserInfo()),
+                            const SizedBox(width: 12),
+                            Expanded(flex: 3, child: _buildMemoBox()),
+                          ],
+                        ),
                         const SizedBox(height: 40),
 
                         // 2. 토포그래픽 (Delta ~ Sigma)
@@ -401,6 +417,33 @@ class _ReportMergedState extends State<ReportMerged> {
         const SizedBox(height: 4),
         Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
       ],
+    );
+  }
+
+  Widget _buildMemoBox() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('자극 정보', style: TextStyle(fontSize: 13, color: Colors.grey)),
+          const SizedBox(height: 6),
+          TextField(
+            controller: _memoController,
+            minLines: 3,
+            maxLines: 6,
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              isDense: true,
+              hintText: '자극 정보를 입력하세요',
+              hintStyle: TextStyle(color: Colors.grey, fontSize: 13),
+              contentPadding: EdgeInsets.zero,
+            ),
+            style: const TextStyle(fontSize: 14),
+          ),
+        ],
+      ),
     );
   }
 

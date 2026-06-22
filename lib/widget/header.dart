@@ -21,7 +21,6 @@ class _HeaderState extends State<Header> {
   Widget build(BuildContext context) {
     return Container(
       color: Colors.white,
-      height: 140,
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 40),
       child: Column(
         children: [
@@ -38,42 +37,65 @@ class _HeaderState extends State<Header> {
           ),
           const SizedBox(height: 10),
           Container(
-            height: 40,
+            padding: const EdgeInsets.symmetric(vertical: 6),
             decoration: BoxDecoration(
               border: Border.all(color: Colors.black, width: 1),
               borderRadius: const BorderRadius.all(Radius.circular(15.0)),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Text("측정 일시: ", style: h3),
-                    const SizedBox(width: 10),
-                    Text(DateFormat('yyyy.MM.dd').format(widget.userModel.int_dt), style: h4),
+                    Row(
+                      children: [
+                        Text("측정 일시: ", style: h3),
+                        const SizedBox(width: 10),
+                        Text(DateFormat('yyyy.MM.dd').format(widget.userModel.int_dt), style: h4),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text("성명: ", style: h3),
+                        const SizedBox(width: 10),
+                        Text(widget.userModel.name, style: h4),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text("성별: ", style: h3),
+                        const SizedBox(width: 10),
+                        Text("${widget.userModel.sexName}", style: h4),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text("나이: ", style: h3),
+                        const SizedBox(width: 10),
+                        Text("${widget.userModel.age ?? ""}세", style: h4),
+                      ],
+                    ),
                   ],
                 ),
-                Row(
-                  children: [
-                    Text("성명: ", style: h3),
-                    const SizedBox(width: 10),
-                    Text(widget.userModel.name, style: h4),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Text("성별: ", style: h3),
-                    const SizedBox(width: 10),
-                    Text("${widget.userModel.sexName}", style: h4),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Text("나이: ", style: h3),
-                    const SizedBox(width: 10),
-                    Text("${widget.userModel.age ?? ""}세", style: h4),
-                  ],
-                ),
+                if ((widget.userModel.stimulusInfo ?? '').isNotEmpty) ...[
+                  const Divider(height: 8, thickness: 0.5, color: Colors.black26),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("자극: ", style: h3),
+                        Expanded(
+                          child: Text(
+                            widget.userModel.stimulusInfo!,
+                            style: h4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           )
