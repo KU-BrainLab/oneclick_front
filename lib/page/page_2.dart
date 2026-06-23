@@ -77,6 +77,7 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
   late FrontalLimbicModel frontalLimbicModel;
   FaaModel? faaModel;
   SleepPhaseDistributionModel? sleepPhaseDistModel;
+  Map<String, dynamic>? _spindleCoupling;
 
   late BrainConnectivityModel brainConnectivityModel;
   // NOTE: TabControllers are initialized but not used in the provided code.
@@ -245,6 +246,7 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
 
         brainConnectivityModel = BrainConnectivityModel.fromJson(valueMap['frontal_limbic']);
         textEditingController.text = valueMap['note'] ?? "";
+        _spindleCoupling = valueMap['spindle_coupling'] as Map<String, dynamic>?;
 
       } else {
         setState(() {
@@ -355,6 +357,8 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
                             const SizedBox(height: 20),
                             HypnogramWidget(model: hypnogramModel),
                             const SizedBox(height: 20),
+                            _buildSpindleCouplingTable(),
+                            const SizedBox(height: 20),
                             if (sleepPhaseDistModel != null) ...[
                               SleepPhaseDistributionWidget(model: sleepPhaseDistModel!),
                               const SizedBox(height: 20),
@@ -454,6 +458,85 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildSpindleCouplingTable() {
+    const phaseOrder = ['baseline', 'stimulation1', 'recovery1', 'stimulation2', 'recovery2'];
+    const phaseLabels = ['Baseline', 'Stim1', 'Rec1', 'Stim2', 'Rec2'];
+    const rowLabels = ['Coupled Ratio', 'MRL', 'Mean Phase (°)', 'n_SO', 'n_Spindle', 'n_Coupled', 'Stage'];
+    const rowKeys = ['coupled_ratio', 'MRL', 'mean_phase_deg', 'n_SO', 'n_spindle', 'n_coupled', 'stage_used'];
+
+    String fmt(dynamic v, String key) {
+      if (v == null) return '-';
+      if (key == 'stage_used') return v.toString();
+      final d = double.tryParse(v.toString());
+      if (d == null) return v.toString();
+      if (key == 'n_SO' || key == 'n_spindle' || key == 'n_coupled') return d.toInt().toString();
+      return d.toStringAsFixed(3);
+    }
+
+    const headerStyle = TextStyle(fontSize: 12, fontWeight: FontWeight.bold);
+    const cellStyle = TextStyle(fontSize: 12);
+    const cellPad = EdgeInsets.symmetric(vertical: 6, horizontal: 8);
+
+    final coupling = _spindleCoupling;
+
+    final availablePhases = phaseOrder
+        .asMap()
+        .entries
+        .where((e) => coupling != null && coupling.containsKey(e.value))
+        .toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'SO-Spindle Coupling (P3/P4 평균)',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        if (coupling == null || availablePhases.isEmpty)
+          const Text('데이터 없음', style: TextStyle(color: Colors.grey))
+        else
+          Table(
+            border: TableBorder.all(color: Colors.grey.shade400, width: 0.8),
+            columnWidths: {
+              0: const FixedColumnWidth(120),
+              for (int i = 1; i <= availablePhases.length; i++)
+                i: const FlexColumnWidth(),
+            },
+            children: [
+              TableRow(
+                decoration: BoxDecoration(color: Colors.grey.shade200),
+                children: [
+                  Padding(padding: cellPad, child: const Text('지표', style: headerStyle)),
+                  for (final e in availablePhases)
+                    Padding(
+                      padding: cellPad,
+                      child: Text(phaseLabels[e.key], style: headerStyle, textAlign: TextAlign.center),
+                    ),
+                ],
+              ),
+              for (int ri = 0; ri < rowLabels.length; ri++)
+                TableRow(
+                  decoration: BoxDecoration(color: ri.isOdd ? Colors.grey.shade50 : Colors.white),
+                  children: [
+                    Padding(padding: cellPad, child: Text(rowLabels[ri], style: cellStyle)),
+                    for (final e in availablePhases)
+                      Padding(
+                        padding: cellPad,
+                        child: Text(
+                          fmt((coupling[e.value] as Map<String, dynamic>?)?[rowKeys[ri]], rowKeys[ri]),
+                          style: cellStyle,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                  ],
+                ),
+            ],
+          ),
+      ],
     );
   }
 }
