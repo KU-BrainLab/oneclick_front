@@ -496,10 +496,8 @@ class _ReportMergedState extends State<ReportMerged> {
   Widget _buildSpindleCouplingTable() {
     const phaseOrder = ['baseline', 'stimulation1', 'recovery1', 'stimulation2', 'recovery2'];
     const phaseLabels = ['Baseline', 'Stim1', 'Rec1', 'Stim2', 'Rec2'];
-    const n2RowLabels  = ['Coupled Ratio', 'MRL', 'Mean Phase (°)', 'n_SO', 'n_Spindle', 'n_Coupled', 'Stage'];
-    const n2RowKeys    = ['coupled_ratio', 'MRL', 'mean_phase_deg', 'n_SO', 'n_spindle', 'n_coupled', 'stage_used'];
-    const allRowLabels = ['Coupled Ratio', 'MRL', 'Mean Phase (°)', 'n_SO', 'n_Spindle', 'n_Coupled'];
-    const allRowKeys   = ['coupled_ratio', 'MRL', 'mean_phase_deg', 'n_SO', 'n_spindle', 'n_coupled'];
+    const rowLabels = ['Coupled Ratio', 'MRL', 'Mean Phase (°)', 'n_SO', 'n_Spindle', 'n_Coupled'];
+    const rowKeys   = ['coupled_ratio', 'MRL', 'mean_phase_deg', 'n_SO', 'n_spindle', 'n_coupled'];
 
     String fmt(dynamic v, String key) {
       if (v == null) return '-';
@@ -571,11 +569,11 @@ class _ReportMergedState extends State<ReportMerged> {
           ],
         ),
         sectionHeaderRow('N2 (없으면 NREM)', const Color(0xFF3a7bd5)),
-        for (int ri = 0; ri < n2RowLabels.length; ri++)
-          dataRow(ri, 'n2', ri, n2RowLabels, n2RowKeys),
+        for (int ri = 0; ri < rowLabels.length; ri++)
+          dataRow(ri, 'n2', ri, rowLabels, rowKeys),
         sectionHeaderRow('W/O N2 (전체)', const Color(0xFF2e7d32)),
-        for (int ri = 0; ri < allRowLabels.length; ri++)
-          dataRow(ri, 'all', ri, allRowLabels, allRowKeys),
+        for (int ri = 0; ri < rowLabels.length; ri++)
+          dataRow(ri, 'all', ri, rowLabels, rowKeys),
       ],
     );
   }
