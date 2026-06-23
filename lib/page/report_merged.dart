@@ -571,7 +571,7 @@ class _ReportMergedState extends State<ReportMerged> {
         sectionHeaderRow('N2', const Color(0xFF3a7bd5)),
         for (int ri = 0; ri < rowLabels.length; ri++)
           dataRow(ri, 'n2', ri, rowLabels, rowKeys),
-        sectionHeaderRow('W/O N2 (전체)', const Color(0xFF2e7d32)),
+        sectionHeaderRow('W/O N2', const Color(0xFF2e7d32)),
         for (int ri = 0; ri < rowLabels.length; ri++)
           dataRow(ri, 'all', ri, rowLabels, rowKeys),
       ],
