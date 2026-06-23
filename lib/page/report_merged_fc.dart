@@ -51,6 +51,7 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
   RelatedPsdModel? relatedPsdModel;
   Graph1Model? rawPsdModel;
   HypnogramModel? hypnogramModel;
+  Map<String, dynamic>? _spindleCoupling;
 
   // Survey
   List<_SalesData> psqiList = [];
@@ -106,6 +107,7 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
       relatedPsdModel = RelatedPsdModel.fromJson(valueMap['psd']['related_psd']);
       rawPsdModel = Graph1Model.fromJson2(valueMap['psd']['raw_psd']['mean']);
       hypnogramModel = HypnogramModel.fromJson(valueMap['sleep_staging']['sleep_stage']);
+      _spindleCoupling = valueMap['spindle_coupling'] as Map<String, dynamic>?;
     } catch (e) {
       debugPrint("EEG load error: $e");
     }
@@ -329,10 +331,16 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
                           HypnogramWidget(model: hypnogramModel!)
                         else
                           const Center(child: Text("데이터 없음")),
+                        const SizedBox(height: 40),
+
+                        // 5. SO-Spindle Coupling
+                        _sectionTitle("SO-Spindle Coupling (P3/P4 평균)"),
+                        const SizedBox(height: 16),
+                        _buildSpindleCouplingTable(),
                         // ── 강제 페이지 분리 마커 ──
                         Container(height: 4, color: const Color(0xFFFF0080)),
 
-                        // 5. PSQI / ISI
+                        // 6. PSQI / ISI
                         _sectionTitle("Questionnaire"),
                         const SizedBox(height: 16),
                         if (psqiList.isNotEmpty)
@@ -528,6 +536,72 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
             ),
           ),
         const SizedBox(width: 20),
+      ],
+    );
+  }
+
+  Widget _buildSpindleCouplingTable() {
+    const phaseOrder = ['baseline', 'stimulation1', 'recovery1', 'stimulation2', 'recovery2'];
+    const phaseLabels = ['Baseline', 'Stim1', 'Rec1', 'Stim2', 'Rec2'];
+    const rowLabels = ['Coupled Ratio', 'MRL', 'Mean Phase (°)', 'n_SO', 'n_Spindle', 'n_Coupled', 'Stage'];
+    const rowKeys = ['coupled_ratio', 'MRL', 'mean_phase_deg', 'n_SO', 'n_spindle', 'n_coupled', 'stage_used'];
+
+    if (_spindleCoupling == null) {
+      return const Center(child: Text("데이터 없음"));
+    }
+
+    final availablePhases = phaseOrder
+        .asMap()
+        .entries
+        .where((e) => _spindleCoupling!.containsKey(e.value))
+        .toList();
+
+    String _fmt(dynamic v, String key) {
+      if (v == null) return '-';
+      if (key == 'stage_used') return v.toString();
+      if (v is double || v is int) {
+        final d = double.tryParse(v.toString()) ?? 0;
+        if (key == 'n_SO' || key == 'n_spindle' || key == 'n_coupled') return d.toInt().toString();
+        return d.toStringAsFixed(3);
+      }
+      return v.toString();
+    }
+
+    final headerStyle = const TextStyle(fontSize: 12, fontWeight: FontWeight.bold);
+    final cellStyle = const TextStyle(fontSize: 12);
+    const cellPad = EdgeInsets.symmetric(vertical: 6, horizontal: 8);
+
+    return Table(
+      border: TableBorder.all(color: Colors.grey.shade400, width: 0.8),
+      columnWidths: {
+        0: const FixedColumnWidth(120),
+        for (int i = 1; i <= availablePhases.length; i++) i: const FlexColumnWidth(),
+      },
+      children: [
+        TableRow(
+          decoration: BoxDecoration(color: Colors.grey.shade200),
+          children: [
+            Padding(padding: cellPad, child: Text('지표', style: headerStyle)),
+            for (final e in availablePhases)
+              Padding(padding: cellPad, child: Text(phaseLabels[e.key], style: headerStyle, textAlign: TextAlign.center)),
+          ],
+        ),
+        for (int ri = 0; ri < rowLabels.length; ri++)
+          TableRow(
+            decoration: BoxDecoration(color: ri.isOdd ? Colors.grey.shade50 : Colors.white),
+            children: [
+              Padding(padding: cellPad, child: Text(rowLabels[ri], style: cellStyle)),
+              for (final e in availablePhases)
+                Padding(
+                  padding: cellPad,
+                  child: Text(
+                    _fmt((_spindleCoupling![e.value] as Map<String, dynamic>?)?[rowKeys[ri]], rowKeys[ri]),
+                    style: cellStyle,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+            ],
+          ),
       ],
     );
   }
