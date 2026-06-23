@@ -615,7 +615,7 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
               Padding(padding: cellPad, child: Text(phaseLabels[e.key], style: headerStyle, textAlign: TextAlign.center)),
           ],
         ),
-        sectionHeaderRow('N2 (없으면 NREM)', const Color(0xFF3a7bd5)),
+        sectionHeaderRow('N2', const Color(0xFF3a7bd5)),
         for (int ri = 0; ri < rowLabels.length; ri++)
           dataRow(ri, 'n2', ri, rowLabels, rowKeys),
         sectionHeaderRow('W/O N2 (전체)', const Color(0xFF2e7d32)),
