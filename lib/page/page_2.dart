@@ -477,16 +477,46 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
     }
 
     const headerStyle = TextStyle(fontSize: 12, fontWeight: FontWeight.bold);
+    const sectionStyle = TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white);
     const cellStyle = TextStyle(fontSize: 12);
     const cellPad = EdgeInsets.symmetric(vertical: 6, horizontal: 8);
 
     final coupling = _spindleCoupling;
-
     final availablePhases = phaseOrder
         .asMap()
         .entries
         .where((e) => coupling != null && coupling.containsKey(e.value))
         .toList();
+
+    TableRow sectionHeaderRow(String label, Color color) => TableRow(
+      decoration: BoxDecoration(color: color),
+      children: [
+        Padding(padding: cellPad, child: Text(label, style: sectionStyle)),
+        for (int i = 0; i < availablePhases.length; i++)
+          Padding(padding: cellPad, child: const SizedBox()),
+      ],
+    );
+
+    TableRow dataRow(int ri, String condKey, int colorIdx) {
+      return TableRow(
+        decoration: BoxDecoration(color: colorIdx.isOdd ? Colors.grey.shade50 : Colors.white),
+        children: [
+          Padding(padding: cellPad, child: Text(rowLabels[ri], style: cellStyle)),
+          for (final e in availablePhases)
+            Padding(
+              padding: cellPad,
+              child: Text(
+                fmt(
+                  (((coupling![e.value] as Map<String, dynamic>?)?[condKey]) as Map<String, dynamic>?)?[rowKeys[ri]],
+                  rowKeys[ri],
+                ),
+                style: cellStyle,
+                textAlign: TextAlign.center,
+              ),
+            ),
+        ],
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -507,8 +537,9 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
                 i: const FlexColumnWidth(),
             },
             children: [
+              // 컬럼 헤더
               TableRow(
-                decoration: BoxDecoration(color: Colors.grey.shade200),
+                decoration: BoxDecoration(color: Colors.grey.shade300),
                 children: [
                   Padding(padding: cellPad, child: const Text('지표', style: headerStyle)),
                   for (final e in availablePhases)
@@ -518,22 +549,12 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
                     ),
                 ],
               ),
-              for (int ri = 0; ri < rowLabels.length; ri++)
-                TableRow(
-                  decoration: BoxDecoration(color: ri.isOdd ? Colors.grey.shade50 : Colors.white),
-                  children: [
-                    Padding(padding: cellPad, child: Text(rowLabels[ri], style: cellStyle)),
-                    for (final e in availablePhases)
-                      Padding(
-                        padding: cellPad,
-                        child: Text(
-                          fmt((coupling[e.value] as Map<String, dynamic>?)?[rowKeys[ri]], rowKeys[ri]),
-                          style: cellStyle,
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                  ],
-                ),
+              // N2 섹션
+              sectionHeaderRow('N2 (없으면 NREM)', const Color(0xFF3a7bd5)),
+              for (int ri = 0; ri < rowLabels.length; ri++) dataRow(ri, 'n2', ri),
+              // All 섹션
+              sectionHeaderRow('W/O N2 (전체)', const Color(0xFF2e7d32)),
+              for (int ri = 0; ri < rowLabels.length; ri++) dataRow(ri, 'all', ri),
             ],
           ),
       ],

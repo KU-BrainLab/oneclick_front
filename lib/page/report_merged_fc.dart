@@ -546,30 +546,58 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
     const rowLabels = ['Coupled Ratio', 'MRL', 'Mean Phase (°)', 'n_SO', 'n_Spindle', 'n_Coupled', 'Stage'];
     const rowKeys = ['coupled_ratio', 'MRL', 'mean_phase_deg', 'n_SO', 'n_spindle', 'n_coupled', 'stage_used'];
 
-    if (_spindleCoupling == null) {
-      return const Center(child: Text("데이터 없음"));
+    String fmt(dynamic v, String key) {
+      if (v == null) return '-';
+      if (key == 'stage_used') return v.toString();
+      final d = double.tryParse(v.toString());
+      if (d == null) return v.toString();
+      if (key == 'n_SO' || key == 'n_spindle' || key == 'n_coupled') return d.toInt().toString();
+      return d.toStringAsFixed(3);
     }
 
+    const headerStyle = TextStyle(fontSize: 12, fontWeight: FontWeight.bold);
+    const sectionStyle = TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white);
+    const cellStyle = TextStyle(fontSize: 12);
+    const cellPad = EdgeInsets.symmetric(vertical: 6, horizontal: 8);
+
+    final coupling = _spindleCoupling;
     final availablePhases = phaseOrder
         .asMap()
         .entries
-        .where((e) => _spindleCoupling!.containsKey(e.value))
+        .where((e) => coupling != null && coupling.containsKey(e.value))
         .toList();
 
-    String _fmt(dynamic v, String key) {
-      if (v == null) return '-';
-      if (key == 'stage_used') return v.toString();
-      if (v is double || v is int) {
-        final d = double.tryParse(v.toString()) ?? 0;
-        if (key == 'n_SO' || key == 'n_spindle' || key == 'n_coupled') return d.toInt().toString();
-        return d.toStringAsFixed(3);
-      }
-      return v.toString();
+    if (coupling == null || availablePhases.isEmpty) {
+      return const Center(child: Text("데이터 없음"));
     }
 
-    final headerStyle = const TextStyle(fontSize: 12, fontWeight: FontWeight.bold);
-    final cellStyle = const TextStyle(fontSize: 12);
-    const cellPad = EdgeInsets.symmetric(vertical: 6, horizontal: 8);
+    TableRow sectionHeaderRow(String label, Color color) => TableRow(
+      decoration: BoxDecoration(color: color),
+      children: [
+        Padding(padding: cellPad, child: Text(label, style: sectionStyle)),
+        for (int i = 0; i < availablePhases.length; i++)
+          Padding(padding: cellPad, child: const SizedBox()),
+      ],
+    );
+
+    TableRow dataRow(int ri, String condKey, int colorIdx) => TableRow(
+      decoration: BoxDecoration(color: colorIdx.isOdd ? Colors.grey.shade50 : Colors.white),
+      children: [
+        Padding(padding: cellPad, child: Text(rowLabels[ri], style: cellStyle)),
+        for (final e in availablePhases)
+          Padding(
+            padding: cellPad,
+            child: Text(
+              fmt(
+                (((coupling[e.value] as Map<String, dynamic>?)?[condKey]) as Map<String, dynamic>?)?[rowKeys[ri]],
+                rowKeys[ri],
+              ),
+              style: cellStyle,
+              textAlign: TextAlign.center,
+            ),
+          ),
+      ],
+    );
 
     return Table(
       border: TableBorder.all(color: Colors.grey.shade400, width: 0.8),
@@ -579,29 +607,17 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
       },
       children: [
         TableRow(
-          decoration: BoxDecoration(color: Colors.grey.shade200),
+          decoration: BoxDecoration(color: Colors.grey.shade300),
           children: [
-            Padding(padding: cellPad, child: Text('지표', style: headerStyle)),
+            Padding(padding: cellPad, child: const Text('지표', style: headerStyle)),
             for (final e in availablePhases)
               Padding(padding: cellPad, child: Text(phaseLabels[e.key], style: headerStyle, textAlign: TextAlign.center)),
           ],
         ),
-        for (int ri = 0; ri < rowLabels.length; ri++)
-          TableRow(
-            decoration: BoxDecoration(color: ri.isOdd ? Colors.grey.shade50 : Colors.white),
-            children: [
-              Padding(padding: cellPad, child: Text(rowLabels[ri], style: cellStyle)),
-              for (final e in availablePhases)
-                Padding(
-                  padding: cellPad,
-                  child: Text(
-                    _fmt((_spindleCoupling![e.value] as Map<String, dynamic>?)?[rowKeys[ri]], rowKeys[ri]),
-                    style: cellStyle,
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-            ],
-          ),
+        sectionHeaderRow('N2 (없으면 NREM)', const Color(0xFF3a7bd5)),
+        for (int ri = 0; ri < rowLabels.length; ri++) dataRow(ri, 'n2', ri),
+        sectionHeaderRow('W/O N2 (전체)', const Color(0xFF2e7d32)),
+        for (int ri = 0; ri < rowLabels.length; ri++) dataRow(ri, 'all', ri),
       ],
     );
   }
