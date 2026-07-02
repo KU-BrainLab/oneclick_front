@@ -550,12 +550,16 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
                     ),
                 ],
               ),
-              sectionHeaderRow('N2', const Color(0xFF3a7bd5)),
-              for (int ri = 0; ri < rowLabels.length; ri++)
-                dataRow(ri, 'n2', ri, rowLabels, rowKeys),
-              sectionHeaderRow('W/O N2', const Color(0xFF2e7d32)),
-              for (int ri = 0; ri < rowLabels.length; ri++)
-                dataRow(ri, 'all', ri, rowLabels, rowKeys),
+              for (final stage in [
+                ('N1', 'n1', const Color(0xFF7B61FF)),
+                ('N2', 'n2', const Color(0xFF3a7bd5)),
+                ('N3', 'n3', const Color(0xFF1565C0)),
+                ('REM', 'rem', const Color(0xFFe53935)),
+              ]) ...[
+                sectionHeaderRow(stage.$1, stage.$3),
+                for (int ri = 0; ri < rowLabels.length; ri++)
+                  dataRow(ri, stage.$2, ri, rowLabels, rowKeys),
+              ],
             ],
           ),
       ],
