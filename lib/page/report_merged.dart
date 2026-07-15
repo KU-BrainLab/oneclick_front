@@ -316,6 +316,10 @@ class _ReportMergedState extends State<ReportMerged> {
                         const SizedBox(height: 16),
                         _buildSpindleCouplingTable(),
                         // ── 강제 페이지 분리 마커 ──
+                        // 마커가 테이블 하단 TableBorder에 바로 붙으면 틴트 확장이
+                        // 테두리 행을 흰색으로 덮어버린다. report_merged_fc.dart와
+                        // 동일하게 간격을 둔다.
+                        const SizedBox(height: 40),
                         Container(height: 4, color: const Color(0xFFFF0080)),
 
                         // 5. PSQI / ISI
@@ -355,14 +359,14 @@ class _ReportMergedState extends State<ReportMerged> {
                                 start: 15,
                                 end: 36),
                           ]),
-                          const SizedBox(height: 40),
                         ] else ...[
                           const SizedBox(height: 8),
                           const Center(child: Text("ISI 데이터 없음")),
                         ],
 
-
                         // ── 강제 페이지 분리 마커 (PDF 빌더가 감지해 여기서 절단) ──
+                        // SizedBox(40)은 if/else 밖에 둔다 (report_merged_fc.dart와 동일).
+                        const SizedBox(height: 40),
                         Container(height: 4, color: const Color(0xFFFF0080)),
 
                         // 6. NNI

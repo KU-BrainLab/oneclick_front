@@ -331,13 +331,17 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
                           HypnogramWidget(model: hypnogramModel!)
                         else
                           const Center(child: Text("데이터 없음")),
+
+                        // ── 강제 페이지 분리 마커 (SO-Spindle 테이블을 새 페이지로) ──
                         const SizedBox(height: 40),
+                        Container(height: 4, color: const Color(0xFFFF0080)),
 
                         // 5. SO-Spindle Coupling
                         _sectionTitle("SO-Spindle Coupling (P3/P4 평균)"),
                         const SizedBox(height: 16),
                         _buildSpindleCouplingTable(),
                         // ── 강제 페이지 분리 마커 ──
+                        const SizedBox(height: 40),
                         Container(height: 4, color: const Color(0xFFFF0080)),
 
                         // 6. PSQI / ISI
@@ -377,13 +381,16 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
                                 start: 15,
                                 end: 36),
                           ]),
-                          const SizedBox(height: 40),
                         ] else ...[
                           const SizedBox(height: 8),
                           const Center(child: Text("ISI 데이터 없음")),
                         ],
 
                         // ── 강제 페이지 분리 마커 ──
+                        // SizedBox(40)은 if/else 밖에 둔다. 안쪽에 두면 ISI 데이터가 없는
+                        // 피험자에서 마커가 텍스트에 바로 붙어, 틴트 확장이 텍스트 행을
+                        // 침범할 수 있다.
+                        const SizedBox(height: 40),
                         Container(height: 4, color: const Color(0xFFFF0080)),
 
                         // 6. NNI

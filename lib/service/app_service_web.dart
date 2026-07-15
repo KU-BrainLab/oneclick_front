@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -445,8 +446,16 @@ class _PdfBuildParams {
 }
 
 Future<Uint8List> _buildPdfBytesWorker(_PdfBuildParams params) async {
-  final img.Image? full = img.decodePng(params.bytes);
-  if (full == null) throw Exception('PNG 디코드 실패');
+  final img.Image? decoded = img.decodePng(params.bytes);
+  if (decoded == null) throw Exception('PNG 디코드 실패');
+
+  // 캡처 대상 RepaintBoundary는 Scaffold(backgroundColor: Colors.white)의 "자손"이므로
+  // boundary.toImage()가 만드는 이미지의 여백은 흰색이 아니라 투명(0,0,0,0)이다.
+  // 아래의 모든 행/픽셀 술어(_isLightRow, _isPureMarkerRow, _isMarkerTintRow)는
+  // "흰 배경 위에 합성된 RGB"를 가정하므로, 스캔 전에 반드시 불투명 흰색으로 평탄화한다.
+  // (평탄화하지 않으면 _isLightRow가 항상 false → _isBlankRegion 무력화,
+  //  _findSafeCutRow가 항상 idealY 반환으로 퇴화한다.)
+  final img.Image full = _flattenOnWhite(decoded);
 
   const PdfPageFormat pageFormat = PdfPageFormat.a4;
   final double hMargin = params.hMarginMm * PdfPageFormat.mm;
@@ -460,48 +469,94 @@ Future<Uint8List> _buildPdfBytesWorker(_PdfBuildParams params) async {
   // 페이지 높이의 40% 범위 안에서 안전한 절단선을 탐색
   final int searchWindow = (idealSliceHeightPx * 0.40).round();
 
-  // 강제 페이지 분리 마커 행 탐색 (Color 0xFFFF0080 = hot-pink)
-  final Set<int> markerRows = _findPageBreakMarkers(full).toSet();
+  // 강제 분리 최소 슬라이스 높이. 마커가 페이지 시작점에 너무 가까우면
+  // (예: PSQI/ISI 데이터가 없어 Questionnaire 섹션이 ~123px밖에 안 되는 피험자)
+  // 그 마커를 채택했을 때 93% 이상이 흰 여백인 페이지가 나온다.
+  // 그런 마커는 무시하고 다음 콘텐츠와 합쳐 한 페이지로 만든다.
+  // (마커 밴드는 이미 흰색으로 덮여 있으므로 무시해도 핑크선이 노출되지 않는다.)
+  final int minForcedSliceHeightPx = (idealSliceHeightPx * 0.25).round();
+
+  // 강제 페이지 분리 마커 밴드 탐색 (Color 0xFFFF0080 = hot-pink)
+  // pixelRatio가 비정수라 마커 위/아래에 안티앨리어싱 블렌드 행이 남는다 → 밴드로 확장한다.
+  final List<_MarkerBand> bands = _findMarkerBands(full);
+
+  // 슬라이싱 전에 모든 마커 밴드를 흰색으로 덮는다.
+  // 행 인덱스는 그대로 유지되므로 밴드 start를 분리점으로 계속 사용할 수 있고,
+  // 어떤 경로(마지막 슬라이스 포함)로도 핑크 픽셀이 PDF에 남지 않는다.
+  for (final b in bands) {
+    img.fillRect(
+      full,
+      x1: 0,
+      y1: b.start,
+      x2: full.width - 1,
+      y2: b.end,
+      color: img.ColorRgb8(255, 255, 255),
+    );
+  }
 
   final pdf = pw.Document();
 
   int y = 0;
+  int guard = 0;
+  int pageCount = 0;
+  const int maxPages = 500;
+  final int guardLimit = full.height + 16; // 매 반복 y가 최소 1 전진 → 이론적 상한
   while (y < full.height) {
-    final int idealEnd = y + idealSliceHeightPx;
-
-    if (idealEnd >= full.height) {
-      final img.Image slice =
-          img.copyCrop(full, x: 0, y: y, width: full.width, height: full.height - y);
-      // 마지막(짧은) 슬라이스를 페이지 높이로 패딩 → 상단 정렬
-      final img.Image padded = _padSliceToPageHeight(slice, idealSliceHeightPx);
-      pdf.addPage(_buildPdfPage(
-          pageFormat, hMargin, vMargin, contentWidthPt, Uint8List.fromList(img.encodePng(padded))));
+    if (++guard > guardLimit || pageCount >= maxPages) {
+      assert(false,
+          'PDF slicer: 루프 가드 발동 (y=$y, height=${full.height}, pages=$pageCount)');
       break;
     }
 
-    // 현재 페이지 범위 내 강제 분리 마커 확인
-    final int? forcedBreak = markerRows
-        .where((r) => r > y && r <= idealEnd + searchWindow)
-        .fold<int?>(null, (prev, r) => (prev == null || r < prev) ? r : prev);
-
-    int cutY;
-    if (forcedBreak != null) {
-      // 마커 행 바로 앞까지 포함 (copyCrop height = forcedBreak-y → rows [y, forcedBreak-1])
-      cutY = forcedBreak;
-    } else {
-      cutY = _findSafeCutRow(full, idealEnd, searchWindow);
+    // y가 밴드 내부에 있으면(이론상 발생하지 않지만 방어적으로) 밴드를 건너뛴다.
+    final _MarkerBand? containing = _bandContaining(bands, y);
+    if (containing != null) {
+      y = containing.end + 1;
+      continue;
     }
 
-    final int h = (cutY - y).clamp(1, full.height - y);
+    final int idealEnd = math.min(y + idealSliceHeightPx, full.height);
+
+    // (y, idealEnd] 범위의 첫 마커 밴드 = 강제 분리점. idealEnd를 절대 넘기지 않는다.
+    // 너무 짧은 조각을 만드는 마커는 건너뛴다.
+    final _MarkerBand? forced =
+        _firstBandInRange(bands, y, idealEnd, minForcedSliceHeightPx);
+
+    final int cutY;
+    final int nextY;
+    if (forced != null) {
+      cutY = forced.start; // 슬라이스 = [y, start-1] → 마커 밴드 제외
+      nextY = forced.end + 1; // 다음 페이지 = 밴드 바로 다음 행
+    } else if (idealEnd >= full.height) {
+      cutY = full.height;
+      nextY = full.height;
+    } else {
+      // 안전 절단선도 idealEnd 이하로 클램프 (초과분은 어차피 흰 여백이라 무손실)
+      cutY = _findSafeCutRow(full, idealEnd, searchWindow).clamp(y + 1, idealEnd);
+      nextY = cutY;
+    }
+
+    // 불변식: h는 절대 idealSliceHeightPx를 넘지 않는다
+    // → _padSliceToPageHeight가 항상 패딩 경로를 타서 fitWidth의 중앙 크롭이 0이 된다.
+    final int h = (cutY - y).clamp(1, math.min(idealSliceHeightPx, full.height - y));
+
+    // 빈 페이지 방지: 마커가 바로 앞에 붙어 있거나 뒤쪽이 전부 여백이면 페이지를 만들지 않는다.
+    // (단, 최소 1페이지는 항상 생성한다.)
+    if (pageCount > 0 && _isBlankRegion(full, y, h)) {
+      y = nextY > y ? nextY : y + h;
+      continue;
+    }
+
     final img.Image slice = img.copyCrop(full, x: 0, y: y, width: full.width, height: h);
-    // 강제 분리로 짧아진 슬라이스를 페이지 높이로 패딩 → 상단 정렬
     final img.Image padded = _padSliceToPageHeight(slice, idealSliceHeightPx);
+    assert(padded.height == idealSliceHeightPx,
+        'PDF slicer: 페이지 높이 불변식 위반 (${padded.height} != $idealSliceHeightPx)');
     pdf.addPage(_buildPdfPage(
         pageFormat, hMargin, vMargin, contentWidthPt, Uint8List.fromList(img.encodePng(padded))));
+    pageCount++;
 
-    // 마커 행 건너뛰고 다음 페이지 시작 (직접 픽셀 확인으로 4행 모두 스킵)
-    y += h;
-    while (y < full.height && _isPageBreakMarkerRow(full, y)) y++;
+    // y는 매 반복 반드시 전진한다 (h >= 1 보장).
+    y = nextY > y ? nextY : y + h;
   }
 
   return pdf.save();
@@ -517,8 +572,29 @@ pw.Page _buildPdfPage(
   );
 }
 
-/// 단일 행이 hot-pink 마커 행인지 직접 확인 (스킵 루프용)
-bool _isPageBreakMarkerRow(img.Image image, int y) {
+/// 알파 채널이 있는 캡처 이미지를 불투명 흰색 캔버스에 합성해 평탄화한다.
+/// 이미 불투명(3채널)이면 그대로 반환한다.
+img.Image _flattenOnWhite(img.Image src) {
+  if (src.numChannels < 4) return src;
+  final canvas = img.Image(width: src.width, height: src.height, numChannels: 3);
+  img.fill(canvas, color: img.ColorRgb8(255, 255, 255));
+  img.compositeImage(canvas, src, dstX: 0, dstY: 0);
+  return canvas;
+}
+
+/// 강제 페이지 분리 마커 밴드. [start], [end] 모두 끝 포함(inclusive) 행 인덱스.
+class _MarkerBand {
+  final int start;
+  final int end;
+  const _MarkerBand(this.start, this.end);
+}
+
+/// 밴드 한쪽당 허용하는 최대 틴트 확장 행 수.
+/// 마커 4 논리px × pixelRatio(최대 2.0) = 8물리px → 순수행 + 위아래 블렌드 1~2행이므로 4면 충분.
+const int _kMaxTintExpandRows = 4;
+
+/// 순수 마커 행: Color(0xFFFF0080) 그대로인 행.
+bool _isPureMarkerRow(img.Image image, int y) {
   int hit = 0, total = 0;
   for (int x = 0; x < image.width; x += 4) {
     final p = image.getPixel(x, y);
@@ -528,23 +604,112 @@ bool _isPageBreakMarkerRow(img.Image image, int y) {
   return total > 0 && hit * 100 >= total * 50;
 }
 
-/// Color(0xFFFF0080) hot-pink 행을 찾아 강제 페이지 분리 위치로 반환.
-/// 인접한 연속 마커 행은 첫 행만 반환.
-List<int> _findPageBreakMarkers(img.Image image) {
-  final List<int> result = [];
-  for (int row = 0; row < image.height; row++) {
-    int hit = 0, total = 0;
-    for (int x = 0; x < image.width; x += 4) {
-      final p = image.getPixel(x, row);
-      if (p.r >= 240 && p.g <= 20 && p.b >= 120) hit++;
-      total++;
-    }
-    if (total > 0 && hit * 100 >= total * 50) {
-      // 직전 마커와 5행 이상 떨어진 경우만 새 마커로 기록
-      if (result.isEmpty || row > result.last + 5) result.add(row);
-    }
+/// 마커 틴트 행: 흰색 ↔ (255,0,128) 안티앨리어싱 블렌드 행.
+///
+/// 흰 배경 위 커버리지 c의 블렌드 궤적은 정확히
+///   r = 255, g = 255(1-c), b = 255 - 127c
+/// 이므로 c > 0인 모든 행이 r=255 && b > g && b < r 를 만족한다.
+/// 예전 술어의 `g <= 220`은 c >= 13.7%를 요구해서, 그보다 옅은 블렌드 행
+/// (예: c=0.05 → RGB(255,242,249))을 놓쳤고 그 행이 페이지 경계에 옅은
+/// 핑크 헤어라인으로 남았다. 그래서 게이트를 흰색 쪽으로 최대한 붙인다.
+///
+/// 술어: r >= 250 && b > g && b < r && (r-g) >= 2
+/// - b > g   : REM 섹션 헤더 0xFFe53935(229,57,53) 배제 (53 > 57 = false).
+///             순수 흰색(255,255,255)도 배제한다 (255 > 255 = false).
+/// - b < r   : 파랑/청록 계열 배제.
+/// - r >= 250: grey.shade300(224), grey.shade50(250,250,250 → b>g에서 탈락),
+///             N1/N2/N3 헤더, 알파 합성된 PSQI/ISI PlotBand(r≈197 이하)를 모두 배제.
+/// - (r-g)>=2: 핑크 기운이 없는 행 배제. c >= 0.008 부터 통과 → 육안으로 보이는
+///             모든 블렌드 행을 잡는다.
+///
+/// 확장은 순수 밴드에 인접한 경우에만, 한쪽당 최대 [_kMaxTintExpandRows]행까지 허용하므로
+/// 설령 어떤 행이 이 술어를 통과해도 마커에 붙어 있지 않으면 영향이 없다.
+bool _isMarkerTintRow(img.Image image, int y) {
+  int hit = 0, total = 0;
+  for (int x = 0; x < image.width; x += 4) {
+    final p = image.getPixel(x, y);
+    final num r = p.r, g = p.g, b = p.b;
+    if (r >= 250 && b > g && b < r && (r - g) >= 2) hit++;
+    total++;
   }
-  return result;
+  return total > 0 && hit * 100 >= total * 50;
+}
+
+/// 순수 마커 행들을 연속 그룹으로 묶고, 각 밴드의 위/아래로 틴트 행인 동안 확장한다.
+/// 반환 리스트는 행 오름차순이며 서로 겹치지 않는다.
+List<_MarkerBand> _findMarkerBands(img.Image image) {
+  final List<_MarkerBand> bands = [];
+  int row = 0;
+  while (row < image.height) {
+    if (!_isPureMarkerRow(image, row)) {
+      row++;
+      continue;
+    }
+
+    // 1) 순수 마커 행 연속 구간 확정
+    int end = row;
+    while (end + 1 < image.height && _isPureMarkerRow(image, end + 1)) {
+      end++;
+    }
+
+    // 2) 확정된 순수 밴드 기준으로만 틴트 확장 (한쪽당 최대 4행)
+    int bStart = row;
+    for (int i = 0; i < _kMaxTintExpandRows; i++) {
+      final int cand = bStart - 1;
+      if (cand < 0 || !_isMarkerTintRow(image, cand)) break;
+      bStart = cand;
+    }
+    int bEnd = end;
+    for (int i = 0; i < _kMaxTintExpandRows; i++) {
+      final int cand = bEnd + 1;
+      if (cand >= image.height || !_isMarkerTintRow(image, cand)) break;
+      bEnd = cand;
+    }
+
+    // 3) 직전 밴드와 겹치거나 맞닿으면 병합 (연속 밴드 처리)
+    if (bands.isNotEmpty && bStart <= bands.last.end + 1) {
+      final prev = bands.removeLast();
+      bands.add(_MarkerBand(prev.start, math.max(prev.end, bEnd)));
+    } else {
+      bands.add(_MarkerBand(bStart, bEnd));
+    }
+
+    row = bEnd + 1;
+  }
+  return bands;
+}
+
+/// y를 포함하는 밴드 (없으면 null)
+_MarkerBand? _bandContaining(List<_MarkerBand> bands, int y) {
+  for (final b in bands) {
+    if (y >= b.start && y <= b.end) return b;
+  }
+  return null;
+}
+
+/// (y, idealEnd] 범위에서 시작하면서, 슬라이스 높이가 [minSliceHeight] 이상이 되는
+/// 첫 밴드 (없으면 null). bands는 오름차순.
+///
+/// 조건을 만족하지 못하는 밴드는 건너뛴다 → 해당 마커는 이번 페이지에서 무시되고
+/// 슬라이스가 그 위를 가로지른다. 밴드는 이미 흰색으로 덮여 있으므로 안전하다.
+_MarkerBand? _firstBandInRange(
+    List<_MarkerBand> bands, int y, int idealEnd, int minSliceHeight) {
+  for (final b in bands) {
+    if (b.start <= y) continue;
+    if (b.start > idealEnd) break; // 오름차순 → 이후 밴드도 모두 범위 밖
+    if (b.start - y < minSliceHeight) continue; // 거의 빈 페이지 방지
+    return b;
+  }
+  return null;
+}
+
+/// [y, y+h) 구간이 전부 여백인지 확인 (빈 페이지 방지용)
+bool _isBlankRegion(img.Image image, int y, int h) {
+  final int end = math.min(y + h, image.height);
+  for (int row = y; row < end; row++) {
+    if (!_isLightRow(image, row)) return false;
+  }
+  return true;
 }
 
 /// idealY ± searchWindow 범위에서 연속 밝은 구간(≥ minRun행)을 찾아
@@ -557,7 +722,9 @@ List<int> _findPageBreakMarkers(img.Image image) {
 ///   차트 내부 흰 영역   → 174행 미만 → minRun(250) 미달 → 무시 → 차트 내부 절단 안 함
 int _findSafeCutRow(img.Image image, int idealY, int searchWindow) {
   final int searchLimit = (idealY - searchWindow).clamp(0, idealY);
-  final int forwardCap  = (idealY + searchWindow).clamp(0, image.height - 1);
+  // 전진 스캔은 절대 idealY를 넘지 않는다. 넘어가면 슬라이스가 페이지보다 커져
+  // pw.Center + BoxFit.fitWidth가 위/아래를 대칭으로 잘라낸다.
+  final int forwardCap = idealY.clamp(0, image.height - 1);
   const int minRun = 250;
 
   int run = 0;
