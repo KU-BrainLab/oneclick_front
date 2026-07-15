@@ -272,8 +272,14 @@ class _ReportMergedState extends State<ReportMerged> {
 
                         // 2. 토포그래픽 (Delta ~ Sigma)
                         for (int i = 0; i < _bandNames.length; i++) ...[
-                          // Beta(3)→Gamma(4) 사이 페이지 넘김 여백
-                          if (i == 4) const SizedBox(height: 90),
+                          // ── 강제 페이지 분리 마커 (Gamma부터 새 페이지) ──
+                          // 이전에는 SizedBox(height: 90)으로 페이지 넘김을 손으로 맞췄는데,
+                          // 그 여백 대부분(실측 127px)이 다음 페이지 상단에 남으면서 아래 콘텐츠를
+                          // 밀어내 Sleep Stage x축(64px)이 다음 페이지로 잘려 넘어갔다.
+                          // 마커로 바꾸면 페이지 시작점이 Gamma에 정확히 맞춰져 그만큼 위로 올라간다.
+                          // 앞 간격은 직전 밴드의 SizedBox(40)이 대신한다.
+                          if (i == 4)
+                            Container(height: 4, color: const Color(0xFFFF0080)),
                           if (i < topographyList.length) ...[
                             _sectionTitle("EEG_${_bandNames[i]}"),
                             const SizedBox(height: 16),
