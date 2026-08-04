@@ -464,8 +464,10 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
   Widget _buildSpindleCouplingTable() {
     const phaseOrder = ['baseline', 'stimulation1', 'recovery1', 'stimulation2', 'recovery2'];
     const phaseLabels = ['Baseline', 'Stim1', 'Rec1', 'Stim2', 'Rec2'];
-    const rowLabels = ['Coupled Ratio', 'MRL', 'Mean Phase (°)', 'n_SO', 'n_Spindle', 'n_Coupled'];
-    const rowKeys   = ['coupled_ratio', 'MRL', 'mean_phase_deg', 'n_SO', 'n_spindle', 'n_coupled'];
+    // Coupled/min 이 머리 지표. phase 길이가 제각각이라 개수만으로는 비교가 안 된다.
+    // Duration 은 그 분모(해당 phase 안에서 이 stage 로 잡힌 시간)라 함께 봐야 해석이 된다.
+    const rowLabels = ['Coupled/min', 'Coupled Ratio', 'MRL', 'Mean Phase (°)', 'n_SO', 'n_Spindle', 'n_Coupled', 'Duration (min)'];
+    const rowKeys   = ['n_coupled_per_min', 'coupled_ratio', 'MRL', 'mean_phase_deg', 'n_SO', 'n_spindle', 'n_coupled', 'duration_min'];
 
     String fmt(dynamic v, String key) {
       if (v == null) return '-';
@@ -473,6 +475,8 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
       final d = double.tryParse(v.toString());
       if (d == null) return v.toString();
       if (key == 'n_SO' || key == 'n_spindle' || key == 'n_coupled') return d.toInt().toString();
+      if (key.endsWith('_per_min')) return d.toStringAsFixed(2);
+      if (key == 'duration_min') return d.toStringAsFixed(1);
       return d.toStringAsFixed(3);
     }
 
