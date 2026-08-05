@@ -411,49 +411,63 @@ class AiReportPdfService {
   }
 
   // ─── 대역별 연결성 figure 해석 ────────────────────────────────────
+  // 백엔드가 대역 하나당 항목 하나를 내려준다(지표별로 쪼개지 않음).
+  // band_role(일반인 설명) → phase_change(단계별 변화) → clinical_meaning 순서로
+  // 읽히도록 배치한다.
   pw.Widget _connectivityBlock(List<dynamic> items) {
-    // 지표(wPLI / PLV)별로 묶는다. 백엔드가 대역 순서대로 넣어주므로 순서는 유지된다.
-    final byMetric = <String, List<Map<String, dynamic>>>{};
-    for (final it in items) {
-      if (it is! Map) continue;
-      final m = Map<String, dynamic>.from(it);
-      byMetric.putIfAbsent(m['metric']?.toString() ?? '-', () => []).add(m);
-    }
+    final rows = <Map<String, dynamic>>[
+      for (final it in items)
+        if (it is Map) Map<String, dynamic>.from(it),
+    ];
+
+    String s(Map<String, dynamic> m, String k) => m[k]?.toString().trim() ?? '';
 
     return pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
       _sectionBlock(
         number: '',
-        titleKo: '대역별 연결성 Figure 해석',
-        titleEn: 'Band-wise Connectivity Interpretation',
-        content: 'Baseline 구간의 wPLI · PLV 연결성 figure를 대역별로 판독한 결과입니다.',
+        titleKo: '대역별 연결성 변화 해석',
+        titleEn: 'Band-wise Connectivity Dynamics',
+        content: '주파수 대역별로 기저선에서 자극·회복 단계로 이동하며 뇌 영역 간 '
+            '연결 패턴이 어떻게 변하는지 판독한 결과입니다.',
       ),
       pw.SizedBox(height: 10),
-      for (final metric in byMetric.keys) ...[
-        pw.Text(metric, style: _style(11, color: _kSectionNum, bold: true)),
-        pw.SizedBox(height: 6),
-        for (final c in byMetric[metric]!)
-          pw.Container(
-            width: double.infinity,
-            padding: const pw.EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-            margin: const pw.EdgeInsets.only(bottom: 6),
-            decoration: const pw.BoxDecoration(
-              border: pw.Border(left: pw.BorderSide(color: _kAccent, width: 2)),
-            ),
-            child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-              pw.Text(c['band']?.toString().toUpperCase() ?? '',
-                  style: _style(9, color: _kAccent, bold: true)),
-              pw.SizedBox(height: 3),
-              pw.Text(c['interpretation']?.toString() ?? '',
-                  style: _style(9, bold: false), textAlign: pw.TextAlign.justify),
-              if ((c['key_takeaway']?.toString() ?? '').isNotEmpty) ...[
-                pw.SizedBox(height: 3),
-                pw.Text('-> ${c['key_takeaway']}',
-                    style: _style(8, color: _kGrey, bold: false)),
-              ],
-            ]),
+      for (final c in rows)
+        pw.Container(
+          width: double.infinity,
+          padding: const pw.EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+          margin: const pw.EdgeInsets.only(bottom: 8),
+          decoration: const pw.BoxDecoration(
+            border: pw.Border(left: pw.BorderSide(color: _kAccent, width: 2)),
           ),
-        pw.SizedBox(height: 8),
-      ],
+          child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+            pw.Text(s(c, 'band').toUpperCase(),
+                style: _style(10, color: _kAccent, bold: true)),
+            if (s(c, 'band_role').isNotEmpty) ...[
+              pw.SizedBox(height: 3),
+              pw.Text(s(c, 'band_role'),
+                  style: _style(8, color: _kGrey, bold: false)),
+            ],
+            if (s(c, 'phase_change').isNotEmpty) ...[
+              pw.SizedBox(height: 5),
+              pw.Text('단계별 변화', style: _style(8, color: _kSectionNum, bold: true)),
+              pw.SizedBox(height: 2),
+              pw.Text(s(c, 'phase_change'),
+                  style: _style(9, bold: false), textAlign: pw.TextAlign.justify),
+            ],
+            if (s(c, 'clinical_meaning').isNotEmpty) ...[
+              pw.SizedBox(height: 5),
+              pw.Text('임상적 의미', style: _style(8, color: _kSectionNum, bold: true)),
+              pw.SizedBox(height: 2),
+              pw.Text(s(c, 'clinical_meaning'),
+                  style: _style(9, bold: false), textAlign: pw.TextAlign.justify),
+            ],
+            if (s(c, 'key_takeaway').isNotEmpty) ...[
+              pw.SizedBox(height: 4),
+              pw.Text('-> ${s(c, 'key_takeaway')}',
+                  style: _style(8, color: _kGrey, bold: false)),
+            ],
+          ]),
+        ),
     ]);
   }
 
