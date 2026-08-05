@@ -52,16 +52,32 @@ class AiReportPdfService {
   }) async {
     await _loadFonts();
 
-    // 1) 백엔드 호출 (Claude API 응답이 최대 2분 걸릴 수 있으므로 타임아웃 3분)
-    onStatus?.call('AI 분석 중... (1~2분 소요)');
+    // 1) 백엔드 호출.
+    // 타임아웃은 서버 쪽 한계보다 길어야 한다. 안 그러면 서버가 정상 응답을
+    // 만들고 있는 도중에 프론트가 먼저 끊어버려 원인을 알 수 없는 실패가 된다.
+    // 서버: AI_REPORT_DEADLINE_SEC=270 < harakiri=300 < http-timeout=320 이므로
+    // 여기는 그보다 큰 330초로 잡는다.
+    onStatus?.call('AI 분석 중... (1~3분 소요)');
     final url = Uri.parse('${BASE_URL}api/v1/exp/${user.id}/ai-report/');
     final response = await http.post(
       url,
       headers: {'Authorization': 'JWT ${AppService.instance.currentUser?.id}'},
-    ).timeout(const Duration(seconds: 180));
+    ).timeout(const Duration(seconds: 330));
 
     if (response.statusCode != 200) {
-      throw Exception('서버 오류 ${response.statusCode}');
+      // 백엔드가 담아 보낸 안내 문구를 그대로 보여준다. 특히 503(일시 과부하)일 때
+      // "잠시 후 다시 시도하면 된다"는 걸 사용자가 알아야 한다.
+      // 이전에는 "서버 오류 503" 만 보여서 재시도하면 되는지 알 수 없었다.
+      String message = '서버 오류 ${response.statusCode}';
+      try {
+        final body = jsonDecode(utf8.decode(response.bodyBytes));
+        if (body is Map && body['error'] is String) {
+          message = body['error'] as String;
+        }
+      } catch (_) {
+        // 본문이 JSON 이 아니면 상태코드만 보여준다.
+      }
+      throw Exception(message);
     }
 
     final data = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
