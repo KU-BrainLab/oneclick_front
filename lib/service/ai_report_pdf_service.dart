@@ -296,8 +296,11 @@ class AiReportPdfService {
         ],
 
         // 대역별 연결성 figure 해석 (AI 가 첨부 figure 를 직접 판독한 결과)
+        // MultiPage 는 "최상위 위젯 사이"에서만 페이지를 나눈다. 대역 카드를 Column
+        // 하나로 묶으면 내용이 길어질 때 한 페이지를 넘지 못하고 잘리므로,
+        // 헤더와 카드를 각각 최상위 위젯으로 펼친다.
         if (connectivity.isNotEmpty) ...[
-          _connectivityBlock(connectivity),
+          ..._connectivityWidgets(connectivity),
           pw.SizedBox(height: 20),
         ],
 
@@ -414,7 +417,9 @@ class AiReportPdfService {
   // 백엔드가 대역 하나당 항목 하나를 내려준다(지표별로 쪼개지 않음).
   // band_role(일반인 설명) → phase_change(단계별 변화) → clinical_meaning 순서로
   // 읽히도록 배치한다.
-  pw.Widget _connectivityBlock(List<dynamic> items) {
+  // 최상위 위젯 리스트로 반환한다 — MultiPage 가 카드 사이에서 페이지를 나눌 수
+  // 있어야 해석이 길어져도 잘리지 않는다.
+  List<pw.Widget> _connectivityWidgets(List<dynamic> items) {
     final rows = <Map<String, dynamic>>[
       for (final it in items)
         if (it is Map) Map<String, dynamic>.from(it),
@@ -422,7 +427,7 @@ class AiReportPdfService {
 
     String s(Map<String, dynamic> m, String k) => m[k]?.toString().trim() ?? '';
 
-    return pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+    return [
       _sectionBlock(
         number: '',
         titleKo: '대역별 연결성 변화 해석',
@@ -468,7 +473,7 @@ class AiReportPdfService {
             ],
           ]),
         ),
-    ]);
+    ];
   }
 
   // ─── SO WHAT 박스 ────────────────────────────────────────────────
