@@ -153,6 +153,8 @@ class AiReportPdfService {
     final eeg        = data['eeg']        as Map<String, dynamic>? ?? {};
     final ai         = data['ai']         as Map<String, dynamic>? ?? {};
     final sections   = ai['sections']     as List<dynamic>? ?? [];
+    // 대역별 연결성 figure 해석. 백엔드가 figure 를 실제로 첨부한 경우에만 채워진다.
+    final connectivity = ai['connectivity'] as List<dynamic>? ?? [];
 
     // 이미지 사전 다운로드
     final hrvImgs = await _fetchHrvImages(data['hrv_images'] as List<dynamic>?);
@@ -293,6 +295,12 @@ class AiReportPdfService {
           pw.SizedBox(height: 20),
         ],
 
+        // 대역별 연결성 figure 해석 (AI 가 첨부 figure 를 직접 판독한 결과)
+        if (connectivity.isNotEmpty) ...[
+          _connectivityBlock(connectivity),
+          pw.SizedBox(height: 20),
+        ],
+
         // AI 분석 섹션 01-05
         for (final sec in sections) ...[
           _sectionBlock(
@@ -399,6 +407,53 @@ class AiReportPdfService {
       pw.Text(content, style: _style(10, bold: false), textAlign: pw.TextAlign.justify),
       if (extra != null) ...[pw.SizedBox(height: 8), extra],
       if (takeaway != null) ...[pw.SizedBox(height: 8), _takeawayBox(takeaway)],
+    ]);
+  }
+
+  // ─── 대역별 연결성 figure 해석 ────────────────────────────────────
+  pw.Widget _connectivityBlock(List<dynamic> items) {
+    // 지표(wPLI / PLV)별로 묶는다. 백엔드가 대역 순서대로 넣어주므로 순서는 유지된다.
+    final byMetric = <String, List<Map<String, dynamic>>>{};
+    for (final it in items) {
+      if (it is! Map) continue;
+      final m = Map<String, dynamic>.from(it);
+      byMetric.putIfAbsent(m['metric']?.toString() ?? '-', () => []).add(m);
+    }
+
+    return pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+      _sectionBlock(
+        number: '',
+        titleKo: '대역별 연결성 Figure 해석',
+        titleEn: 'Band-wise Connectivity Interpretation',
+        content: 'Baseline 구간의 wPLI · PLV 연결성 figure를 대역별로 판독한 결과입니다.',
+      ),
+      pw.SizedBox(height: 10),
+      for (final metric in byMetric.keys) ...[
+        pw.Text(metric, style: _style(11, color: _kSectionNum, bold: true)),
+        pw.SizedBox(height: 6),
+        for (final c in byMetric[metric]!)
+          pw.Container(
+            width: double.infinity,
+            padding: const pw.EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+            margin: const pw.EdgeInsets.only(bottom: 6),
+            decoration: const pw.BoxDecoration(
+              border: pw.Border(left: pw.BorderSide(color: _kAccent, width: 2)),
+            ),
+            child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+              pw.Text(c['band']?.toString().toUpperCase() ?? '',
+                  style: _style(9, color: _kAccent, bold: true)),
+              pw.SizedBox(height: 3),
+              pw.Text(c['interpretation']?.toString() ?? '',
+                  style: _style(9, bold: false), textAlign: pw.TextAlign.justify),
+              if ((c['key_takeaway']?.toString() ?? '').isNotEmpty) ...[
+                pw.SizedBox(height: 3),
+                pw.Text('-> ${c['key_takeaway']}',
+                    style: _style(8, color: _kGrey, bold: false)),
+              ],
+            ]),
+          ),
+        pw.SizedBox(height: 8),
+      ],
     ]);
   }
 
