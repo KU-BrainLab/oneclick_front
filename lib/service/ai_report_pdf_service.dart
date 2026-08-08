@@ -77,29 +77,51 @@ class AiReportPdfService {
     // 만들고 있는 도중에 프론트가 먼저 끊어버려 원인을 알 수 없는 실패가 된다.
     // 서버: AI_REPORT_DEADLINE_SEC=270 < harakiri=300 < http-timeout=320 이므로
     // 여기는 그보다 큰 330초로 잡는다.
-    onStatus?.call('분석 중... (1~3분 소요)');
+    onStatus?.call('분석 중... (1~4분 소요)');
     final url = Uri.parse('${BASE_URL}api/v1/exp/${user.id}/ai-report/');
-    final response = await http.post(
-      url,
-      headers: {'Authorization': 'JWT ${AppService.instance.currentUser?.id}'},
-    ).timeout(const Duration(seconds: 330));
+    final headers = {'Authorization': 'JWT ${AppService.instance.currentUser?.id}'};
 
-    if (response.statusCode != 200) {
-      // 백엔드가 담아 보낸 안내 문구를 그대로 보여준다. 특히 503(일시 과부하)일 때
-      // "잠시 후 다시 시도하면 된다"는 걸 사용자가 알아야 한다.
-      String message = '서버 오류 ${response.statusCode}';
-      try {
-        final body = jsonDecode(utf8.decode(response.bodyBytes));
-        if (body is Map && body['error'] is String) {
-          message = body['error'] as String;
+    Map<String, dynamic>? data;
+    String? postError;
+    try {
+      final response = await http
+          .post(url, headers: headers)
+          .timeout(const Duration(seconds: 330));
+      if (response.statusCode == 200) {
+        data = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+      } else {
+        // 백엔드가 담아 보낸 안내 문구를 그대로 보여준다. 특히 503(일시 과부하)일 때
+        // "잠시 후 다시 시도하면 된다"는 걸 사용자가 알아야 한다.
+        postError = '서버 오류 ${response.statusCode}';
+        try {
+          final body = jsonDecode(utf8.decode(response.bodyBytes));
+          if (body is Map && body['error'] is String) {
+            postError = body['error'] as String;
+          }
+        } catch (_) {
+          // 본문이 JSON 이 아니면 상태코드만 보여준다.
         }
-      } catch (_) {
-        // 본문이 JSON 이 아니면 상태코드만 보여준다.
+        // 서버가 명확히 거절한 경우다. 폴링해봐야 결과가 생길 리 없다.
+        throw Exception(postError);
       }
-      throw Exception(message);
+    } on TimeoutException {
+      postError = null; // 아래에서 폴링으로 회수를 시도한다
+    } catch (e) {
+      // 연결이 끊겼을 수 있다. 서버는 계속 만들고 있을 것이므로 여기서 포기하지
+      // 않는다. 다만 위에서 명시적으로 던진 서버 거절은 그대로 올려보낸다.
+      if (postError != null) rethrow;
     }
 
-    final data = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+    // 생성에 3분 넘게 걸리는 동안 연결에는 한 바이트도 흐르지 않는다. 중간의
+    // 공유기·방화벽이 그런 유휴 세션을 끊어버리면, 서버는 리포트를 다 만들고도
+    // 전달만 실패한다. 서버가 결과를 캐시에 남기므로 짧은 GET 으로 회수한다.
+    if (data == null) {
+      onStatus?.call('연결이 끊겼습니다. 결과를 다시 받아오는 중...');
+      data = await _pollForReport(url, headers, onStatus: onStatus);
+    }
+    if (data == null) {
+      throw Exception('리포트를 받아오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+    }
 
     onStatus?.call('리포트 생성 중...');
     final pdfBytes = await _buildPdf(data);
@@ -120,6 +142,38 @@ class AiReportPdfService {
       anchor.remove();
       html.Url.revokeObjectUrl(objUrl);
     });
+  }
+
+  /// 서버가 저장해 둔 리포트를 짧은 GET 으로 회수한다.
+  ///
+  /// POST 는 3분 넘게 유휴 상태로 열려 있어야 해서 중간 장비에 끊기지만, GET 은
+  /// 즉시 끝나므로 그럴 일이 없다. 아직 생성 중이면 404 가 오니 잠시 후 다시 묻는다.
+  Future<Map<String, dynamic>?> _pollForReport(
+    Uri url,
+    Map<String, String> headers, {
+    void Function(String)? onStatus,
+    Duration interval = const Duration(seconds: 5),
+    Duration limit = const Duration(minutes: 6),
+  }) async {
+    final deadline = DateTime.now().add(limit);
+    var tries = 0;
+    while (DateTime.now().isBefore(deadline)) {
+      await Future<void>.delayed(interval);
+      tries++;
+      try {
+        final r = await http.get(url, headers: headers)
+            .timeout(const Duration(seconds: 20));
+        if (r.statusCode == 200) {
+          return jsonDecode(utf8.decode(r.bodyBytes)) as Map<String, dynamic>;
+        }
+        // 404 = 아직 생성 중. 그 밖의 상태코드도 다음 차례에 다시 물어본다.
+      } catch (_) {
+        // 일시적 네트워크 오류는 무시하고 계속 기다린다.
+      }
+      final left = deadline.difference(DateTime.now()).inSeconds;
+      onStatus?.call('결과를 기다리는 중... ($tries회 확인, 남은 시간 $left초)');
+    }
+    return null;
   }
 
   // ─── 이미지 로딩 ──────────────────────────────────────────────────
