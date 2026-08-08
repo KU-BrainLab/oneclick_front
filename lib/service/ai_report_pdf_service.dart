@@ -318,21 +318,24 @@ class AiReportPdfService {
     final detail = h['detail']?.toString() ?? '';
     if (one.isEmpty && detail.isEmpty) return [];
     return [
-      _partTitle('한눈에 보는 나의 뇌'),
-      pw.Container(
-        width: double.infinity,
-        padding: const pw.EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-        decoration: pw.BoxDecoration(
-          color: _kTealBg,
-          border: pw.Border.all(color: _kTeal, width: 1),
+      // 제목 + 한 문장 박스 + 풀이는 리포트의 얼굴이라 절대 갈라지면 안 된다.
+      _group([
+        _partTitle('한눈에 보는 나의 뇌'),
+        pw.Container(
+          width: double.infinity,
+          padding: const pw.EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          decoration: pw.BoxDecoration(
+            color: _kTealBg,
+            border: pw.Border.all(color: _kTeal, width: 1),
+          ),
+          child: pw.Text('"$one"',
+              style: _st(14, bold: true, color: _kNavy, height: 1.5)),
         ),
-        child: pw.Text('"$one"',
-            style: _st(14, bold: true, color: _kNavy, height: 1.5)),
-      ),
-      if (detail.isNotEmpty) ...[
-        pw.SizedBox(height: 10),
-        pw.Text(detail, style: _st(9.5, height: 1.6)),
-      ],
+        if (detail.isNotEmpty) ...[
+          pw.SizedBox(height: 10),
+          pw.Text(detail, style: _st(9.5, height: 1.6)),
+        ],
+      ]),
       pw.SizedBox(height: 22),
     ];
   }
@@ -340,23 +343,15 @@ class AiReportPdfService {
   // ─── 1장. 밴드별 ──────────────────────────────────────────────────
   List<pw.Widget> _bandsSection(List<dynamic> bands) {
     if (bands.isEmpty) return [];
-    final out = <pw.Widget>[
-      _chapterTitle('1', '주파수 밴드별 — 무엇을 잘하고 무엇이 약한가'),
-      pw.Text(
-        '뇌는 빠르기가 다른 여러 리듬을 동시에 냅니다. 각 리듬이 담당하는 기능이 다르기 '
-        '때문에, 리듬별로 보면 이 뇌가 어떤 기능을 잘 쓰고 어떤 기능이 약한지가 드러납니다.',
-        style: _st(9.5, height: 1.6),
-      ),
-      pw.SizedBox(height: 14),
-    ];
 
-    for (final raw in bands) {
-      final b = raw as Map<String, dynamic>;
-      out.add(_bandBlock(b));
-      out.add(pw.SizedBox(height: 14));
-    }
+    // 각 대역 블록은 그 자체로 쪼개지지 않는 단위다(제목·불릿·강약점이 한 덩어리).
+    final blocks = bands
+        .map((raw) => _group([
+              _bandBlock(raw as Map<String, dynamic>),
+              pw.SizedBox(height: 14),
+            ]))
+        .toList();
 
-    // 밴드별 요약 표
     final rows = bands.map((raw) {
       final b = raw as Map<String, dynamic>;
       return [
@@ -365,17 +360,30 @@ class AiReportPdfService {
         b['summary_verdict']?.toString() ?? '',
       ];
     }).toList();
-    out.addAll([
-      _subTitle('밴드별 요약'),
-      _zebraTable(
-        headers: ['밴드', '이 뇌의 상태', '강점 / 약점'],
-        rows: rows,
-        widths: {0: 1.0, 1: 2.2, 2: 2.8},
-        verdictColumn: 2,
+
+    return [
+      // 장 제목과 안내문은 첫 대역 블록까지 붙여서 홀로 남지 않게 한다.
+      ..._withHeader([
+        _chapterTitle('1', '주파수 밴드별 — 무엇을 잘하고 무엇이 약한가'),
+        pw.Text(
+          '뇌는 빠르기가 다른 여러 리듬을 동시에 냅니다. 각 리듬이 담당하는 기능이 다르기 '
+          '때문에, 리듬별로 보면 이 뇌가 어떤 기능을 잘 쓰고 어떤 기능이 약한지가 드러납니다.',
+          style: _st(9.5, height: 1.6),
+        ),
+        pw.SizedBox(height: 14),
+      ], blocks),
+      ..._titledTable(
+        _subTitle('밴드별 요약'),
+        _zebraTable(
+          headers: ['밴드', '이 뇌의 상태', '강점 / 약점'],
+          rows: rows,
+          widths: {0: 1.0, 1: 2.2, 2: 2.8},
+          verdictColumn: 2,
+        ),
+        rows.length,
       ),
       pw.SizedBox(height: 22),
-    ]);
-    return out;
+    ];
   }
 
   pw.Widget _bandBlock(Map<String, dynamic> b) {
@@ -424,39 +432,44 @@ class AiReportPdfService {
   // ─── 2장. 기능 영역별 ─────────────────────────────────────────────
   List<pw.Widget> _domainsSection(List<dynamic> domains) {
     if (domains.isEmpty) return [];
-    final out = <pw.Widget>[
-      _chapterTitle('2', '기능 영역별 — 종합 능력 평가'),
-      pw.Text('개별 리듬을 넘어, 뇌를 큰 기능 단위로 묶어서 보겠습니다.',
-          style: _st(9.5, height: 1.6)),
-      pw.SizedBox(height: 14),
-    ];
-    for (final raw in domains) {
+
+    final blocks = domains.map((raw) {
       final d = raw as Map<String, dynamic>;
       final bullets = (d['bullets'] as List<dynamic>? ?? []).map((e) => e.toString()).toList();
       final note = d['note']?.toString() ?? '';
       final verdict = d['verdict']?.toString() ?? '';
-      out.add(pw.Container(
-        padding: const pw.EdgeInsets.only(left: 12),
-        decoration: pw.BoxDecoration(
-          border: pw.Border(left: pw.BorderSide(color: _verdictColor(verdict), width: 3)),
-        ),
-        child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-          pw.Row(children: [
-            pw.Text('${d['name'] ?? ''}', style: _st(11.5, bold: true, color: _kNavy)),
-            if (verdict.isNotEmpty) ...[pw.SizedBox(width: 8), _chip(verdict)],
+      return _group([
+        pw.Container(
+          padding: const pw.EdgeInsets.only(left: 12),
+          decoration: pw.BoxDecoration(
+            border: pw.Border(left: pw.BorderSide(color: _verdictColor(verdict), width: 3)),
+          ),
+          child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+            pw.Row(children: [
+              pw.Text('${d['name'] ?? ''}', style: _st(11.5, bold: true, color: _kNavy)),
+              if (verdict.isNotEmpty) ...[pw.SizedBox(width: 8), _chip(verdict)],
+            ]),
+            pw.SizedBox(height: 7),
+            ...bullets.map((t) => _bullet(t)),
+            if (note.isNotEmpty) ...[
+              pw.SizedBox(height: 6),
+              pw.Text(note, style: _st(9.5, height: 1.6, italic: true, color: _kTeal)),
+            ],
           ]),
-          pw.SizedBox(height: 7),
-          ...bullets.map((t) => _bullet(t)),
-          if (note.isNotEmpty) ...[
-            pw.SizedBox(height: 6),
-            pw.Text(note, style: _st(9.5, height: 1.6, italic: true, color: _kTeal)),
-          ],
-        ]),
-      ));
-      out.add(pw.SizedBox(height: 14));
-    }
-    out.add(pw.SizedBox(height: 8));
-    return out;
+        ),
+        pw.SizedBox(height: 14),
+      ]);
+    }).toList();
+
+    return [
+      ..._withHeader([
+        _chapterTitle('2', '기능 영역별 — 종합 능력 평가'),
+        pw.Text('개별 리듬을 넘어, 뇌를 큰 기능 단위로 묶어서 보겠습니다.',
+            style: _st(9.5, height: 1.6)),
+        pw.SizedBox(height: 14),
+      ], blocks),
+      pw.SizedBox(height: 8),
+    ];
   }
 
   // ─── 3장. 성향 ────────────────────────────────────────────────────
@@ -467,40 +480,50 @@ class AiReportPdfService {
     final reassuring = p['reassuring'] as List<dynamic>? ?? [];
     final approach = (p['approach'] as List<dynamic>? ?? []).map((e) => e.toString()).toList();
 
+    final reassureRows = reassuring.map((raw) {
+      final r = raw as Map<String, dynamic>;
+      return [r['title']?.toString() ?? '', r['note']?.toString() ?? ''];
+    }).toList();
+
     return [
-      _chapterTitle('3', '어떤 성향의 뇌이고, 무엇을 눈여겨볼까'),
-      pw.Text(
-        '아래 내용은 진단이 아니라, 이번 데이터에서 읽히는 경향과 참고점입니다. '
-        '실제 판단은 여러 차례의 검사와 전문의의 종합 소견이 필요합니다.',
-        style: _st(9, height: 1.6, color: _kGrey),
-      ),
-      pw.SizedBox(height: 14),
-      _subTitle('이 뇌의 성향'),
-      pw.Container(
-        width: double.infinity,
-        padding: const pw.EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-        decoration: const pw.BoxDecoration(color: _kNavy),
-        child: pw.Text('"${p['type_label'] ?? ''}"',
-            style: _st(13, bold: true, color: PdfColors.white, height: 1.4)),
-      ),
-      if ((p['rationale']?.toString() ?? '').isNotEmpty) ...[
-        pw.SizedBox(height: 10),
-        pw.Text(p['rationale'].toString(), style: _st(9.5, height: 1.6)),
-      ],
-      if (traits.isNotEmpty) ...[
-        pw.SizedBox(height: 12),
-        pw.Text('이런 뇌는 흔히 다음과 같은 성향과 연결됩니다:',
-            style: _st(9.5, bold: true, color: _kNavy)),
-        pw.SizedBox(height: 5),
-        ...traits.map((t) => _bullet(t)),
-      ],
-      if (watch.isNotEmpty) ...[
-        pw.SizedBox(height: 16),
-        _subTitle('눈여겨볼 만한 방향 (가능성 수준)'),
-        pw.Text('데이터 패턴이 겹치는 영역입니다. 어느 것도 확정이 아닙니다.',
-            style: _st(9, color: _kGrey)),
-        pw.SizedBox(height: 8),
-        ...watch.map((raw) {
+      // 장 제목 + 주의 문구 + 성향 박스 + 근거는 하나의 결론 단위다.
+      _group([
+        _chapterTitle('3', '어떤 성향의 뇌이고, 무엇을 눈여겨볼까'),
+        pw.Text(
+          '아래 내용은 진단이 아니라, 이번 데이터에서 읽히는 경향과 참고점입니다. '
+          '실제 판단은 여러 차례의 검사와 전문의의 종합 소견이 필요합니다.',
+          style: _st(9, height: 1.6, color: _kGrey),
+        ),
+        pw.SizedBox(height: 14),
+        _subTitle('이 뇌의 성향'),
+        pw.Container(
+          width: double.infinity,
+          padding: const pw.EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+          decoration: const pw.BoxDecoration(color: _kNavy),
+          child: pw.Text('"${p['type_label'] ?? ''}"',
+              style: _st(13, bold: true, color: PdfColors.white, height: 1.4)),
+        ),
+        if ((p['rationale']?.toString() ?? '').isNotEmpty) ...[
+          pw.SizedBox(height: 10),
+          pw.Text(p['rationale'].toString(), style: _st(9.5, height: 1.6)),
+        ],
+      ]),
+      if (traits.isNotEmpty)
+        _group([
+          pw.SizedBox(height: 12),
+          pw.Text('이런 뇌는 흔히 다음과 같은 성향과 연결됩니다:',
+              style: _st(9.5, bold: true, color: _kNavy)),
+          pw.SizedBox(height: 5),
+          ...traits.map((t) => _bullet(t)),
+        ]),
+      if (watch.isNotEmpty)
+        ..._withHeader([
+          pw.SizedBox(height: 16),
+          _subTitle('눈여겨볼 만한 방향 (가능성 수준)'),
+          pw.Text('데이터 패턴이 겹치는 영역입니다. 어느 것도 확정이 아닙니다.',
+              style: _st(9, color: _kGrey)),
+          pw.SizedBox(height: 8),
+        ], watch.map((raw) {
           final w = raw as Map<String, dynamic>;
           return pw.Container(
             margin: const pw.EdgeInsets.only(bottom: 7),
@@ -511,33 +534,35 @@ class AiReportPdfService {
               _kCautionBg,
             ),
           );
-        }),
-      ],
-      if (reassuring.isNotEmpty) ...[
-        pw.SizedBox(height: 12),
-        _subTitle('반대로, 안심할 수 있는 부분'),
-        pw.Text('데이터상 시사되지 않는 것들입니다.', style: _st(9, color: _kGrey)),
-        pw.SizedBox(height: 8),
-        _zebraTable(
-          headers: ['항목', '근거'],
-          rows: reassuring.map((raw) {
-            final r = raw as Map<String, dynamic>;
-            return [r['title']?.toString() ?? '', r['note']?.toString() ?? ''];
-          }).toList(),
-          widths: {0: 1.2, 1: 3.0},
-          headerColor: _kStrength,
+        }).toList()),
+      if (reassuring.isNotEmpty)
+        ..._titledTable(
+          _group([
+            pw.SizedBox(height: 12),
+            _subTitle('반대로, 안심할 수 있는 부분'),
+            pw.Text('데이터상 시사되지 않는 것들입니다.', style: _st(9, color: _kGrey)),
+            pw.SizedBox(height: 8),
+          ]),
+          _zebraTable(
+            headers: ['항목', '근거'],
+            rows: reassureRows,
+            widths: {0: 1.2, 1: 3.0},
+            headerColor: _kStrength,
+          ),
+          reassureRows.length,
         ),
-      ],
-      if (approach.isNotEmpty) ...[
-        pw.SizedBox(height: 16),
-        _subTitle('이 뇌에 맞을 법한 접근 (참고)'),
-        ...approach.map((t) => _bullet(t)),
-      ],
-      if ((p['one_sentence']?.toString() ?? '').isNotEmpty) ...[
-        pw.SizedBox(height: 14),
-        _callout(title: '한 문장 결론', body: p['one_sentence'].toString(),
-            color: _kTeal, bg: _kTealBg),
-      ],
+      if (approach.isNotEmpty)
+        _group([
+          pw.SizedBox(height: 16),
+          _subTitle('이 뇌에 맞을 법한 접근 (참고)'),
+          ...approach.map((t) => _bullet(t)),
+        ]),
+      if ((p['one_sentence']?.toString() ?? '').isNotEmpty)
+        _group([
+          pw.SizedBox(height: 14),
+          _callout(title: '한 문장 결론', body: p['one_sentence'].toString(),
+              color: _kTeal, bg: _kTealBg),
+        ]),
       pw.SizedBox(height: 22),
     ];
   }
@@ -573,22 +598,25 @@ class AiReportPdfService {
     ];
 
     // ── 4. HRV ───────────────────────────────────────────────
-    out.add(_chapterTitle('4', '심박변이도 — 자율신경 상태'));
-    if ((hrv['what_is']?.toString() ?? '').isNotEmpty) {
-      out.addAll([
-        _callout(title: '심박변이도란?', body: hrv['what_is'].toString(),
-            color: _kGrey, bg: _kRowEven),
-        pw.SizedBox(height: 12),
-      ]);
-    }
-    // 구간별 heart_rate 그림
+    final hrvFigs = <pw.Widget>[];
     for (final raw in hrvImages) {
       final h = raw as Map<String, dynamic>;
       final im = img(h['heart_rate'] as String?);
       if (im == null) continue;
-      out.add(_figure(im, '${h['name_ko']} 구간의 심박 흐름', maxHeight: 150));
-      out.add(pw.SizedBox(height: 10));
+      // 그림과 그 캡션은 한 덩어리로 움직여야 한다.
+      hrvFigs.add(_group([
+        _figure(im, '${h['name_ko']} 구간의 심박 흐름', maxHeight: 150),
+        pw.SizedBox(height: 10),
+      ]));
     }
+    out.addAll(_withHeader([
+      _chapterTitle('4', '심박변이도 — 자율신경 상태'),
+      if ((hrv['what_is']?.toString() ?? '').isNotEmpty) ...[
+        _callout(title: '심박변이도란?', body: hrv['what_is'].toString(),
+            color: _kGrey, bg: _kRowEven),
+        pw.SizedBox(height: 12),
+      ],
+    ], hrvFigs));
     if ((hrv['flow']?.toString() ?? '').isNotEmpty) {
       out.addAll([pw.Text(hrv['flow'].toString(), style: _st(9.5, height: 1.6)),
         pw.SizedBox(height: 12)]);
@@ -600,19 +628,21 @@ class AiReportPdfService {
         final n = raw as Map<String, dynamic>;
         notes[n['phase_ko']?.toString() ?? ''] = n['note']?.toString() ?? '';
       }
-      out.addAll([
+      final hrvRows = hrvPhases.map((raw) {
+        final p = raw as Map<String, dynamic>;
+        final ko = p['name_ko']?.toString() ?? '';
+        return [ko, _num(p['rmssd']), _num(p['lh_ratio']), notes[ko] ?? ''];
+      }).toList();
+      out.addAll(_titledTable(
         _subTitle('구간별 핵심 숫자'),
         _zebraTable(
           headers: ['구간', '이완 지표', '긴장 균형', '한 줄 해석'],
-          rows: hrvPhases.map((raw) {
-            final p = raw as Map<String, dynamic>;
-            final ko = p['name_ko']?.toString() ?? '';
-            return [ko, _num(p['rmssd']), _num(p['lh_ratio']), notes[ko] ?? ''];
-          }).toList(),
+          rows: hrvRows,
           widths: {0: 1.2, 1: 1.0, 2: 1.0, 3: 2.4},
         ),
-        pw.SizedBox(height: 12),
-      ]);
+        hrvRows.length,
+      ));
+      out.add(pw.SizedBox(height: 12));
     }
     if ((hrv['comparison']?.toString() ?? '').isNotEmpty) {
       out.addAll([pw.Text(hrv['comparison'].toString(), style: _st(9.5, height: 1.6)),
@@ -625,15 +655,17 @@ class AiReportPdfService {
     out.add(pw.SizedBox(height: 22));
 
     // ── 5. EEG ───────────────────────────────────────────────
-    out.add(pw.NewPage());
-    out.add(_chapterTitle('5', '뇌파 — 뇌 활동 상태'));
-    if ((eegE['how_to_read']?.toString() ?? '').isNotEmpty) {
-      out.addAll([
+    // 장마다 NewPage 를 넣으면 내용이 짧을 때 거의 빈 페이지가 생긴다.
+    // 대신 제목이 홀로 남지 않도록 첫 대역 블록까지 묶어서 흘려보낸다.
+    final eegHeader = <pw.Widget>[
+      _chapterTitle('5', '뇌파 — 뇌 활동 상태'),
+      if ((eegE['how_to_read']?.toString() ?? '').isNotEmpty) ...[
         _callout(title: '그림 보는 법', body: eegE['how_to_read'].toString(),
             color: _kGrey, bg: _kRowEven),
         pw.SizedBox(height: 14),
-      ]);
-    }
+      ],
+    ];
+    final eegBlocks = <pw.Widget>[];
     final captions = <String, String>{};
     for (final raw in (eegE['band_captions'] as List<dynamic>? ?? [])) {
       final c = raw as Map<String, dynamic>;
@@ -656,16 +688,19 @@ class AiReportPdfService {
       }
       if (topoRow.isEmpty && connRow.isEmpty) continue;
       sub++;
-      out.add(pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+      // 소제목·그림 두 줄·캡션은 한 덩어리다. 갈라지면 캡션만 다음 쪽으로 넘어간다.
+      eegBlocks.add(_group([
         _subTitle('5-$sub. ${_kBandLabel[band] ?? band}'),
         if (topoRow.isNotEmpty) _imageRow(topoRow, labels),
         if (connRow.isNotEmpty) ...[pw.SizedBox(height: 4), _imageRow(connRow, const [])],
         pw.SizedBox(height: 5),
         _caption('그림 $_nextFig. ${_kBandLabel[band] ?? band}'
             '${(captions[band] ?? '').isEmpty ? '' : ' — ${captions[band]}'}'),
+        pw.SizedBox(height: 14),
       ]));
-      out.add(pw.SizedBox(height: 14));
     }
+    out.addAll(_withHeader(eegHeader, eegBlocks));
+
     // 정서 균형 (FAA)
     final faa = figures['faa'] as Map<String, dynamic>? ?? {};
     final faaImgs = <pw.ImageProvider>[];
@@ -677,22 +712,23 @@ class AiReportPdfService {
       faaLabels.add(_kPhaseLabel[ph] ?? ph);
     }
     if (faaImgs.isNotEmpty || (eegE['faa']?.toString() ?? '').isNotEmpty) {
-      out.add(_subTitle('정서 균형 지표 (좌우 이마 균형)'));
-      if (faaImgs.isNotEmpty) {
-        out.add(_imageRow(faaImgs, faaLabels));
-        out.add(pw.SizedBox(height: 5));
-        out.add(_caption('그림 $_nextFig. 구간별 좌우 이마 균형'));
-      }
-      if ((eegE['faa']?.toString() ?? '').isNotEmpty) {
-        out.add(pw.SizedBox(height: 8));
-        out.add(pw.Text(eegE['faa'].toString(), style: _st(9.5, height: 1.6)));
-      }
+      out.add(_group([
+        _subTitle('정서 균형 지표 (좌우 이마 균형)'),
+        if (faaImgs.isNotEmpty) ...[
+          _imageRow(faaImgs, faaLabels),
+          pw.SizedBox(height: 5),
+          _caption('그림 $_nextFig. 구간별 좌우 이마 균형'),
+        ],
+        if ((eegE['faa']?.toString() ?? '').isNotEmpty) ...[
+          pw.SizedBox(height: 8),
+          pw.Text(eegE['faa'].toString(), style: _st(9.5, height: 1.6)),
+        ],
+      ]));
       out.add(pw.SizedBox(height: 22));
     }
 
     // ── 6. 휴식 구조 ──────────────────────────────────────────
-    out.add(pw.NewPage());
-    out.add(_chapterTitle('6', '휴식 구조 — 실제로 무슨 일이 있었나'));
+    // 장마다 NewPage 를 넣으면 내용이 짧을 때 거의 빈 페이지가 생긴다.
     final spec = figures['spectrogram'] as Map<String, dynamic>? ?? {};
     final specImgs = <pw.ImageProvider>[];
     for (final ch in ['fp1', 'fp2']) {
@@ -700,21 +736,26 @@ class AiReportPdfService {
       if (im != null) specImgs.add(im);
     }
     if (specImgs.isNotEmpty) {
-      out.add(_subTitle('6-1. 시간에 따른 뇌파 변화'));
-      for (final im in specImgs) {
-        out.add(_figure(im, null, maxHeight: 170));
-        out.add(pw.SizedBox(height: 6));
-      }
-      out.add(_caption('그림 $_nextFig. 시간에 따른 뇌파 변화 (빨강=강함, 파랑=약함)'));
-      if ((sleepE['spectrogram']?.toString() ?? '').isNotEmpty) {
-        out.add(pw.SizedBox(height: 8));
-        out.add(pw.Text(sleepE['spectrogram'].toString(), style: _st(9.5, height: 1.6)));
-      }
+      out.add(_group([
+        _chapterTitle('6', '휴식 구조 — 실제로 무슨 일이 있었나'),
+        _subTitle('6-1. 시간에 따른 뇌파 변화'),
+        for (final im in specImgs) ...[
+          _figure(im, null, maxHeight: 170),
+          pw.SizedBox(height: 6),
+        ],
+        _caption('그림 $_nextFig. 시간에 따른 뇌파 변화 (빨강=강함, 파랑=약함)'),
+        if ((sleepE['spectrogram']?.toString() ?? '').isNotEmpty) ...[
+          pw.SizedBox(height: 8),
+          pw.Text(sleepE['spectrogram'].toString(), style: _st(9.5, height: 1.6)),
+        ],
+      ]));
       out.add(pw.SizedBox(height: 16));
+    } else {
+      out.add(_chapterTitle('6', '휴식 구조 — 실제로 무슨 일이 있었나'));
     }
     if (eeg['psd_bands'] != null) {
       final pb = eeg['psd_bands'] as Map<String, dynamic>;
-      out.addAll([
+      out.add(_group([
         _subTitle('6-2. 밴드별 비중'),
         _zebraTable(
           headers: ['밴드', '비중'],
@@ -724,25 +765,25 @@ class AiReportPdfService {
               .toList(),
           widths: {0: 1.4, 1: 1.0},
         ),
-        pw.SizedBox(height: 10),
-      ]);
-      if ((sleepE['symmetry']?.toString() ?? '').isNotEmpty) {
-        out.add(pw.Text(sleepE['symmetry'].toString(), style: _st(9.5, height: 1.6)));
-        out.add(pw.SizedBox(height: 16));
-      }
+        if ((sleepE['symmetry']?.toString() ?? '').isNotEmpty) ...[
+          pw.SizedBox(height: 10),
+          pw.Text(sleepE['symmetry'].toString(), style: _st(9.5, height: 1.6)),
+        ],
+      ]));
+      out.add(pw.SizedBox(height: 16));
     }
     if ((sleepE['coupling']?.toString() ?? '').isNotEmpty) {
-      out.addAll([
+      out.add(_group([
         _subTitle('6-3. 기억 정리 결합 — 휴식의 질'),
         pw.Text(sleepE['coupling'].toString(), style: _st(9.5, height: 1.6)),
-        pw.SizedBox(height: 16),
-      ]);
+      ]));
+      out.add(pw.SizedBox(height: 16));
     }
     if (eeg['staging_dist'] != null) {
       final sd = eeg['staging_dist'] as Map<String, dynamic>;
       const nice = {'W': '각성', 'N1': '얕은 진입', 'N2': '안정 휴식',
                     'N3': '깊은 휴식', 'REM': '꿈 단계'};
-      out.addAll([
+      out.add(_group([
         _subTitle('6-4. 상태 비율'),
         _zebraTable(
           headers: ['상태', '비율'],
@@ -752,12 +793,12 @@ class AiReportPdfService {
               .toList(),
           widths: {0: 1.6, 1: 1.0},
         ),
-        pw.SizedBox(height: 10),
-      ]);
-      if ((sleepE['stage_ratio']?.toString() ?? '').isNotEmpty) {
-        out.add(pw.Text(sleepE['stage_ratio'].toString(), style: _st(9.5, height: 1.6)));
-        out.add(pw.SizedBox(height: 12));
-      }
+        if ((sleepE['stage_ratio']?.toString() ?? '').isNotEmpty) ...[
+          pw.SizedBox(height: 10),
+          pw.Text(sleepE['stage_ratio'].toString(), style: _st(9.5, height: 1.6)),
+        ],
+      ]));
+      out.add(pw.SizedBox(height: 12));
     }
     if ((sleepE['resolution']?.toString() ?? '').isNotEmpty) {
       out.add(_callout(title: '교차 검증', body: sleepE['resolution'].toString(),
@@ -767,35 +808,39 @@ class AiReportPdfService {
 
     // ── 7. 임상 배경 ──────────────────────────────────────────
     if (survey.isNotEmpty || sleep.isNotEmpty) {
-      out.add(pw.NewPage());
       out.add(_chapterTitle('7', '임상 배경 — 원래 어떤 상태인가'));
     }
     if (survey.isNotEmpty) {
-      out.addAll([
+      final surveyRows = survey.map((raw) {
+        final q = raw as Map<String, dynamic>;
+        return [
+          q['label']?.toString() ?? '',
+          '${q['score'] ?? ''}',
+          q['measures']?.toString() ?? '',
+          q['reference']?.toString() ?? '',
+        ];
+      }).toList();
+      out.addAll(_titledTable(
         _subTitle('7-1. 설문 점수 (본인이 느끼는 증상)'),
         _zebraTable(
           headers: ['척도', '점수', '무엇을 재나', '기준'],
-          rows: survey.map((raw) {
-            final s = raw as Map<String, dynamic>;
-            return [
-              s['label']?.toString() ?? '',
-              '${s['score'] ?? ''}',
-              s['measures']?.toString() ?? '',
-              s['reference']?.toString() ?? '',
-            ];
-          }).toList(),
+          rows: surveyRows,
           widths: {0: 1.1, 1: 0.6, 2: 1.4, 3: 2.6},
         ),
-        pw.SizedBox(height: 10),
-      ]);
+        surveyRows.length,
+      ));
+      out.add(pw.SizedBox(height: 10));
       if ((clinical['survey']?.toString() ?? '').isNotEmpty) {
-        out.add(_callout(title: '설문 요점', body: clinical['survey'].toString(),
-            color: _kTeal, bg: _kTealBg));
+        out.add(_group([
+          _callout(title: '설문 요점', body: clinical['survey'].toString(),
+              color: _kTeal, bg: _kTealBg),
+        ]));
         out.add(pw.SizedBox(height: 16));
       }
     }
     if (sleep.isNotEmpty) {
-      out.addAll([
+      // 두 표는 5행/4행이라 제목과 함께 한 페이지에 들어간다.
+      out.add(_group([
         _subTitle('7-2. 휴식 구조 요약'),
         _zebraTable(
           headers: ['항목', '값', '의미'],
@@ -808,7 +853,9 @@ class AiReportPdfService {
           ],
           widths: {0: 1.6, 1: 1.0, 2: 2.0},
         ),
-        pw.SizedBox(height: 10),
+      ]));
+      out.add(pw.SizedBox(height: 10));
+      out.add(_group([
         _zebraTable(
           headers: ['단계', '시간', '비율'],
           rows: [
@@ -819,12 +866,12 @@ class AiReportPdfService {
           ],
           widths: {0: 1.6, 1: 1.0, 2: 1.0},
         ),
-        pw.SizedBox(height: 10),
-      ]);
-      if ((clinical['psg']?.toString() ?? '').isNotEmpty) {
-        out.add(_callout(title: '구조 요점', body: clinical['psg'].toString(),
-            color: _kTeal, bg: _kTealBg));
-      }
+        if ((clinical['psg']?.toString() ?? '').isNotEmpty) ...[
+          pw.SizedBox(height: 10),
+          _callout(title: '구조 요점', body: clinical['psg'].toString(),
+              color: _kTeal, bg: _kTealBg),
+        ],
+      ]));
       out.add(pw.SizedBox(height: 22));
     }
     return out;
@@ -838,41 +885,48 @@ class AiReportPdfService {
     final weaknesses = (s['weaknesses'] as List<dynamic>? ?? []).map((e) => e.toString()).toList();
     final conclusions = (s['conclusions'] as List<dynamic>? ?? []).map((e) => e.toString()).toList();
 
+    final tableRows = table.map((raw) {
+      final t = raw as Map<String, dynamic>;
+      return [
+        t['domain']?.toString() ?? '',
+        t['verdict']?.toString() ?? '',
+        t['key']?.toString() ?? '',
+      ];
+    }).toList();
+
     return [
       pw.NewPage(),
-      _partTitle('종합 평가'),
-      pw.Text('내 뇌는 무엇을 잘하고, 무엇을 챙기면 좋을까', style: _st(11, color: _kTeal)),
-      pw.SizedBox(height: 16),
-      if (table.isNotEmpty) ...[
-        _subTitle('영역별 한눈 정리'),
-        _zebraTable(
-          headers: ['영역', '평가', '핵심'],
-          rows: table.map((raw) {
-            final t = raw as Map<String, dynamic>;
-            return [
-              t['domain']?.toString() ?? '',
-              t['verdict']?.toString() ?? '',
-              t['key']?.toString() ?? '',
-            ];
-          }).toList(),
-          widths: {0: 1.3, 1: 0.8, 2: 3.0},
-          verdictColumn: 1,
-        ),
-        pw.SizedBox(height: 18),
-      ],
-      if (strengths.isNotEmpty) ...[
-        _subTitle('강점 — 내 뇌가 잘하는 것', color: _kStrength),
-        ...strengths.map((t) => _bullet(t, dot: _kStrength)),
-        pw.SizedBox(height: 14),
-      ],
-      if (weaknesses.isNotEmpty) ...[
-        _subTitle('약점 — 챙기면 좋은 것', color: _kWeakness),
-        ...weaknesses.map((t) => _bullet(t, dot: _kWeakness)),
-        pw.SizedBox(height: 14),
-      ],
-      if (conclusions.isNotEmpty) ...[
-        _subTitle('결론'),
-        ...List.generate(conclusions.length, (i) => pw.Padding(
+      // 마무리는 리포트의 결론부라 제목과 첫 표가 갈라지면 안 된다.
+      _group([
+        _partTitle('종합 평가'),
+        pw.Text('내 뇌는 무엇을 잘하고, 무엇을 챙기면 좋을까', style: _st(11, color: _kTeal)),
+        pw.SizedBox(height: 16),
+        if (tableRows.isNotEmpty) ...[
+          _subTitle('영역별 한눈 정리'),
+          _zebraTable(
+            headers: ['영역', '평가', '핵심'],
+            rows: tableRows,
+            widths: {0: 1.3, 1: 0.8, 2: 3.0},
+            verdictColumn: 1,
+          ),
+        ],
+      ]),
+      if (tableRows.isNotEmpty) pw.SizedBox(height: 18),
+      if (strengths.isNotEmpty)
+        _group([
+          _subTitle('강점 — 내 뇌가 잘하는 것', color: _kStrength),
+          ...strengths.map((t) => _bullet(t, dot: _kStrength)),
+          pw.SizedBox(height: 14),
+        ]),
+      if (weaknesses.isNotEmpty)
+        _group([
+          _subTitle('약점 — 챙기면 좋은 것', color: _kWeakness),
+          ...weaknesses.map((t) => _bullet(t, dot: _kWeakness)),
+          pw.SizedBox(height: 14),
+        ]),
+      if (conclusions.isNotEmpty)
+        ..._withHeader([_subTitle('결론')],
+            List.generate(conclusions.length, (i) => pw.Padding(
               padding: const pw.EdgeInsets.only(bottom: 6),
               child: pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
                 pw.Container(
@@ -881,9 +935,8 @@ class AiReportPdfService {
                 ),
                 pw.Expanded(child: pw.Text(conclusions[i], style: _st(9.5, height: 1.6))),
               ]),
-            )),
-        pw.SizedBox(height: 16),
-      ],
+            ))),
+      if (conclusions.isNotEmpty) pw.SizedBox(height: 16),
       _callout(
         title: '꼭 기억해 주세요',
         body: (s['disclaimer']?.toString() ?? '').isNotEmpty
@@ -913,6 +966,43 @@ class AiReportPdfService {
         height: height,
         fontStyle: italic ? pw.FontStyle.italic : pw.FontStyle.normal,
       );
+
+  // ─── 쪽 나눔 제어 ──────────────────────────────────────────────────
+  // MultiPage 는 build 가 돌려준 "최상위 위젯" 사이에서만 쪽을 나눈다.
+  // 따라서 잘게 쪼개 내보내면 제목만 페이지 끝에 남고 본문이 다음 쪽으로 가는
+  // 일이 생긴다. 아래 헬퍼로 논리 단위를 하나의 위젯으로 묶어 통째로 넘긴다.
+
+  /// 여러 위젯을 쪼개지지 않는 한 덩어리로 만든다.
+  ///
+  /// Column 은 쪽을 넘겨 이어질 수 없으므로 페이지 경계에서 통째로 다음 쪽으로
+  /// 이동한다. 반대로 한 페이지보다 큰 덩어리를 만들면 넘치는 부분이 잘리므로,
+  /// 확실히 한 페이지에 들어갈 것만 묶어야 한다.
+  pw.Widget _group(List<pw.Widget> children) => pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: children,
+      );
+
+  /// 제목이 페이지 끝에 홀로 남지 않게 첫 항목까지 붙여서 내보낸다.
+  ///
+  /// 전부 묶어버리면 항목이 많을 때 한 페이지를 넘겨 잘리므로, 제목 + 첫 항목만
+  /// 묶고 나머지는 자유롭게 흐르게 둔다.
+  List<pw.Widget> _withHeader(List<pw.Widget> header, List<pw.Widget> items) {
+    if (items.isEmpty) return header.isEmpty ? [] : [_group(header)];
+    return [_group([...header, items.first]), ...items.skip(1)];
+  }
+
+  /// 표 앞의 제목 처리.
+  ///
+  /// 짧은 표는 제목과 한 덩어리로 움직여야 보기 좋다. 긴 표는 묶어버리면 한
+  /// 페이지를 넘겨 잘리므로, 표가 스스로 쪽을 나눠 이어지도록 따로 둔다
+  /// (그 경우 헤더 행이 각 쪽에 반복된다).
+  ///
+  /// 기준을 8행으로 둔 이유: 셀이 3줄까지 늘어나도 8행이면 약 380pt 라
+  /// 한 페이지 본문 높이(약 730pt)에 여유 있게 들어간다.
+  List<pw.Widget> _titledTable(pw.Widget title, pw.Widget table, int rowCount) {
+    if (rowCount <= 8) return [_group([title, table])];
+    return [title, table];
+  }
 
   pw.Widget _partTitle(String text) => pw.Container(
         margin: const pw.EdgeInsets.only(bottom: 12),
@@ -1033,6 +1123,9 @@ class AiReportPdfService {
       columnWidths: cw.isEmpty ? null : cw,
       children: [
         pw.TableRow(
+          // 표가 쪽을 넘겨 이어질 때 헤더 행을 각 쪽에 다시 그린다.
+          // 없으면 두 번째 쪽부터 어떤 열이 무엇인지 알 수 없다.
+          repeat: true,
           decoration: pw.BoxDecoration(color: headerColor),
           children: headers
               .map((h) => pw.Container(
