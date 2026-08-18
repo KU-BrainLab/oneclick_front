@@ -77,47 +77,19 @@ class AiReportPdfService {
     // 만들고 있는 도중에 프론트가 먼저 끊어버려 원인을 알 수 없는 실패가 된다.
     // 서버: AI_REPORT_DEADLINE_SEC=270 < harakiri=300 < http-timeout=320 이므로
     // 여기는 그보다 큰 330초로 잡는다.
-    onStatus?.call('분석 중... (1~4분 소요)');
     final url = Uri.parse('${BASE_URL}api/v1/exp/${user.id}/ai-report/');
     final headers = {'Authorization': 'JWT ${AppService.instance.currentUser?.id}'};
 
-    Map<String, dynamic>? data;
-    String? postError;
-    try {
-      final response = await http
-          .post(url, headers: headers)
-          .timeout(const Duration(seconds: 330));
-      if (response.statusCode == 200) {
-        data = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
-      } else {
-        // 백엔드가 담아 보낸 안내 문구를 그대로 보여준다. 특히 503(일시 과부하)일 때
-        // "잠시 후 다시 시도하면 된다"는 걸 사용자가 알아야 한다.
-        postError = '서버 오류 ${response.statusCode}';
-        try {
-          final body = jsonDecode(utf8.decode(response.bodyBytes));
-          if (body is Map && body['error'] is String) {
-            postError = body['error'] as String;
-          }
-        } catch (_) {
-          // 본문이 JSON 이 아니면 상태코드만 보여준다.
-        }
-        // 서버가 명확히 거절한 경우다. 폴링해봐야 결과가 생길 리 없다.
-        throw Exception(postError);
-      }
-    } on TimeoutException {
-      postError = null; // 아래에서 폴링으로 회수를 시도한다
-    } catch (e) {
-      // 연결이 끊겼을 수 있다. 서버는 계속 만들고 있을 것이므로 여기서 포기하지
-      // 않는다. 다만 위에서 명시적으로 던진 서버 거절은 그대로 올려보낸다.
-      if (postError != null) rethrow;
-    }
+    // 리포트는 측정을 올릴 때 미리 만들어 서버에 저장된다. 그래서 보통은 이
+    // GET 한 번으로 즉시 끝난다. 예전처럼 여기서 3~4분을 기다리지 않는다.
+    onStatus?.call('리포트 불러오는 중...');
+    Map<String, dynamic>? data = await _fetchSaved(url, headers);
 
-    // 생성에 3분 넘게 걸리는 동안 연결에는 한 바이트도 흐르지 않는다. 중간의
-    // 공유기·방화벽이 그런 유휴 세션을 끊어버리면, 서버는 리포트를 다 만들고도
-    // 전달만 실패한다. 서버가 결과를 캐시에 남기므로 짧은 GET 으로 회수한다.
     if (data == null) {
-      onStatus?.call('연결이 끊겼습니다. 결과를 다시 받아오는 중...');
-      data = await _pollForReport(url, headers, onStatus: onStatus);
+      // 아직 없는 측정이다(업로드 당시 생성이 실패했거나 옛 데이터).
+      // 이 경우에만 지금 만든다.
+      onStatus?.call('저장된 리포트가 없어 새로 만듭니다... (3~4분 소요)');
+      data = await _generateNow(url, headers, onStatus: onStatus);
     }
     if (data == null) {
       throw Exception('리포트를 받아오지 못했습니다. 잠시 후 다시 시도해 주세요.');
@@ -142,6 +114,58 @@ class AiReportPdfService {
       anchor.remove();
       html.Url.revokeObjectUrl(objUrl);
     });
+  }
+
+  /// 저장된 리포트를 한 번 가져온다. 없으면 null.
+  Future<Map<String, dynamic>?> _fetchSaved(
+      Uri url, Map<String, String> headers) async {
+    try {
+      final r = await http.get(url, headers: headers)
+          .timeout(const Duration(seconds: 30));
+      if (r.statusCode == 200) {
+        return jsonDecode(utf8.decode(r.bodyBytes)) as Map<String, dynamic>;
+      }
+    } catch (_) {
+      // 못 받으면 아래에서 생성 경로로 넘어간다.
+    }
+    return null;
+  }
+
+  /// 저장된 리포트가 없을 때만 쓰는 생성 경로.
+  ///
+  /// 생성에는 3~4분이 걸리고 그동안 연결에 한 바이트도 흐르지 않아, 중간
+  /// 장비가 유휴 세션을 끊는 일이 있다. 서버는 결과를 DB 에 저장하므로
+  /// 끊기면 짧은 GET 으로 회수한다.
+  Future<Map<String, dynamic>?> _generateNow(
+    Uri url,
+    Map<String, String> headers, {
+    void Function(String)? onStatus,
+  }) async {
+    try {
+      final r = await http.post(url, headers: headers)
+          .timeout(const Duration(seconds: 330));
+      if (r.statusCode == 200) {
+        return jsonDecode(utf8.decode(r.bodyBytes)) as Map<String, dynamic>;
+      }
+      if (r.statusCode == 202) {
+        // 다른 요청이 이미 만들고 있다. 기다렸다 받아가면 된다.
+        onStatus?.call('다른 곳에서 생성 중입니다. 기다리는 중...');
+        return _pollForReport(url, headers, onStatus: onStatus);
+      }
+      // 서버가 명확히 거절한 경우다. 폴링해도 결과가 생기지 않는다.
+      String message = '서버 오류 ${r.statusCode}';
+      try {
+        final body = jsonDecode(utf8.decode(r.bodyBytes));
+        if (body is Map && body['error'] is String) {
+          message = body['error'] as String;
+        }
+      } catch (_) {}
+      throw Exception(message);
+    } on TimeoutException {
+      // 서버는 계속 만들고 있다. 아래에서 회수한다.
+    }
+    onStatus?.call('연결이 끊겼습니다. 결과를 다시 받아오는 중...');
+    return _pollForReport(url, headers, onStatus: onStatus);
   }
 
   /// 서버가 저장해 둔 리포트를 짧은 GET 으로 회수한다.
