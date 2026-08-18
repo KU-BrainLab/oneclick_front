@@ -252,9 +252,16 @@ class AiReportPdfService {
     final summary  = ai['summary']  as Map<String, dynamic>? ?? {};
 
     // 그림 일괄 다운로드 (고정 레이아웃이라 필요한 것이 미리 정해져 있다)
+    // 고정 레이아웃이 실제로 그리는 것만 받는다. figures 트리를 통째로 훑으면
+    // 렌더하지 않는 종류까지 받아 요청 수십 건이 그대로 낭비된다.
     final urls = <String>{};
-    _collectUrls(figures, urls);
-    _collectUrls(data['hrv_images'], urls);
+    for (final k in ['topography', 'connectivity', 'faa', 'spectrogram']) {
+      _collectUrls(figures[k], urls);
+    }
+    for (final h in (data['hrv_images'] as List<dynamic>? ?? [])) {
+      final u = (h as Map<String, dynamic>)['heart_rate'];
+      if (u is String && u.isNotEmpty) urls.add(u);
+    }
     final imgs = await _fetchMany(urls);
     pw.ImageProvider? img(String? u) => u == null ? null : imgs[u];
 
@@ -301,7 +308,6 @@ class AiReportPdfService {
           sleep: sleep,
           survey: survey,
           figures: figures,
-          bands: bands,
           img: img,
         ),
         ..._summarySection(summary),
@@ -630,7 +636,6 @@ class AiReportPdfService {
     required Map<String, dynamic> sleep,
     required List<dynamic> survey,
     required Map<String, dynamic> figures,
-    required List<dynamic> bands,
     required pw.ImageProvider? Function(String?) img,
   }) {
     final hrv = evidence['hrv'] as Map<String, dynamic>? ?? {};
@@ -680,12 +685,18 @@ class AiReportPdfService {
       final notes = <String, String>{};
       for (final raw in (hrv['phase_notes'] as List<dynamic>? ?? [])) {
         final n = raw as Map<String, dynamic>;
-        notes[n['phase_ko']?.toString() ?? ''] = n['note']?.toString() ?? '';
+        // 백엔드가 영문 키(baseline 등)로 달라고 지시한다. 한글 라벨로 맞추면
+        // 표기가 조금만 달라도 조회가 빗나가 '한 줄 해석' 열이 통째로 빈다.
+        final k = (n['phase'] ?? n['phase_ko'] ?? '').toString().toLowerCase();
+        notes[k] = n['note']?.toString() ?? '';
       }
       final hrvRows = hrvPhases.map((raw) {
         final p = raw as Map<String, dynamic>;
         final ko = p['name_ko']?.toString() ?? '';
-        return [ko, _num(p['rmssd']), _num(p['lh_ratio']), notes[ko] ?? ''];
+        // 영문 키(baseline 등)로 먼저 찾고, 옛 응답 호환으로 한글 라벨도 본다.
+        final key = (p['name'] ?? '').toString().toLowerCase();
+        return [ko, _num(p['rmssd']), _num(p['lh_ratio']),
+                notes[key] ?? notes[ko] ?? ''];
       }).toList();
       out.addAll(_titledTable(
         _subTitle('구간별 핵심 숫자'),
@@ -723,7 +734,8 @@ class AiReportPdfService {
     final captions = <String, String>{};
     for (final raw in (eegE['band_captions'] as List<dynamic>? ?? [])) {
       final c = raw as Map<String, dynamic>;
-      captions[c['band']?.toString() ?? ''] = c['caption']?.toString() ?? '';
+      captions[(c['band'] ?? '').toString().toLowerCase()] =
+          c['caption']?.toString() ?? '';
     }
     final topo = figures['topography'] as Map<String, dynamic>? ?? {};
     final conn = figures['connectivity'] as Map<String, dynamic>? ?? {};
@@ -1148,17 +1160,19 @@ class AiReportPdfService {
         child: pw.Text(text, style: _st(8, bold: true, color: _verdictColor(text))),
       );
 
+  // 주의 계열을 먼저 본다. '강점이자 함정' 처럼 두 단어가 같이 오는 판정이
+  // 있어서, 강점을 먼저 검사하면 함정인데 초록으로 칠해진다.
   PdfColor _verdictColor(String v) {
+    if (v.contains('함정') || v.contains('예민') || v.contains('주의')) return _kCaution;
     if (v.contains('약점')) return _kWeakness;
     if (v.contains('강점')) return _kStrength;
-    if (v.contains('예민') || v.contains('주의') || v.contains('함정')) return _kCaution;
     return _kTeal;
   }
 
   PdfColor _verdictBg(String v) {
+    if (v.contains('함정') || v.contains('예민') || v.contains('주의')) return _kCautionBg;
     if (v.contains('약점')) return _kWeaknessBg;
     if (v.contains('강점')) return _kStrengthBg;
-    if (v.contains('예민') || v.contains('주의') || v.contains('함정')) return _kCautionBg;
     return _kTealBg;
   }
 
