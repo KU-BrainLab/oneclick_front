@@ -16,6 +16,7 @@ import 'package:omnifit_front/models/hypnogram_model.dart';
 import 'package:omnifit_front/models/multi_color_line_chart_model.dart';
 import 'package:omnifit_front/models/related_psd_model.dart';
 import 'package:omnifit_front/models/survey_model.dart';
+import 'package:omnifit_front/models/survey_scales.dart';
 import 'package:omnifit_front/models/topography_model.dart';
 import 'package:omnifit_front/page/users_page_report.dart';
 import 'package:omnifit_front/service/app_service.dart';
@@ -54,8 +55,8 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
   Map<String, dynamic>? _spindleCoupling;
 
   // Survey
-  List<_SalesData> psqiList = [];
-  List<_SalesData> isiList = [];
+  /// 척도 라벨 -> 측정 시점별 점수. surveyScales 순서대로 그린다.
+  final Map<String, List<_SalesData>> surveyData = {};
 
   // HRV
   Graph1Model? nniModel;
@@ -128,11 +129,14 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
         final survey = SurveyModel.fromJson(value);
         if (survey.measuementDate == null) continue;
         final dateStr = DateFormat("yy.MM.dd").format(survey.measuementDate!);
-        if (survey.questionnaire.psql != null) {
-          psqiList.add(_SalesData(dateStr, double.parse(survey.questionnaire.psql!)));
-        }
-        if (survey.questionnaire.isi != null) {
-          isiList.add(_SalesData(dateStr, double.parse(survey.questionnaire.isi!)));
+        for (final scale in surveyScales) {
+          final raw = scale.read(survey.questionnaire);
+          if (raw == null) continue;
+          final v = double.tryParse(raw);
+          // 숫자로 못 읽는 값은 건너뛴다. 예전에는 double.parse 가 던져서
+          // 척도 하나가 이상하면 그 뒤 측정이 통째로 유실됐다.
+          if (v == null) continue;
+          surveyData.putIfAbsent(scale.label, () => []).add(_SalesData(dateStr, v));
         }
       }
     } catch (e) {
@@ -347,43 +351,14 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
                         // 6. PSQI / ISI
                         _sectionTitle("Questionnaire"),
                         const SizedBox(height: 16),
-                        if (psqiList.isNotEmpty)
-                          _buildSurveyChart("PSQI-K", psqiList, 25, [
-                            PlotBand(
-                                isVisible: true,
-                                color: const Color(0xff6db290).withAlpha(102),
-                                start: -1,
-                                end: 8),
-                            PlotBand(
-                                isVisible: true,
-                                color: const Color(0xFF44948f).withAlpha(102),
-                                start: 8,
-                                end: 26),
-                          ])
-                        else
-                          const Center(child: Text("PSQI 데이터 없음")),
-                        if (isiList.isNotEmpty) ...[
+                        // 척도 목록은 survey_scales.dart 한 곳에서 정한다.
+                        // 여기에 하드코딩하면 통합/FC 두 리포트가 어긋난다.
+                        for (final scale in surveyScales) ...[
+                          if ((surveyData[scale.label] ?? []).isNotEmpty)
+                            _buildSurveyChart(scale, surveyData[scale.label]!)
+                          else
+                            Center(child: Text("${scale.label} 데이터 없음")),
                           const SizedBox(height: 20),
-                          _buildSurveyChart("ISI", isiList, 35, [
-                            PlotBand(
-                                isVisible: true,
-                                color: const Color(0xff6db290).withAlpha(102),
-                                start: -1,
-                                end: 7),
-                            PlotBand(
-                                isVisible: true,
-                                color: const Color(0xFF44948f).withAlpha(102),
-                                start: 7,
-                                end: 15),
-                            PlotBand(
-                                isVisible: true,
-                                color: const Color(0xFF24768b).withAlpha(102),
-                                start: 15,
-                                end: 36),
-                          ]),
-                        ] else ...[
-                          const SizedBox(height: 8),
-                          const Center(child: Text("ISI 데이터 없음")),
                         ],
 
                         // ── 강제 페이지 분리 마커 ──
@@ -640,11 +615,13 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
     );
   }
 
-  Widget _buildSurveyChart(
-      String title, List<_SalesData> list, double maximum, List<PlotBand> plotBands) {
+  Widget _buildSurveyChart(SurveyScale scale, List<_SalesData> list) {
+    final title = scale.label;
     return SfCartesianChart(
       primaryXAxis: const CategoryAxis(),
-      primaryYAxis: NumericAxis(maximum: maximum, minimum: 0, interval: 5, plotBands: plotBands),
+      primaryYAxis: NumericAxis(
+          maximum: scale.max, minimum: 0, interval: scale.interval,
+          plotBands: bandsFor(scale)),
       title: ChartTitle(text: title),
       series: <LineSeries<_SalesData, String>>[
         LineSeries<_SalesData, String>(
