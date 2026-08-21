@@ -479,6 +479,8 @@ Future<Uint8List> _buildPdfBytesWorker(_PdfBuildParams params) async {
   // 강제 페이지 분리 마커 밴드 탐색 (Color 0xFFFF0080 = hot-pink)
   // pixelRatio가 비정수라 마커 위/아래에 안티앨리어싱 블렌드 행이 남는다 → 밴드로 확장한다.
   final List<_MarkerBand> bands = _findMarkerBands(full);
+  // 차트처럼 잘리면 안 되는 요소 앞에 놓인 '잘라도 되는 지점' 표시.
+  final List<int> hints = _findBreakHints(full);
 
   // 슬라이싱 전에 모든 마커 밴드를 흰색으로 덮는다.
   // 행 인덱스는 그대로 유지되므로 밴드 start를 분리점으로 계속 사용할 수 있고,
@@ -531,9 +533,18 @@ Future<Uint8List> _buildPdfBytesWorker(_PdfBuildParams params) async {
       cutY = full.height;
       nextY = full.height;
     } else {
-      // 안전 절단선도 idealEnd 이하로 클램프 (초과분은 어차피 흰 여백이라 무손실)
-      cutY = _findSafeCutRow(full, idealEnd, searchWindow).clamp(y + 1, idealEnd);
-      nextY = cutY;
+      // 강제 마커가 없으면 힌트를 본다. 힌트는 "여기서 잘라도 된다"는 표시라
+      // 차트를 관통하지 않는 것이 보장된다. 여백 탐색은 그것도 없을 때의 폴백이다.
+      final int? hint =
+          _lastHintInRange(hints, y, idealEnd, minForcedSliceHeightPx);
+      if (hint != null) {
+        cutY = hint;
+        nextY = hint;
+      } else {
+        // 안전 절단선도 idealEnd 이하로 클램프 (초과분은 어차피 흰 여백이라 무손실)
+        cutY = _findSafeCutRow(full, idealEnd, searchWindow).clamp(y + 1, idealEnd);
+        nextY = cutY;
+      }
     }
 
     // 불변식: h는 절대 idealSliceHeightPx를 넘지 않는다
@@ -624,6 +635,56 @@ bool _isPureMarkerRow(img.Image image, int y) {
 ///
 /// 확장은 순수 밴드에 인접한 경우에만, 한쪽당 최대 [_kMaxTintExpandRows]행까지 허용하므로
 /// 설령 어떤 행이 이 술어를 통과해도 마커에 붙어 있지 않으면 영향이 없다.
+/// 페이지 나눔 힌트 행인지.
+///
+/// PageBreakHint 가 칠하는 색(254,255,254)을 찾는다. 눈에는 흰색이지만
+/// 녹색이 1 높아서 순수 흰색(255,255,255)과 구분된다. 실제 콘텐츠가 이 조합을
+/// 만들 일은 없다 — 흰 배경은 r==g==b 이고, 차트 색은 이보다 훨씬 어둡다.
+bool _isBreakHintRow(img.Image image, int y) {
+  int hit = 0, total = 0;
+  for (int x = 0; x < image.width; x += 4) {
+    final p = image.getPixel(x, y);
+    final num r = p.r, g = p.g, b = p.b;
+    if (r >= 250 && b >= 250 && g >= 253 && g > r && g > b) hit++;
+    total++;
+  }
+  // 힌트는 가로 전체를 채우므로 대부분이 맞아야 한다. 안티앨리어싱으로
+  // 양끝이 흐려질 수 있어 80%로 둔다.
+  return total > 0 && hit * 100 >= total * 80;
+}
+
+/// 힌트 행들의 시작 위치 목록(오름차순). 연속 행은 하나로 묶는다.
+List<int> _findBreakHints(img.Image image) {
+  final List<int> hints = [];
+  int row = 0;
+  while (row < image.height) {
+    if (!_isBreakHintRow(image, row)) {
+      row++;
+      continue;
+    }
+    hints.add(row);
+    while (row < image.height && _isBreakHintRow(image, row)) {
+      row++;
+    }
+  }
+  return hints;
+}
+
+/// (y, idealEnd] 안에서 【마지막】 힌트를 고른다.
+///
+/// 첫 힌트를 고르면 페이지가 일찍 끊겨 여백만 남는다. 마지막을 골라야
+/// 들어갈 수 있는 만큼 채우고 그 다음에서 끊긴다.
+int? _lastHintInRange(List<int> hints, int y, int idealEnd, int minSliceHeight) {
+  int? best;
+  for (final h in hints) {
+    if (h <= y) continue;
+    if (h > idealEnd) break; // 오름차순
+    if (h - y < minSliceHeight) continue; // 거의 빈 페이지 방지
+    best = h;
+  }
+  return best;
+}
+
 bool _isMarkerTintRow(img.Image image, int y) {
   int hit = 0, total = 0;
   for (int x = 0; x < image.width; x += 4) {

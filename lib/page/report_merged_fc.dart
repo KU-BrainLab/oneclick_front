@@ -17,6 +17,7 @@ import 'package:omnifit_front/models/multi_color_line_chart_model.dart';
 import 'package:omnifit_front/models/related_psd_model.dart';
 import 'package:omnifit_front/models/survey_model.dart';
 import 'package:omnifit_front/models/survey_scales.dart';
+import 'package:omnifit_front/widget/page_break_hint.dart';
 import 'package:omnifit_front/models/topography_model.dart';
 import 'package:omnifit_front/page/users_page_report.dart';
 import 'package:omnifit_front/service/app_service.dart';
@@ -354,6 +355,9 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
                         // 척도 목록은 survey_scales.dart 한 곳에서 정한다.
                         // 여기에 하드코딩하면 통합/FC 두 리포트가 어긋난다.
                         for (final scale in surveyScales) ...[
+                          // 차트가 페이지 경계에서 잘리지 않게, 차트 앞을
+                          // 나눠도 되는 지점으로 표시해 둔다.
+                          const PageBreakHint(),
                           if ((surveyData[scale.label] ?? []).isNotEmpty)
                             _buildSurveyChart(scale, surveyData[scale.label]!)
                           else
