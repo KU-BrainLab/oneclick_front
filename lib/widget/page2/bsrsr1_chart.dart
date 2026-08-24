@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:omnifit_front/constants/constants.dart';
 import 'package:omnifit_front/models/connectivity_model.dart';
 import 'package:omnifit_front/models/diff_connectivity_model.dart';
-import 'package:omnifit_front/models/topography_model.dart';
 
 class Bsrsr1ChartWidget extends StatefulWidget {
   final List<ConnectivityModel> connectivityList;
