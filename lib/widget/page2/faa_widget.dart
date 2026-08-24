@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:omnifit_front/constants/constants.dart';
 import 'package:omnifit_front/models/faa_model.dart';
+import 'package:omnifit_front/models/phase_defs.dart';
 
 class FaaWidget extends StatelessWidget {
   final FaaModel model;
@@ -50,16 +51,21 @@ class FaaWidget extends StatelessWidget {
   }
 
   Widget _buildTab(BuildContext context) {
-    final double imgWidth = phaseCount >= 5 ? 130.0 : phaseCount >= 3 ? 180.0 : 250.0;
+    // phase 열 구성은 phase_defs.dart 한 곳에서만 정의한다.
+    final phases = phaseSeqFor(phaseCount);
+    final double imgWidth = phaseCount >= 6
+        ? 110.0
+        : phaseCount >= 5
+            ? 130.0
+            : phaseCount >= 3
+                ? 180.0
+                : 250.0;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         const SizedBox(width: 20),
-        _phaseColumn(context, "Baseline",     model.faa_baseline,     imgWidth),
-        if (phaseCount >= 3) _phaseColumn(context, "Stimulation1", model.faa_stimulation1, imgWidth),
-        if (phaseCount >= 3) _phaseColumn(context, "Recovery1",    model.faa_recovery1,    imgWidth),
-        if (phaseCount >= 5) _phaseColumn(context, "Stimulation2", model.faa_stimulation2, imgWidth),
-        if (phaseCount >= 5) _phaseColumn(context, "Recovery2",    model.faa_recovery2,    imgWidth),
+        for (final p in phases)
+          _phaseColumn(context, p.label, model.byKey(p.key), imgWidth),
         const SizedBox(width: 20),
       ],
     );

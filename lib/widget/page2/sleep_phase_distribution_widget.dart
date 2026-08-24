@@ -15,7 +15,7 @@ class SleepPhaseDistributionWidget extends StatelessWidget {
       Color(0xFF93C947), // REM
     ];
 
-    final phases = SleepPhaseDistributionModel.phaseLabels;
+    final phases = model.phaseLabels;
     final stages = SleepPhaseDistributionModel.stageLabels;
 
     return List.generate(stages.length, (si) {

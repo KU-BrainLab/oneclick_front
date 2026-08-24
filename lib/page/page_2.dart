@@ -122,17 +122,22 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
         final triggerList = valueMap['trigger'] as List<dynamic>?;
         if (triggerList != null) {
           final len = triggerList.length - 1;
-          if (len >= 5) phaseCount = 5;
+          if (len >= 6) phaseCount = 6;
+          else if (len >= 5) phaseCount = 5;
           else if (len >= 3) phaseCount = 3;
           else phaseCount = 1;
         } else {
+          final hasStim3 = valueMap['stimulation3'] != null &&
+              valueMap['stimulation3'] is Map &&
+              (valueMap['stimulation3'] as Map).isNotEmpty;
           final hasStim2 = valueMap['stimulation2'] != null &&
               valueMap['stimulation2'] is Map &&
               (valueMap['stimulation2'] as Map).isNotEmpty;
           final hasStim1 = valueMap['stimulation1'] != null &&
               valueMap['stimulation1'] is Map &&
               (valueMap['stimulation1'] as Map).isNotEmpty;
-          if (hasStim2) phaseCount = 5;
+          if (hasStim3) phaseCount = 6;
+          else if (hasStim2) phaseCount = 5;
           else if (hasStim1) phaseCount = 3;
           else phaseCount = 1;
         }

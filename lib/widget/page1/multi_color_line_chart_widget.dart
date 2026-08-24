@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:omnifit_front/models/multi_color_line_chart_model.dart';
+import 'package:omnifit_front/models/phase_defs.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 class MultiColorLineChartWidget extends StatelessWidget {
@@ -13,6 +14,11 @@ class MultiColorLineChartWidget extends StatelessWidget {
     required this.model,
     required this.maxX,
   }) : super(key: key);
+
+  String _segmentLabel(int s) {
+    final seq = phaseSeqFor(phaseCountFromBoundaries(model.intervalX.length));
+    return s < seq.length ? seq[s].spaced : 'Phase ${s + 1}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,61 +57,21 @@ class MultiColorLineChartWidget extends StatelessWidget {
             width: 140,
             child: Column(
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 2,
-                      color: Colors.red,
-                    ),
-                    const Spacer(),
-                    const Text("Baseline", style: TextStyle(fontSize: 10)),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 2,
-                      color: Colors.orange,
-                    ),
-                    const Spacer(),
-                    const Text("Stimulation 1", style: TextStyle(fontSize: 10)),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 2,
-                      color: Colors.yellow,
-                    ),
-                    const Spacer(),
-                    const Text("Recovery 1", style: TextStyle(fontSize: 10)),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 2,
-                      color: Colors.green,
-                    ),
-                    const Spacer(),
-                    const Text("Stimulation 2", style: TextStyle(fontSize: 10)),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 2,
-                      color: Colors.blue,
-                    ),
-                    const Spacer(),
-                    const Text("Recovery 2", style: TextStyle(fontSize: 10)),
-                  ],
-                ),
+                // 세그먼트 수(= phase 수)에 맞춰 범례를 만든다. 색은 차트의
+                // 세그먼트 색(kSegmentColors)과 같은 순서다.
+                for (int s = 0; s < model.intervalX.length - 1; s++)
+                  Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 2,
+                        color: kSegmentColors[s % kSegmentColors.length],
+                      ),
+                      const Spacer(),
+                      Text(_segmentLabel(s),
+                          style: const TextStyle(fontSize: 10)),
+                    ],
+                  ),
               ],
             ),
           ),

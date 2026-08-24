@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:omnifit_front/models/phase_defs.dart';
 
 class MultiColorLineChartModel {
   List<ChartData> dataList;
@@ -24,7 +25,8 @@ class MultiColorLineChartModel {
       return MultiColorLineChartModel(dataList: [], intervalX: [], intervalY: 1, minX: 0, maxX: finalAxisMaxX, minY: 0, maxY: 1);
     }
 
-    List<Color> colors = [Colors.red, Colors.orange, Colors.yellow, Colors.green, Colors.blue];
+    // 6-phase 에서 6번째 구간이 1번째와 같은 색으로 순환하지 않도록 공용 팔레트 사용
+    List<Color> colors = kSegmentColors;
     List<ChartData> dataList = [];
     
     double overallMinY = 99999;

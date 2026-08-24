@@ -469,6 +469,9 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
       if (topo.recovery1 != null) ('Recovery1', topo.recovery1),
       if (topo.stimulation2 != null) ('Stimulation2', topo.stimulation2),
       if (topo.recovery2 != null) ('Recovery2', topo.recovery2),
+      if (topo.stimulation3 != null) ('Stimulation3', topo.stimulation3),
+      if (topo.stimulation4 != null) ('Stimulation4', topo.stimulation4),
+      if (topo.recovery != null) ('Recovery', topo.recovery),
     ];
     return _buildImageRow(phases);
   }
@@ -480,6 +483,9 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
       if (conn.recovery1 != null) ('Recovery1', conn.recovery1),
       if (conn.stimulation2 != null) ('Stimulation2', conn.stimulation2),
       if (conn.recovery2 != null) ('Recovery2', conn.recovery2),
+      if (conn.stimulation3 != null) ('Stimulation3', conn.stimulation3),
+      if (conn.stimulation4 != null) ('Stimulation4', conn.stimulation4),
+      if (conn.recovery != null) ('Recovery', conn.recovery),
     ];
     return _buildImageRow(phases);
   }
@@ -491,6 +497,9 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
       if (conn2.recovery1 != null) ('Recovery1', conn2.recovery1),
       if (conn2.stimulation2 != null) ('Stimulation2', conn2.stimulation2),
       if (conn2.recovery2 != null) ('Recovery2', conn2.recovery2),
+      if (conn2.stimulation3 != null) ('Stimulation3', conn2.stimulation3),
+      if (conn2.stimulation4 != null) ('Stimulation4', conn2.stimulation4),
+      if (conn2.recovery != null) ('Recovery', conn2.recovery),
     ];
     return _buildImageRow(phases);
   }
@@ -507,15 +516,21 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
               children: [
                 MouseRegion(
                   cursor: SystemMouseCursors.click,
+                  // 6열이면 900px 폭을 넘지 않게 칸을 줄인다.
                   child: phase.$2 != null
                       ? Image.network(
                           "$BASE_URL${phase.$2}",
-                          width: 150,
+                          width: phases.length >= 6 ? 120 : 150,
                           filterQuality: FilterQuality.high,
-                          errorBuilder: (_, __, ___) =>
-                              const SizedBox(width: 150, height: 150, child: Center(child: Text("No data"))),
+                          errorBuilder: (_, __, ___) => SizedBox(
+                              width: phases.length >= 6 ? 120 : 150,
+                              height: phases.length >= 6 ? 120 : 150,
+                              child: const Center(child: Text("No data"))),
                         )
-                      : const SizedBox(width: 150, height: 150, child: Center(child: Text("No data"))),
+                      : SizedBox(
+                          width: phases.length >= 6 ? 120 : 150,
+                          height: phases.length >= 6 ? 120 : 150,
+                          child: const Center(child: Text("No data"))),
                 ),
                 Text(phase.$1),
               ],
@@ -527,8 +542,11 @@ class _ReportMergedFcState extends State<ReportMergedFc> {
   }
 
   Widget _buildSpindleCouplingTable() {
-    const phaseOrder = ['baseline', 'stimulation1', 'recovery1', 'stimulation2', 'recovery2'];
-    const phaseLabels = ['Baseline', 'Stim1', 'Rec1', 'Stim2', 'Rec2'];
+    // 5/6-phase 키의 합집합(시간 순서). payload 에 있는 것만 열이 된다.
+    const phaseOrder = ['baseline', 'stimulation1', 'recovery1', 'stimulation2',
+        'recovery2', 'stimulation3', 'stimulation4', 'recovery'];
+    const phaseLabels = ['Baseline', 'Stim1', 'Rec1', 'Stim2', 'Rec2',
+        'Stim3', 'Stim4', 'Rec'];
     // Coupled/min 이 머리 지표. phase 길이가 제각각이라 개수만으로는 비교가 안 된다.
     // Duration 은 그 분모(해당 phase 안에서 이 stage 로 잡힌 시간)라 함께 봐야 해석이 된다.
     const rowLabels = ['Coupled/min', 'Coupled Ratio', 'MRL', 'Mean Phase (°)', 'n_SO', 'n_Spindle', 'n_Coupled', 'Duration (min)'];

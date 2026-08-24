@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:omnifit_front/models/phase_defs.dart';
 import 'package:omnifit_front/constants/constants.dart';
 import 'package:omnifit_front/models/diff_stage_connectivity_model.dart';
 import 'package:omnifit_front/models/diff_stage_topography_model.dart';
@@ -37,28 +38,19 @@ class _DiffStageWidgetState extends State<DiffStageWidget> {
   @override
   void initState() {
     super.initState();
-    _phases = widget.phaseCount >= 5 ? _allPhases : _allPhases.sublist(0, 2);
+    // diff 슬롯(diff1~5)은 위치 기반이라 모드마다 뜻이 다르다 — 라벨은
+    // 반드시 phase_defs.dart 에서 가져온다. (1-phase 는 diff 가 없지만
+    // 기존 동작대로 앞 두 칸을 보여준다: 데이터가 없으면 "No data".)
+    final diffs = diffSeqFor(widget.phaseCount);
+    _phases = diffs.isNotEmpty
+        ? [for (final d in diffs) d.short]
+        : _allPhases.sublist(0, 2);
   }
 
-  String? _getPhaseField(DiffStageTopographyModel m) {
-    switch (_phaseIndex) {
-      case 0: return m.diff1;
-      case 1: return m.diff2;
-      case 2: return m.diff3;
-      case 3: return m.diff4;
-      default: return null;
-    }
-  }
+  String? _getPhaseField(DiffStageTopographyModel m) => m.byIndex(_phaseIndex);
 
-  String? _getPhaseFieldConn(DiffStageConnectivityModel m) {
-    switch (_phaseIndex) {
-      case 0: return m.diff1;
-      case 1: return m.diff2;
-      case 2: return m.diff3;
-      case 3: return m.diff4;
-      default: return null;
-    }
-  }
+  String? _getPhaseFieldConn(DiffStageConnectivityModel m) =>
+      m.byIndex(_phaseIndex);
 
   Widget _tabButton(String label, int current, int target, void Function(int) onTap) {
     return MouseRegion(

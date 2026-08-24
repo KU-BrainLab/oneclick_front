@@ -38,10 +38,15 @@ const _kBandLabel = {
   'delta': 'Delta', 'theta': 'Theta', 'alpha': 'Alpha',
   'sigma': 'Sigma', 'beta': 'Beta', 'gamma': 'Gamma',
 };
-const _kPhaseOrder = ['baseline', 'stimulation1', 'recovery1', 'stimulation2', 'recovery2'];
+// 5/6-phase 키의 합집합(시간 순서). 세션에 없는 phase 의 그림은 null 이라
+// 그리는 쪽에서 걸러지고, 남은 것의 순서가 어느 모드든 올바르다.
+// 백엔드 CONNECTIVITY_PHASES 와 문자열까지 일치해야 한다.
+const _kPhaseOrder = ['baseline', 'stimulation1', 'recovery1', 'stimulation2',
+    'recovery2', 'stimulation3', 'stimulation4', 'recovery'];
 const _kPhaseLabel = {
   'baseline': '기준', 'stimulation1': '1차 자극', 'recovery1': '1차 회복',
   'stimulation2': '2차 자극', 'recovery2': '2차 회복',
+  'stimulation3': '3차 자극', 'stimulation4': '4차 자극', 'recovery': '회복',
 };
 
 class AiReportPdfService {

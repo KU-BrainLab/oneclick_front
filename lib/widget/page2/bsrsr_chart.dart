@@ -1,3 +1,4 @@
+import 'package:omnifit_front/models/phase_defs.dart';
 import 'package:flutter/material.dart';
 import 'package:omnifit_front/constants/constants.dart';
 import 'package:omnifit_front/models/diff_topography_model.dart';
@@ -91,9 +92,21 @@ class _BsrsrChartWidgetState extends State<BsrsrChartWidget> {
     );
   }
 
-  double get _imgWidth => widget.phaseCount >= 5 ? 130.0 : 190.0;
+  // 6열(6-phase)이 한 줄에 들어가도록 열 수에 따라 줄인다.
+  double get _imgWidth => widget.phaseCount >= 6
+      ? 110.0
+      : widget.phaseCount >= 5
+          ? 130.0
+          : 190.0;
 
   Widget _buildTab() {
+    // phase 열과 diff 열은 모드(1/3/5/6-phase)마다 구성이 다르다.
+    // 목록·라벨은 phase_defs.dart 한 곳에서만 정의한다.
+    final phases = phaseSeqFor(widget.phaseCount);
+    final diffs = diffSeqFor(widget.phaseCount);
+    final model = widget.topographyList[index];
+    final diffModel =
+        widget.diffTopographyList.isNotEmpty ? widget.diffTopographyList[index] : null;
     return Column(
       children: [
         const SizedBox(height: 20),
@@ -101,78 +114,31 @@ class _BsrsrChartWidgetState extends State<BsrsrChartWidget> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const SizedBox(width: 20),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _networkImage(widget.topographyList[index].baseline),
-                const Text("Baseline"),
-              ],
-            ),
-            if (widget.phaseCount >= 3) Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _networkImage(widget.topographyList[index].stimulation1),
-                const Text("Stimulation1"),
-              ],
-            ),
-            if (widget.phaseCount >= 3) Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _networkImage(widget.topographyList[index].recovery1),
-                const Text("Recovery1"),
-              ],
-            ),
-            if (widget.phaseCount >= 5) Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _networkImage(widget.topographyList[index].stimulation2),
-                const Text("Stimulation2"),
-              ],
-            ),
-            if (widget.phaseCount >= 5) Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _networkImage(widget.topographyList[index].recovery2),
-                const Text("Recovery2"),
-              ],
-            ),
+            for (final p in phases)
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _networkImage(model.byKey(p.key)),
+                  Text(p.label),
+                ],
+              ),
             const SizedBox(width: 20),
           ],
         ),
-        if(widget.diffTopographyList.isNotEmpty && widget.phaseCount >= 3) const SizedBox(height: 20),
-        if(widget.diffTopographyList.isNotEmpty && widget.phaseCount >= 3)
+        if (diffModel != null && diffs.isNotEmpty) const SizedBox(height: 20),
+        if (diffModel != null && diffs.isNotEmpty)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               const SizedBox(width: 20),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _networkImage(widget.diffTopographyList[index].diff1),
-                  const Text("Stimulation1-Baseline"),
-                ],
-              ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _networkImage(widget.diffTopographyList[index].diff2),
-                  const Text("Recovery1-Stimulation1"),
-                ],
-              ),
-              if (widget.phaseCount >= 5) Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _networkImage(widget.diffTopographyList[index].diff3),
-                  const Text("Stimulation2-Recovery1"),
-                ],
-              ),
-              if (widget.phaseCount >= 5) Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _networkImage(widget.diffTopographyList[index].diff4),
-                  const Text("Recovery2-Stimulation2"),
-                ],
-              ),
+              for (final d in diffs)
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _networkImage(diffModel.byIndex(d.index)),
+                    Text(d.label),
+                  ],
+                ),
               const SizedBox(width: 20),
             ],
           ),

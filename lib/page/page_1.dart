@@ -99,8 +99,12 @@ class _Page1State extends State<Page1> {
           );
         }
 
-        const phaseKeys = ['baseline', 'stimulation1', 'recovery1', 'stimulation2', 'recovery2'];
-        const phaseLabels = ['Baseline', 'Stimulation 1', 'Recovery 1', 'Stimulation 2', 'Recovery 2'];
+        // 5/6-phase 키의 합집합(시간 순서). 세션에 없는 phase 는 null 이라
+        // 아래에서 걸러지고, 남은 것의 순서가 어느 모드든 올바르다.
+        const phaseKeys = ['baseline', 'stimulation1', 'recovery1',
+            'stimulation2', 'recovery2', 'stimulation3', 'stimulation4', 'recovery'];
+        const phaseLabels = ['Baseline', 'Stimulation 1', 'Recovery 1',
+            'Stimulation 2', 'Recovery 2', 'Stimulation 3', 'Stimulation 4', 'Recovery'];
         for (int i = 0; i < phaseKeys.length; i++) {
           final phaseData = valueMap[phaseKeys[i]];
           if (phaseData != null) {

@@ -4,6 +4,10 @@ class Connectivity2Model {
   String? recovery1;
   String? stimulation2;
   String? recovery2;
+  // 6-phase 전용 (baseline, stim1~4, recovery)
+  String? stimulation3;
+  String? stimulation4;
+  String? recovery;
 
   Connectivity2Model({
     required this.baseline,
@@ -11,7 +15,25 @@ class Connectivity2Model {
     required this.recovery1,
     required this.stimulation2,
     required this.recovery2,
+    this.stimulation3,
+    this.stimulation4,
+    this.recovery,
   });
+
+  /// phase_defs.dart 의 PhaseCol.key 로 필드를 찾는다.
+  String? byKey(String key) {
+    switch (key) {
+      case 'baseline': return baseline;
+      case 'stimulation1': return stimulation1;
+      case 'recovery1': return recovery1;
+      case 'stimulation2': return stimulation2;
+      case 'recovery2': return recovery2;
+      case 'stimulation3': return stimulation3;
+      case 'stimulation4': return stimulation4;
+      case 'recovery': return recovery;
+    }
+    return null;
+  }
 
 
   factory Connectivity2Model.fromJson(Map<String, dynamic> json, String type) {
@@ -23,6 +45,9 @@ class Connectivity2Model {
       recovery1: (json['recovery1'] as Map?)?['connectivity2_$type'] as String?,
       stimulation2: (json['stimulation2'] as Map?)?['connectivity2_$type'] as String?,
       recovery2: (json['recovery2'] as Map?)?['connectivity2_$type'] as String?,
+      stimulation3: (json['stimulation3'] as Map?)?['connectivity2_$type'] as String?,
+      stimulation4: (json['stimulation4'] as Map?)?['connectivity2_$type'] as String?,
+      recovery: (json['recovery'] as Map?)?['connectivity2_$type'] as String?,
     );
   }
 }
