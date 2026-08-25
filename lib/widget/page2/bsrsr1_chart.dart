@@ -136,7 +136,10 @@ class _Bsrsr1ChartWidgetState extends State<Bsrsr1ChartWidget> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _networkImage(diffModel.byIndex(d.index)),
-                    Text(d.label),
+                    // 6-phase 는 diff 가 5열이라 긴 라벨끼리 겹친다. 짧은 표기로.
+                    Text(diffs.length >= 5 ? d.short : d.label,
+                        style: TextStyle(
+                            fontSize: diffs.length >= 5 ? 12 : 14)),
                   ],
                 ),
               const SizedBox(width: 20),
