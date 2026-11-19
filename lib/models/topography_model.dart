@@ -4,10 +4,13 @@ class TopographyModel {
   String? recovery1;
   String? stimulation2;
   String? recovery2;
-  // 6-phase 전용 (baseline, stim1~4, recovery)
+  // 6-phase (baseline, stim1~4, recovery) 에서 추가. stimulation3·4 는 9-phase 도 쓴다.
   String? stimulation3;
   String? stimulation4;
   String? recovery;
+  // 9-phase 에서 추가 (3차·4차 회복)
+  String? recovery3;
+  String? recovery4;
 
   TopographyModel({
     required this.baseline,
@@ -18,6 +21,8 @@ class TopographyModel {
     this.stimulation3,
     this.stimulation4,
     this.recovery,
+    this.recovery3,
+    this.recovery4,
   });
 
   /// phase_defs.dart 의 PhaseCol.key 로 필드를 찾는다.
@@ -29,7 +34,9 @@ class TopographyModel {
       case 'stimulation2': return stimulation2;
       case 'recovery2': return recovery2;
       case 'stimulation3': return stimulation3;
+      case 'recovery3': return recovery3;
       case 'stimulation4': return stimulation4;
+      case 'recovery4': return recovery4;
       case 'recovery': return recovery;
     }
     return null;
@@ -45,7 +52,9 @@ class TopographyModel {
       stimulation2: (json['stimulation2'] as Map?)?['topography_$type'] as String?,
       recovery2: (json['recovery2'] as Map?)?['topography_$type'] as String?,
       stimulation3: (json['stimulation3'] as Map?)?['topography_$type'] as String?,
+      recovery3: (json['recovery3'] as Map?)?['topography_$type'] as String?,
       stimulation4: (json['stimulation4'] as Map?)?['topography_$type'] as String?,
+      recovery4: (json['recovery4'] as Map?)?['topography_$type'] as String?,
       recovery: (json['recovery'] as Map?)?['topography_$type'] as String?,
     );
   }

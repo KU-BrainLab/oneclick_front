@@ -7,11 +7,13 @@ import 'package:omnifit_front/model/user_model.dart';
 import 'package:omnifit_front/models/graph1_model.dart';
 import 'package:omnifit_front/models/multi_color_line_chart_model.dart';
 import 'package:omnifit_front/models/page1_tab_model.dart';
+import 'package:omnifit_front/models/phase_defs.dart';
 import 'package:omnifit_front/service/app_service.dart';
 import 'package:omnifit_front/widget/page1/graph1.dart';
 import 'package:omnifit_front/widget/header.dart';
 import 'package:omnifit_front/widget/page1/multi_color_line_chart_widget.dart';
 import 'package:omnifit_front/widget/page1/page1_tab1.dart';
+import 'package:omnifit_front/widget/page1/phase_tab_bar_widget.dart';
 
 class Page1 extends StatefulWidget {
   final UserModel user;
@@ -99,17 +101,14 @@ class _Page1State extends State<Page1> {
           );
         }
 
-        // 5/6-phase 키의 합집합(시간 순서). 세션에 없는 phase 는 null 이라
-        // 아래에서 걸러지고, 남은 것의 순서가 어느 모드든 올바르다.
-        const phaseKeys = ['baseline', 'stimulation1', 'recovery1',
-            'stimulation2', 'recovery2', 'stimulation3', 'stimulation4', 'recovery'];
-        const phaseLabels = ['Baseline', 'Stimulation 1', 'Recovery 1',
-            'Stimulation 2', 'Recovery 2', 'Stimulation 3', 'Stimulation 4', 'Recovery'];
-        for (int i = 0; i < phaseKeys.length; i++) {
-          final phaseData = valueMap[phaseKeys[i]];
+        // 모든 모드 키의 합집합(시간 순서, phase_defs.dart). 세션에 없는 phase 는
+        // null 이라 아래에서 걸러지고, 남은 것의 순서가 어느 모드든 올바르다.
+        // 탭 라벨은 띄어 쓴 표기('Stimulation 1')다.
+        for (final p in kPhaseSuperset) {
+          final phaseData = valueMap[p.key];
           if (phaseData != null) {
             page1TabModelList.add(Page1TabModel.fromJson(phaseData as Map<String, dynamic>));
-            availablePhaseLabels.add(phaseLabels[i]);
+            availablePhaseLabels.add(p.spaced);
           }
         }
 
@@ -220,29 +219,16 @@ class _Page1State extends State<Page1> {
                                 ],
                               ),
                             ],
-                            Row(
-                              children: [
-                                for (int i = 0; i < availablePhaseLabels.length; i++)
-                                  MouseRegion(
-                                    cursor: MaterialStateMouseCursor.clickable,
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          index = i;
-                                        });
-                                      },
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          color: index == i ? Colors.grey.withOpacity(0.4) : Colors.white,
-                                          borderRadius: const BorderRadius.all(Radius.circular(4)),
-                                        ),
-                                        width: 110,
-                                        height: 30,
-                                        child: Center(child: Text(availablePhaseLabels[i])),
-                                      ),
-                                    ),
-                                  ),
-                              ],
+                            // 탭이 8개 이상(9-phase 는 9개)이면 줄 폭 안에 모두
+                            // 들어가게 폭을 나눠 쓴다 (PhaseTabBarWidget).
+                            PhaseTabBarWidget(
+                              labels: availablePhaseLabels,
+                              selected: index,
+                              onSelected: (i) {
+                                setState(() {
+                                  index = i;
+                                });
+                              },
                             ),
                             Container(
                               decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 1)),

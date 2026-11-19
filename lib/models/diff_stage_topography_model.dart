@@ -3,10 +3,19 @@ class DiffStageTopographyModel {
   String? diff2;
   String? diff3;
   String? diff4;
-  String? diff5;   // 6-phase 전용 (recovery - stimulation4)
+  // diff 슬롯은 위치 기반이라 모드마다 뜻이 다르다 (라벨은 phase_defs.dart 의
+  // diffSeqFor). diff5 는 6-phase 에서 recovery - stimulation4, 9-phase 에서
+  // stimulation3 - recovery2 다.
+  String? diff5;
+  // 9-phase 에서 추가 (recovery3 - stimulation3, stimulation4 - recovery3,
+  // recovery4 - stimulation4)
+  String? diff6;
+  String? diff7;
+  String? diff8;
 
   DiffStageTopographyModel({
     this.diff1, this.diff2, this.diff3, this.diff4, this.diff5,
+    this.diff6, this.diff7, this.diff8,
   });
 
   String? byIndex(int i) {
@@ -16,6 +25,9 @@ class DiffStageTopographyModel {
       case 2: return diff3;
       case 3: return diff4;
       case 4: return diff5;
+      case 5: return diff6;
+      case 6: return diff7;
+      case 7: return diff8;
     }
     return null;
   }
@@ -29,6 +41,9 @@ class DiffStageTopographyModel {
       diff3: (json['diff3'] as Map?)?['topography_${type}_$stage'] as String?,
       diff4: (json['diff4'] as Map?)?['topography_${type}_$stage'] as String?,
       diff5: (json['diff5'] as Map?)?['topography_${type}_$stage'] as String?,
+      diff6: (json['diff6'] as Map?)?['topography_${type}_$stage'] as String?,
+      diff7: (json['diff7'] as Map?)?['topography_${type}_$stage'] as String?,
+      diff8: (json['diff8'] as Map?)?['topography_${type}_$stage'] as String?,
     );
   }
 }

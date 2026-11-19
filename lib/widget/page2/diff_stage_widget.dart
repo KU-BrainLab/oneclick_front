@@ -6,7 +6,8 @@ import 'package:omnifit_front/models/diff_stage_topography_model.dart';
 
 // diffStageTopoList[bandIndex][stageIndex]
 // diffStageConnList[bandIndex][stageIndex]
-// phases: 0=Stim1-Base, 1=Rec1-Stim1, 2=Stim2-Rec1, 3=Rec2-Stim2
+// phases: diff 슬롯 index (0=diff1 ... 7=diff8). 뜻은 모드마다 다르다 —
+//         5-phase 는 0=Stim1-Base, 1=Rec1-Stim1, 2=Stim2-Rec1, 3=Rec2-Stim2
 // stages: 0=WAKE, 1=N1, 2=N2, 3=N3, 4=REM
 // bands:  0=delta, 1=theta, 2=alpha, 3=sigma, 4=beta, 5=gamma
 
@@ -38,7 +39,7 @@ class _DiffStageWidgetState extends State<DiffStageWidget> {
   @override
   void initState() {
     super.initState();
-    // diff 슬롯(diff1~5)은 위치 기반이라 모드마다 뜻이 다르다 — 라벨은
+    // diff 슬롯(diff1~8)은 위치 기반이라 모드마다 뜻이 다르다 — 라벨은
     // 반드시 phase_defs.dart 에서 가져온다. (1-phase 는 diff 가 없지만
     // 기존 동작대로 앞 두 칸을 보여준다: 데이터가 없으면 "No data".)
     final diffs = diffSeqFor(widget.phaseCount);

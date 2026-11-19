@@ -25,15 +25,19 @@ class MultiColorLineChartModel {
       return MultiColorLineChartModel(dataList: [], intervalX: [], intervalY: 1, minX: 0, maxX: finalAxisMaxX, minY: 0, maxY: 1);
     }
 
-    // 6-phase 에서 6번째 구간이 1번째와 같은 색으로 순환하지 않도록 공용 팔레트 사용
+    // 6-phase 의 6번째, 9-phase 의 7~9번째 구간이 앞 구간과 같은 색으로 순환하지
+    // 않도록 공용 팔레트(9색) 사용
     List<Color> colors = kSegmentColors;
     List<ChartData> dataList = [];
     
     double overallMinY = 99999;
     double overallMaxY = -99999;
 
-    // Trigger 정보가 없으면 finalAxisMaxX 기준 5등분
-    List<double> effectiveIntervals = intervals;
+    // 경계가 10개를 넘으면(마커 10개 이상) 앞 9개 마커와 마지막 값(녹화 끝)만
+    // 쓴다 — 구간은 9개까지다. 그 밖에는 받은 intervals 그대로다.
+    // Trigger 정보가 없으면 finalAxisMaxX 기준 5등분 (phase 수를 알 수 없는 옛
+    // 세션용 대체 동작이라 5 를 그대로 둔다)
+    List<double> effectiveIntervals = phaseBoundaries(intervals);
     if (effectiveIntervals.length < 2) {
       effectiveIntervals = List.generate(6, (i) => finalAxisMaxX * i / 5);
     }

@@ -15,6 +15,15 @@ class MultiColorLineChartWidget extends StatelessWidget {
     required this.maxX,
   }) : super(key: key);
 
+  /// 구간이 이 개수 이상이면 범례를 차트 위에 겹치지 않고 아래에 둔다.
+  /// 기존 모드는 6구간까지라 범례가 그대로다. 9-phase 는 범례가 9줄(약 140px)
+  /// 이라 약 300px 높이의 차트 오른쪽 위 — 마지막 구간들의 곡선 — 를 덮는다.
+  static const int _legendBelowSegments = 7;
+
+  /// 아래 범례의 항목 하나 폭. 본문 폭 820px 에 5개가 들어가 9구간이 5 + 4
+  /// 두 줄이 된다.
+  static const double _legendItemWidth = 150;
+
   String _segmentLabel(int s) {
     final seq = phaseSeqFor(phaseCountFromBoundaries(model.intervalX.length));
     return s < seq.length ? seq[s].spaced : 'Phase ${s + 1}';
@@ -22,9 +31,7 @@ class MultiColorLineChartWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        SfCartesianChart(
+    final chart = SfCartesianChart(
         primaryXAxis: NumericAxis(
           minimum: model.minX,
           maximum: maxX,
@@ -48,7 +55,45 @@ class MultiColorLineChartWidget extends StatelessWidget {
               width: 2,
             ),
           ],
-        ),
+        );
+    final segments = model.intervalX.length - 1;
+    if (segments >= _legendBelowSegments) {
+      // 범례를 차트 아래로 내린다. 색과 라벨은 겹쳐 그리는 범례와 같다.
+      return Column(
+        children: [
+          chart,
+          const SizedBox(height: 4),
+          Wrap(
+            alignment: WrapAlignment.center,
+            runSpacing: 2,
+            children: [
+              for (int s = 0; s < segments; s++)
+                SizedBox(
+                  width: _legendItemWidth,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 2,
+                        color: kSegmentColors[s % kSegmentColors.length],
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(_segmentLabel(s),
+                            style: const TextStyle(fontSize: 10)),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+        ],
+      );
+    }
+    return Stack(
+      children: [
+        chart,
         Align(
           alignment: Alignment.topRight,
           child: Container(

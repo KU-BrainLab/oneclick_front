@@ -11,6 +11,7 @@ import 'package:printing/printing.dart';
 
 import 'package:omnifit_front/constants/constants.dart';
 import 'package:omnifit_front/model/user_model.dart';
+import 'package:omnifit_front/models/phase_defs.dart';
 import 'package:omnifit_front/service/app_service.dart';
 
 // ─── 컬러 팔레트 ─────────────────────────────────────────────────────
@@ -38,15 +39,16 @@ const _kBandLabel = {
   'delta': 'Delta', 'theta': 'Theta', 'alpha': 'Alpha',
   'sigma': 'Sigma', 'beta': 'Beta', 'gamma': 'Gamma',
 };
-// 5/6-phase 키의 합집합(시간 순서). 세션에 없는 phase 의 그림은 null 이라
-// 그리는 쪽에서 걸러지고, 남은 것의 순서가 어느 모드든 올바르다.
-// 백엔드 CONNECTIVITY_PHASES 와 문자열까지 일치해야 한다.
-const _kPhaseOrder = ['baseline', 'stimulation1', 'recovery1', 'stimulation2',
-    'recovery2', 'stimulation3', 'stimulation4', 'recovery'];
+// 모든 모드 키의 합집합(시간 순서) — phase_defs.dart 의 kPhaseSuperset 에서
+// 뽑는다. 세션에 없는 phase 의 그림은 null 이라 그리는 쪽에서 걸러지고, 남은
+// 것의 순서가 어느 모드든 올바르다.
+// 백엔드 CONNECTIVITY_PHASES 와 문자열까지 일치해야 한다 (키·순서·한글 라벨).
+final _kPhaseOrder = [for (final p in kPhaseSuperset) p.key];
 const _kPhaseLabel = {
   'baseline': '기준', 'stimulation1': '1차 자극', 'recovery1': '1차 회복',
   'stimulation2': '2차 자극', 'recovery2': '2차 회복',
-  'stimulation3': '3차 자극', 'stimulation4': '4차 자극', 'recovery': '회복',
+  'stimulation3': '3차 자극', 'recovery3': '3차 회복',
+  'stimulation4': '4차 자극', 'recovery4': '4차 회복', 'recovery': '회복',
 };
 
 class AiReportPdfService {
@@ -735,6 +737,8 @@ class AiReportPdfService {
           widths: {0: 1.2, 1: 1.0, 2: 1.0, 3: 2.4},
         ),
         hrvRows.length,
+        // 행 수 = 그 세션의 phase 수다. 9-phase 의 9행까지 제목과 묶는다.
+        groupUpTo: kMaxPhases,
       ));
       out.add(pw.SizedBox(height: 12));
     }
@@ -1094,8 +1098,14 @@ class AiReportPdfService {
   ///
   /// 기준을 8행으로 둔 이유: 셀이 3줄까지 늘어나도 8행이면 약 380pt 라
   /// 한 페이지 본문 높이(약 730pt)에 여유 있게 들어간다.
-  List<pw.Widget> _titledTable(pw.Widget title, pw.Widget table, int rowCount) {
-    if (rowCount <= 8) return [_group([title, table])];
+  ///
+  /// [groupUpTo] 로 표마다 기준을 올릴 수 있다. 구간별 표만 9행(9-phase)까지
+  /// 묶는다 — 그 표는 셀이 짧아 9행이어도 한 쪽에 넉넉히 들어간다. 다른 표의
+  /// 기준은 올리지 않는다: 행 수를 AI 가 정하는 표('안심할 수 있는 부분')까지
+  /// 올리면 그 표가 9~10행일 때 기존 세션의 쪽 나눔이 달라질 수 있다.
+  List<pw.Widget> _titledTable(pw.Widget title, pw.Widget table, int rowCount,
+      {int groupUpTo = 8}) {
+    if (rowCount <= groupUpTo) return [_group([title, table])];
     return [title, table];
   }
 

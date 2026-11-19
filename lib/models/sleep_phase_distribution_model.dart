@@ -11,7 +11,7 @@ class SleepPhaseDistributionModel {
   // [phaseIndex][stageIndex] = percentage (0~100)
   final List<List<double>> data;
 
-  /// 이 세션의 phase 라벨 (모드에 따라 5개 또는 6개 등).
+  /// 이 세션의 phase 라벨 (모드에 따라 1~9개).
   final List<String> phaseLabels;
 
   SleepPhaseDistributionModel({required this.data, required this.phaseLabels});
@@ -23,13 +23,17 @@ class SleepPhaseDistributionModel {
     final total = sleepStage.length;
     List<List<double>> data = [];
 
-    final phaseCount = phaseCountFromBoundaries(trigger.length);
+    // 경계가 phase 수 + 1 개보다 많으면(마커 10개 이상) 앞 9개 마커와 마지막
+    // 값(녹화 끝)만 쓴다 — 9번째 phase 가 녹화 끝까지 간다. 그 밖에는 trigger
+    // 그대로다.
+    final bounds = phaseBoundaries(trigger);
+    final phaseCount = phaseCountFromBoundaries(bounds.length);
     final seq = phaseSeqFor(phaseCount);
-    final nPhases = min(phaseCount, trigger.length - 1);
+    final nPhases = min(phaseCount, bounds.length - 1);
 
     for (int pi = 0; pi < nPhases; pi++) {
-      final start = min((trigger[pi] as num).toInt() * 2, total);
-      final end   = min((trigger[pi + 1] as num).toInt() * 2, total);
+      final start = min((bounds[pi] as num).toInt() * 2, total);
+      final end   = min((bounds[pi + 1] as num).toInt() * 2, total);
       final count = end - start;
 
       List<double> pct = List.filled(5, 0.0);

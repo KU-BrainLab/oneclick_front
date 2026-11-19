@@ -18,6 +18,7 @@ import 'package:omnifit_front/models/frontal_limbic_model.dart';
 import 'package:omnifit_front/models/psd_spectrogram_model.dart';
 import 'package:omnifit_front/models/graph1_model.dart';
 import 'package:omnifit_front/models/hypnogram_model.dart';
+import 'package:omnifit_front/models/phase_defs.dart';
 import 'package:omnifit_front/models/sleep_phase_distribution_model.dart';
 import 'package:omnifit_front/models/region_psd_model.dart';
 import 'package:omnifit_front/models/related_psd_model.dart';
@@ -118,28 +119,18 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
         
         final valueMap = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
 
-        // Detect phase count from trigger (3-phase: 4 values, 5-phase: 6 values)
+        // phase 개수 판정. 규칙은 phase_defs.dart 한 곳에 있다 (클라이언트와 같다).
+        // trigger 경계값은 phase 수 + 1 개다: 5-phase 6값, 6-phase 7값, 9-phase 10값.
         final triggerList = valueMap['trigger'] as List<dynamic>?;
         if (triggerList != null) {
-          final len = triggerList.length - 1;
-          if (len >= 6) phaseCount = 6;
-          else if (len >= 5) phaseCount = 5;
-          else if (len >= 3) phaseCount = 3;
-          else phaseCount = 1;
+          phaseCount = phaseCountFromBoundaries(triggerList.length);
         } else {
-          final hasStim3 = valueMap['stimulation3'] != null &&
-              valueMap['stimulation3'] is Map &&
-              (valueMap['stimulation3'] as Map).isNotEmpty;
-          final hasStim2 = valueMap['stimulation2'] != null &&
-              valueMap['stimulation2'] is Map &&
-              (valueMap['stimulation2'] as Map).isNotEmpty;
-          final hasStim1 = valueMap['stimulation1'] != null &&
-              valueMap['stimulation1'] is Map &&
-              (valueMap['stimulation1'] as Map).isNotEmpty;
-          if (hasStim3) phaseCount = 6;
-          else if (hasStim2) phaseCount = 5;
-          else if (hasStim1) phaseCount = 3;
-          else phaseCount = 1;
+          // trigger 가 없는 옛 세션은 응답에 있는(비어 있지 않은) phase 키로 정한다.
+          phaseCount = phaseCountFromKeys([
+            for (final p in kPhaseSuperset)
+              if (valueMap[p.key] is Map && (valueMap[p.key] as Map).isNotEmpty)
+                p.key,
+          ]);
         }
 
         // Safely parse the data
@@ -467,12 +458,11 @@ class _Page2State extends State<Page2> with TickerProviderStateMixin { // Change
   }
 
   Widget _buildSpindleCouplingTable() {
-    // 5/6-phase 키의 합집합(시간 순서). payload 에 있는 것만 열이 된다.
-    // (report_merged 의 같은 표와 동일해야 한다.)
-    const phaseOrder = ['baseline', 'stimulation1', 'recovery1', 'stimulation2',
-        'recovery2', 'stimulation3', 'stimulation4', 'recovery'];
-    const phaseLabels = ['Baseline', 'Stim1', 'Rec1', 'Stim2', 'Rec2',
-        'Stim3', 'Stim4', 'Rec'];
+    // 모든 모드 키의 합집합(시간 순서, phase_defs.dart). payload 에 있는 것만
+    // 열이 된다. 키와 머리글(짧은 표기)을 같은 목록에서 뽑으므로 서로 어긋나지
+    // 않는다. (report_merged 의 같은 표와 동일해야 한다.)
+    final phaseOrder = [for (final p in kPhaseSuperset) p.key];
+    final phaseLabels = [for (final p in kPhaseSuperset) p.short];
     // Coupled/min 이 머리 지표. phase 길이가 제각각이라 개수만으로는 비교가 안 된다.
     // Duration 은 그 분모(해당 phase 안에서 이 stage 로 잡힌 시간)라 함께 봐야 해석이 된다.
     const rowLabels = ['Coupled/min', 'Coupled Ratio', 'MRL', 'Mean Phase (°)', 'n_SO', 'n_Spindle', 'n_Coupled', 'Duration (min)'];

@@ -12,6 +12,7 @@ import 'package:omnifit_front/model/user_model.dart';
 import 'package:omnifit_front/models/graph1_model.dart';
 import 'package:omnifit_front/models/hypnogram_model.dart';
 import 'package:omnifit_front/models/multi_color_line_chart_model.dart';
+import 'package:omnifit_front/models/phase_defs.dart';
 import 'package:omnifit_front/models/related_psd_model.dart';
 import 'package:omnifit_front/models/survey_model.dart';
 import 'package:omnifit_front/models/survey_scales.dart';
@@ -25,6 +26,7 @@ import 'package:omnifit_front/widget/page1/multi_color_line_chart_widget.dart';
 import 'package:omnifit_front/widget/page2/cicle_chart_widget.dart';
 import 'package:omnifit_front/widget/page2/default_line_chart.dart';
 import 'package:omnifit_front/widget/page2/hypnogram_widget.dart';
+import 'package:omnifit_front/widget/phase_columns.dart';
 
 class ReportMerged extends StatefulWidget {
   final UserModel user;
@@ -61,6 +63,10 @@ class _ReportMergedState extends State<ReportMerged> {
 
   static const _bandNames = ['Delta', 'Theta', 'Alpha', 'Beta', 'Gamma', 'Sigma'];
   static const _bandKeys = ['delta', 'theta', 'alpha', 'beta', 'gamma', 'sigma'];
+
+  /// 그림 줄이 좁은 배치(7열 이상)인 세션인가 — 9-phase, 또는 7·8-phase 로 끝난 세션.
+  bool get _compactPhaseRows => topographyList.any(
+      (t) => isCompactPhaseRow(ReportPhaseImageRow.present(t.byKey).length));
 
   @override
   void initState() {
@@ -322,6 +328,15 @@ class _ReportMergedState extends State<ReportMerged> {
                           const Center(child: Text("데이터 없음")),
                         const SizedBox(height: 40),
 
+                        // ── 강제 페이지 분리 마커 (그림 줄이 7열 이상일 때만) ──
+                        // 9-phase 처럼 그림 줄이 좁은 배치가 되면 줄이 낮아져서, Gamma 부터
+                        // Sleep Stage 까지 놓고도 쪽이 남아 아래 표의 앞부분이 같은 쪽으로
+                        // 올라온다. 그러면 쪽 경계가 표의 행 한가운데를 가른다. 그래서 표를
+                        // 새 쪽에서 시작시킨다 (report_merged_fc.dart 는 늘 이렇게 한다).
+                        // 6열 이하에는 넣지 않는다 — 기존 세션의 쪽 나눔이 달라지지 않게.
+                        if (_compactPhaseRows)
+                          Container(height: 4, color: const Color(0xFFFF0080)),
+
                         // 5. SO-Spindle Coupling
                         _sectionTitle("SO-Spindle Coupling (P3/P4 평균)"),
                         const SizedBox(height: 16),
@@ -445,58 +460,21 @@ class _ReportMergedState extends State<ReportMerged> {
   }
 
   Widget _buildTopographyRow(TopographyModel topo) {
-    final phases = <(String, String?)>[
-      ('Baseline', topo.baseline),
-      if (topo.stimulation1 != null) ('Stimulation1', topo.stimulation1),
-      if (topo.recovery1 != null) ('Recovery1', topo.recovery1),
-      if (topo.stimulation2 != null) ('Stimulation2', topo.stimulation2),
-      if (topo.recovery2 != null) ('Recovery2', topo.recovery2),
-      if (topo.stimulation3 != null) ('Stimulation3', topo.stimulation3),
-      if (topo.stimulation4 != null) ('Stimulation4', topo.stimulation4),
-      if (topo.recovery != null) ('Recovery', topo.recovery),
-    ];
-    return Row(
+    // 합집합(시간 순서)에서 이 세션에 있는 phase 만 열이 된다. 열 폭과 라벨은
+    // 실제 열 수에 맞춰 ReportPhaseImageRow 가 정한다 — 9-phase 의 9열도 이
+    // 줄(= PDF 캡처 영역) 안에 들어가야 한다.
+    return ReportPhaseImageRow(
+      phases: ReportPhaseImageRow.present(topo.byKey),
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        const SizedBox(width: 20),
-        for (final phase in phases)
-          Container(
-            decoration: BoxDecoration(border: Border.all(color: Colors.black.withOpacity(0.3), width: 1)),
-            child: Column(
-              children: [
-                MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  // 6열이면 900px 폭을 넘지 않게 칸을 줄인다.
-                  child: phase.$2 != null
-                      ? Image.network(
-                          "$BASE_URL${phase.$2}",
-                          width: phases.length >= 6 ? 120 : 150,
-                          filterQuality: FilterQuality.high,
-                          errorBuilder: (_, __, ___) => SizedBox(
-                              width: phases.length >= 6 ? 120 : 150,
-                              height: phases.length >= 6 ? 120 : 150,
-                              child: const Center(child: Text("No data"))),
-                        )
-                      : SizedBox(
-                          width: phases.length >= 6 ? 120 : 150,
-                          height: phases.length >= 6 ? 120 : 150,
-                          child: const Center(child: Text("No data"))),
-                ),
-                Text(phase.$1),
-              ],
-            ),
-          ),
-        const SizedBox(width: 20),
-      ],
     );
   }
 
   Widget _buildSpindleCouplingTable() {
-    // 5/6-phase 키의 합집합(시간 순서). payload 에 있는 것만 열이 된다.
-    const phaseOrder = ['baseline', 'stimulation1', 'recovery1', 'stimulation2',
-        'recovery2', 'stimulation3', 'stimulation4', 'recovery'];
-    const phaseLabels = ['Baseline', 'Stim1', 'Rec1', 'Stim2', 'Rec2',
-        'Stim3', 'Stim4', 'Rec'];
+    // 모든 모드 키의 합집합(시간 순서, phase_defs.dart). payload 에 있는 것만
+    // 열이 된다. 키와 머리글(짧은 표기)을 같은 목록에서 뽑으므로 서로 어긋나지
+    // 않는다.
+    final phaseOrder = [for (final p in kPhaseSuperset) p.key];
+    final phaseLabels = [for (final p in kPhaseSuperset) p.short];
     // Coupled/min 이 머리 지표. phase 길이가 제각각이라 개수만으로는 비교가 안 된다.
     // Duration 은 그 분모(해당 phase 안에서 이 stage 로 잡힌 시간)라 함께 봐야 해석이 된다.
     const rowLabels = ['Coupled/min', 'Coupled Ratio', 'MRL', 'Mean Phase (°)', 'n_SO', 'n_Spindle', 'n_Coupled', 'Duration (min)'];
